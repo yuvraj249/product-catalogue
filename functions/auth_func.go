@@ -6,6 +6,7 @@ import (
 	"os"
 	"product-catalogue/config"
 	"product-catalogue/utils"
+	"strings"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -22,6 +23,24 @@ func Login(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid Request"})
 		return
 	}
+
+	credentials.Email = strings.TrimSpace(credentials.Email)
+
+	if credentials.Email == "" || credentials.Password == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Enter Password and Email!!"})
+		return
+	}
+
+	if !utils.IsValidEmail(credentials.Email) {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid email format !!"})
+		return
+	}
+
+	if !utils.IsValidPassword(credentials.Password) {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid Password!! Must contains 8 letters"})
+		return
+	}
+
 	var id int
 	var pwd_hash, role string
 	var supplierID sql.NullInt64
@@ -32,7 +51,7 @@ func Login(c *gin.Context) {
 
 	}
 	if err != nil {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "Database related error"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Database related error"})
 		return
 	}
 	if !utils.CheckPwd(pwd_hash, credentials.Password) {

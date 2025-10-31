@@ -45,17 +45,22 @@ func RoleAllowed(allowedRoles ...string) gin.HandlerFunc {
 
 		roleValue, ok := claims["role"]
 		if !ok {
-			c.JSON(http.StatusUnauthorized, gin.H{"error": "role absent in token!!"})
+			c.JSON(http.StatusForbidden, gin.H{"error": "role missing in token!!"})
 			c.Abort()
 			return
 		}
-		role, _ := roleValue.(string)
+		role, ok := roleValue.(string)
+		if !ok || role == "" {
+			c.JSON(http.StatusForbidden, gin.H{"error": "Invalid or empty role in token!!"})
+			c.Abort()
+			return
+		}
 		if slices.Contains(allowedRoles, role) {
 			c.Set("role", role)
 			c.Next()
 			return
 		}
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "access denied"})
+		c.JSON(http.StatusForbidden, gin.H{"error": "access denied"})
 		c.Abort()
 	}
 }

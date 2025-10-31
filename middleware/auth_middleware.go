@@ -14,7 +14,7 @@ func AuthMiddleware() gin.HandlerFunc {
 		var token_string string
 		cookie, err := c.Cookie("userCookie")
 		if err == nil && cookie != "" {
-			token_string = cookie
+			token_string = strings.TrimSpace(cookie)
 		}
 		if token_string == "" {
 			authHeader := c.GetHeader("Authorization")
@@ -28,12 +28,19 @@ func AuthMiddleware() gin.HandlerFunc {
 				c.Abort()
 				return
 			}
-			token_string = strings.TrimPrefix(authHeader, "Bearer")
-			token_string = strings.TrimSpace(token_string)
+			token_string = strings.TrimSpace(strings.TrimPrefix(authHeader, "Bearer "))
+
 		}
 
 		secret_k := os.Getenv("JWT_SECRET_KEY")
+		if secret_k == "" {
+			c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": "jwt not configured"})
+			return
+		}
 		token, err := jwt.Parse(token_string, func(token *jwt.Token) (interface{}, error) {
+			if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+				return nil, jwt.ErrTokenUnverifiable
+			}
 			return []byte(secret_k), nil
 		})
 		if err != nil || !token.Valid {
@@ -42,7 +49,18 @@ func AuthMiddleware() gin.HandlerFunc {
 			return
 		}
 
+		claims, ok := token.Claims.(jwt.MapClaims)
+		if !ok {
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid token claims!!"})
+			return
+		}
 		c.Set("token", token)
+		c.Set("claims", claims)
+		if _, err := c.Cookie("userCookie"); err == nil {
+			c.Set("auth_source", "cookie")
+			c.Set("auth_source", "header")
+
+		}
 
 		c.Next()
 
