@@ -1,0 +1,91 @@
+package functions
+
+import (
+	"database/sql"
+	"net/http"
+	"os"
+	"product-catalogue/config"
+	"product-catalogue/utils"
+	"time"
+
+	"github.com/gin-gonic/gin"
+	"github.com/golang-jwt/jwt/v5"
+)
+
+func Login(c *gin.Context) {
+	var credentials struct {
+		Email    string `json:"email"`
+		Password string `json:"password"`
+	}
+
+	if err := c.BindJSON(&credentials); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid Request"})
+		return
+	}
+	var id int
+	var pwd_hash, role string
+	var supplierID sql.NullInt64
+	err := config.DB.QueryRow("select user_id , password_hash, role, supplier_id from users where email=?", credentials.Email).Scan(&id, &pwd_hash, &role, &supplierID)
+	if err == sql.ErrNoRows {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid credentials"})
+		return
+
+	}
+	if err != nil {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Database related error"})
+		return
+	}
+	if !utils.CheckPwd(pwd_hash, credentials.Password) {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid credentials"})
+		return
+	}
+
+	secret_k := os.Getenv("JWT_SECRET_KEY")
+	if secret_k == "" {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "JWT not configured"})
+		return
+	}
+
+	claims := jwt.MapClaims{
+		"sub_id": id,
+		"role":   role,
+		"exp":    time.Now().Add(time.Hour * 24).Unix(),
+	}
+	if role == "supplier_admin" && supplierID.Valid {
+		claims["supplier_id"] = supplierID.Int64
+	}
+
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+	signed_token, err := token.SignedString([]byte(secret_k))
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Token Creation failed"})
+		return
+	}
+
+	http.SetCookie(c.Writer, &http.Cookie{
+		Name:     "userCookie",
+		Value:    signed_token,
+		Path:     "/",
+		MaxAge:   86400,
+		HttpOnly: true,
+		Secure:   true,
+		SameSite: http.SameSiteStrictMode,
+	})
+
+	c.JSON(http.StatusOK, gin.H{"message": "login successful", "role": role})
+
+}
+
+func Logout(c *gin.Context) {
+	http.SetCookie(c.Writer, &http.Cookie{
+		Name:     "userCookie",
+		Value:    "",
+		Path:     "/",
+		MaxAge:   -1,
+		HttpOnly: true,
+		Secure:   true,
+		SameSite: http.SameSiteStrictMode,
+	})
+
+	c.JSON(http.StatusOK, gin.H{"message": "logout successful"})
+}

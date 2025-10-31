@@ -11,9 +11,10 @@ func main() {
 	key := make([]byte, 32)
 	_, err := rand.Read(key)
 	if err != nil {
-		log.Fatal(err)
-
+		log.Fatal("Error while reading key", err)
 	}
-	secret := base64.RawStdEncoding.EncodeToString(key)
-	fmt.Println(secret)
+
+	secret_key := base64.RawStdEncoding.EncodeToString(key)
+	fmt.Println("Secret key Generated: ", secret_key)
+
 }
