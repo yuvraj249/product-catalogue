@@ -1,0 +1,304 @@
+package functions
+
+import (
+	"context"
+	"database/sql"
+	"net/http"
+	"product-catalogue/config"
+	"product-catalogue/models"
+	"strconv"
+	"strings"
+	"time"
+
+	"github.com/gin-gonic/gin"
+	"github.com/golang-jwt/jwt/v5"
+)
+
+func GetClaims(c *gin.Context) (jwt.MapClaims, bool) {
+	claimsExist, ok := c.Get("claims")
+	if !ok {
+		return nil, false
+	}
+	claims, ok := claimsExist.(jwt.MapClaims)
+	return claims, ok
+
+}
+
+func NullStringVal(s string) interface{} {
+	if strings.TrimSpace(s) == "" {
+		return nil
+	}
+	return s
+}
+
+func NullStringPtr(p *string) interface{} {
+	if p == nil {
+		return nil
+	}
+	v := strings.TrimSpace(*p)
+	if v == "" {
+		return nil
+
+	}
+	return v
+}
+
+func NullFlaotPtr(p *float64) interface{} {
+	if p == nil {
+		return nil
+	}
+	return *p
+}
+
+func NullIntPtr(p *int) interface{} {
+	if p == nil {
+		return nil
+	}
+	return *p
+}
+
+func CtxTimeout(c *gin.Context) (context.Context, context.CancelFunc) {
+	return context.WithTimeout(c.Request.Context(), 4*time.Second)
+}
+
+func CreateProduct(c *gin.Context) {
+	claims, ok := GetClaims(c)
+	if !ok {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "authentication required"})
+		c.Abort()
+		return
+	}
+	role, _ := claims["role"].(string)
+	if role != "supplier_admin" {
+		c.JSON(http.StatusForbidden, gin.H{"error": "only supplier amdin is allowed to create product"})
+		c.Abort()
+		return
+	}
+	supplierValue, ok := claims["supplier_id"]
+	if !ok {
+		c.JSON(http.StatusForbidden, gin.H{"error": "supplier_id missing in token !!"})
+		c.Abort()
+		return
+	}
+
+	supplierID := int(supplierValue.(float64))
+
+	var product models.Product
+	if err := c.BindJSON(&product); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid payload"})
+		c.Abort()
+		return
+	}
+
+	product.ProductName = strings.TrimSpace(product.ProductName)
+	if product.ProductName == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "product name is required"})
+		c.Abort()
+		return
+	}
+
+	if product.ProductCost <= 0 {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "product cost must be > 0"})
+		c.Abort()
+		return
+	}
+
+	product.ProductSupplierID = &supplierID
+
+	ctx, cancel := CtxTimeout(c)
+	defer cancel()
+
+	query := "insert into products(product_name,product_description,product_cost,product_category_id, product_supplier_id,discount_type,discount_value) values(?,?,?,?,?,?,?)"
+	result, err := config.DB.ExecContext(ctx, query, product.ProductName, NullStringVal(product.ProductDescription), product.ProductCost, NullIntPtr(product.ProductCategoryID), NullIntPtr(product.ProductSupplierID), NullStringPtr(product.DiscountType), NullFlaotPtr(product.DiscountValue))
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Could not create product"})
+		c.Abort()
+		return
+
+	}
+
+	id, _ := result.LastInsertId()
+	c.JSON(http.StatusOK, gin.H{"message": "product created ", "product_id": id})
+
+}
+
+func GetProduct(c *gin.Context) {
+	claims, ok := GetClaims(c)
+	if !ok {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "authentication required"})
+		c.Abort()
+		return
+	}
+	role, _ := claims["role"].(string)
+
+	ctx, cancel := CtxTimeout(c)
+	defer cancel()
+
+	var rows *sql.Rows
+	var err error
+
+	if role == "system_admin" {
+		rows, err = config.DB.QueryContext(ctx, "select product_id, product_name, product_description, product_cost, product_category_id, product_supplier_id, discount_type, discount_value from products")
+	} else {
+		supplierValue, ok := claims["supplier_id"]
+		if !ok {
+			c.JSON(http.StatusForbidden, gin.H{"error": "supplier_id is missing in token"})
+			c.Abort()
+			return
+		}
+
+		supplierID := int(supplierValue.(float64))
+		rows, err = config.DB.QueryContext(ctx, "select product_id, product_name, product_description, product_cost, product_category_id, product_supplier_id, discount_type, discount_value from products where product_supplier_id=?", supplierID)
+
+	}
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "cannot fetch products"})
+		c.Abort()
+		return
+	}
+	defer rows.Close()
+
+	products := []models.Product{}
+	for rows.Next() {
+		var p models.Product
+		var desp sql.NullString
+		var catgID sql.NullInt64
+		var suppId sql.NullInt64
+		var discType sql.NullString
+		var discValue sql.NullFloat64
+
+		if err := rows.Scan(&p.ProductID, &p.ProductName, &p.ProductCost, &desp, &catgID, &suppId, &discType, &discValue); err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "error while scanning products"})
+			c.Abort()
+			return
+		}
+
+		if desp.Valid {
+			p.ProductDescription = desp.String
+		} else {
+			p.ProductDescription = ""
+		}
+		if catgID.Valid {
+			temp := int(catgID.Int64)
+			p.ProductCategoryID = &temp
+		} else {
+			p.ProductCategoryID = nil
+		}
+		if suppId.Valid {
+			temp := int(suppId.Int64)
+			p.ProductSupplierID = &temp
+		} else {
+			p.ProductSupplierID = nil
+		}
+		if discType.Valid {
+			temp := discType.String
+			p.DiscountType = &temp
+		} else {
+			p.DiscountType = nil
+		}
+		if discValue.Valid {
+			temp := float64(discValue.Float64)
+			p.DiscountValue = &temp
+		} else {
+			p.DiscountValue = nil
+		}
+
+		products = append(products, p)
+
+	}
+	c.JSON(http.StatusOK, gin.H{"message": products})
+
+}
+
+func GetProductByID(c *gin.Context) {
+	id := c.Param("id")
+	p_id, err := strconv.Atoi(id)
+	if err != nil || p_id <= 0 {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid product id"})
+	}
+	claims, ok := GetClaims(c)
+	if !ok {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "authentication required"})
+		c.Abort()
+		return
+	}
+	role, _ := claims["role"].(string)
+	ctx, cancel := CtxTimeout(c)
+	defer cancel()
+
+	var row *sql.Row
+
+	if role == "system_admin" {
+		row = config.DB.QueryRowContext(ctx, "select product_id, product_name, product_description, product_cost, product_category_id, product_supplier_id, discount_type, discount_value from products where product_id=?", p_id)
+	} else {
+		supplierValue, ok := claims["supplier_id"]
+		if !ok {
+			c.JSON(http.StatusForbidden, gin.H{"error": "supplier_id is missing in token"})
+			c.Abort()
+			return
+		}
+		supplierID := int(supplierValue.(float64))
+		row = config.DB.QueryRowContext(ctx, "select product_id, product_name, product_description, product_cost, product_category_id, product_supplier_id, discount_type, discount_value from products where product_id= ? and product_supplier_id= ?", p_id, supplierID)
+
+	}
+
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "cannot fetch products"})
+		c.Abort()
+		return
+	}
+
+	var p models.Product
+	var desp sql.NullString
+	var catgID sql.NullInt64
+	var suppId sql.NullInt64
+	var discType sql.NullString
+	var discValue sql.NullFloat64
+
+	if err := row.Scan(&p.ProductID, &p.ProductName, &desp, &p.ProductCost, &catgID, &suppId, &discType, &discValue); err != nil {
+		if err == sql.ErrNoRows {
+			c.JSON(http.StatusNotFound, gin.H{"error": "product not found"})
+			c.Abort()
+			return
+		}
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to get product"})
+		c.Abort()
+		return
+
+	}
+
+	if desp.Valid {
+		p.ProductDescription = desp.String
+	} else {
+		p.ProductDescription = ""
+	}
+	if catgID.Valid {
+		temp := int(catgID.Int64)
+		p.ProductCategoryID = &temp
+
+	} else {
+		p.ProductCategoryID = nil
+	}
+
+	if suppId.Valid {
+		temp := int(suppId.Int64)
+		p.ProductSupplierID = &temp
+
+	} else {
+		p.ProductSupplierID = nil
+	}
+
+	if discType.Valid {
+		temp := discType.String
+		p.DiscountType = &temp
+	} else {
+		p.DiscountType = nil
+	}
+	if discValue.Valid {
+		temp := float64(discValue.Float64)
+		p.DiscountValue = &temp
+	} else {
+		p.DiscountValue = nil
+	}
+
+}
