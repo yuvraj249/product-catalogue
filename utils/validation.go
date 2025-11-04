@@ -1,9 +1,13 @@
 package utils
 
 import (
+	"context"
+	"database/sql"
 	"fmt"
+	"product-catalogue/config"
 	"regexp"
 	"strings"
+	"time"
 	"unicode"
 )
 
@@ -59,7 +63,7 @@ func ProductValidate(
 	if len(name) < 2 {
 		return fmt.Errorf("product name too short!! please enter valid name ")
 	}
-	validName := regexp.MustCompile(`^[A-Za-z ] +$`)
+	validName := regexp.MustCompile(`^[A-Za-z ]+$`)
 	if !validName.MatchString(name) {
 		return fmt.Errorf("product name should only contain alphabets and spaces")
 	}
@@ -111,6 +115,109 @@ func ProductValidate(
 		if disc == "flat" && *discountValue > float64(cost) {
 			return fmt.Errorf("discountValue cannot exceed product value")
 		}
+	}
+
+	return nil
+
+}
+
+func CategoryExists(categoryID int) (bool, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
+	defer cancel()
+	var exists bool
+	err := config.DB.QueryRowContext(ctx, "select exists(select 1 from categories where category_id=?)", categoryID).Scan(&exists)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return false, nil
+		}
+		return false, err
+
+	}
+	return exists, nil
+
+}
+
+func SupplierValidate(
+	name string,
+	contact_info string,
+	email string,
+	company string,
+
+) error {
+	name = strings.TrimSpace(name)
+	if name == "" {
+		return fmt.Errorf("supplier name required")
+	}
+	if len(name) > 50 {
+		return fmt.Errorf("supplier name too long!! please enter valid name ")
+	}
+	if len(name) < 2 {
+		return fmt.Errorf("supplier name too short!! please enter valid name ")
+	}
+	validName := regexp.MustCompile(`^[A-Za-z ]+$`)
+	if !validName.MatchString(name) {
+		return fmt.Errorf("supplier name should only contain alphabets and spaces")
+	}
+
+	hasLetter := false
+
+	for _, ch := range name {
+		if unicode.IsLetter(ch) {
+			hasLetter = true
+			break
+		}
+
+	}
+
+	if !hasLetter {
+		return fmt.Errorf("supplier name must contain atleast one letter")
+	}
+
+	if contact_info == "" {
+		return fmt.Errorf("contact_info (phone) required")
+	}
+
+	validPhone := regexp.MustCompile(`^[0-9+\-() ]{7,15}$`)
+	if !validPhone.MatchString(contact_info) {
+		return fmt.Errorf("contact_info should only contain (+, - or spaces)")
+	}
+
+	if email == "" {
+		return fmt.Errorf("please enter email")
+	}
+
+	if !IsValidEmail(email) {
+		return fmt.Errorf("invalid email format")
+	}
+
+	company = strings.TrimSpace(company)
+
+	if company == "" {
+		return fmt.Errorf("supplier company name required")
+	}
+	if len(company) > 50 {
+		return fmt.Errorf("supplier company name too long!! please enter valid name ")
+	}
+	if len(company) < 2 {
+		return fmt.Errorf("supplier company name too short!! please enter valid name ")
+	}
+	validCompany := regexp.MustCompile(`^[A-Za-z ]+$`)
+	if !validCompany.MatchString(company) {
+		return fmt.Errorf("supplier company name should only contain alphabets and spaces")
+	}
+
+	hasLetter2 := false
+
+	for _, ch := range company {
+		if unicode.IsLetter(ch) {
+			hasLetter2 = true
+			break
+		}
+
+	}
+
+	if !hasLetter2 {
+		return fmt.Errorf("supplier company name must contain atleast one letter")
 	}
 
 	return nil

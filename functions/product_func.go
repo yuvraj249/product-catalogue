@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"product-catalogue/config"
 	"product-catalogue/models"
+	"product-catalogue/utils"
 	"strconv"
 	"strings"
 	"time"
@@ -91,14 +92,8 @@ func CreateProduct(c *gin.Context) {
 	}
 
 	product.ProductName = strings.TrimSpace(product.ProductName)
-	if product.ProductName == "" {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "product name is required"})
-		c.Abort()
-		return
-	}
-
-	if product.ProductCost <= 0 {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "product cost must be > 0"})
+	if err := utils.ProductValidate(product.ProductName, product.ProductDescription, product.ProductCost, product.ProductCategoryID, product.ProductSupplierID, product.DiscountType, product.DiscountValue); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "error while validating product"})
 		c.Abort()
 		return
 	}
@@ -107,6 +102,20 @@ func CreateProduct(c *gin.Context) {
 
 	ctx, cancel := CtxTimeout(c)
 	defer cancel()
+	if product.ProductCategoryID != nil {
+		ok, err := utils.CategoryExists(*product.ProductCategoryID)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "db error while checking category"})
+			c.Abort()
+			return
+		}
+		if !ok {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "category id does not exist"})
+			c.Abort()
+			return
+		}
+
+	}
 
 	query := "insert into products(product_name,product_description,product_cost,product_category_id, product_supplier_id,discount_type,discount_value) values(?,?,?,?,?,?,?)"
 	result, err := config.DB.ExecContext(ctx, query, product.ProductName, NullStringVal(product.ProductDescription), product.ProductCost, NullIntPtr(product.ProductCategoryID), NullIntPtr(product.ProductSupplierID), NullStringPtr(product.DiscountType), NullFlaotPtr(product.DiscountValue))
@@ -211,9 +220,9 @@ func GetProduct(c *gin.Context) {
 }
 
 func GetProductByID(c *gin.Context) {
-	id := c.Param("id")
-	p_id, err := strconv.Atoi(id)
-	if err != nil || p_id <= 0 {
+	p_id := c.Param("id")
+	id, err := strconv.Atoi(p_id)
+	if err != nil || id <= 0 {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid product id"})
 	}
 	claims, ok := GetClaims(c)
@@ -302,3 +311,95 @@ func GetProductByID(c *gin.Context) {
 	}
 
 }
+
+// func UpdateProduct(c *gin.Context) {
+// 	p_id := c.Param("id")
+// 	id , err := strconv.Atoi(p_id)
+// 	if err != nil || id <= 0{
+// 		c.JSON(http.StatusBadRequest, gin.H{"error":"invalid product id"})
+// 		c.Abort()
+// 		return
+
+// 	}
+
+// 	claims , ok := GetClaims(c)
+// 	if !ok {
+// 		c.JSON(http.StatusUnauthorized, gin.H{"error":"authentication required"})
+// 		c.Abort()
+// 		return
+// 	}
+// 	role , _ := claims["role"].(string)
+// 	if role != "supplier_admin" {
+// 		c.JSON(http.StatusForbidden, gin.H{"error":"only supplier admin can update product"})
+// 		c.Abort()
+// 		return
+
+// 	}
+
+// 	supplierValue , ok := claims["supplier_id"]
+// 	if !ok {
+// 		c.JSON(http.StatusUnauthorized, gin.H{"error":"supplier id missing in token"})
+// 		c.Abort()
+// 		return
+// 	}
+// 	supplierID := int(supplierValue.(float64))
+// 	var product struct {
+// 		ProductName *string `json:"product_name"`
+// 	    ProductDescription *string  `json:"product_description"`
+// 	    ProductCost *int `json:"product_cost"`
+// 	    ProductCategoryID *int `json:"product_category_id"`
+// 	    ProductSupplierID *int `json:"product_supplier_id"`
+// 	    DiscountType *string `json:"discount_type"`
+// 	    DiscountValue *float64 `json:"discount_value"`
+// 	}
+// 	err = c.BindJSON(&product)
+// 	if err != nil {
+// 		c.JSON(http.StatusBadRequest, gin.H{"error":"invalid payload"})
+// 		c.Abort()
+// 		return
+// 	}
+// 	if product.ProductName==nil && product.ProductDescription==nil && product.ProductCost==nil && product.ProductCategoryID == nil && product.ProductSupplierID == nil && product.DiscountType == nil && product.DiscountValue==nil {
+// 		c.JSON(http.StatusBadRequest, gin.H{"error":"no fields provided for update"})
+// 		c.Abort()
+// 		return
+// 	}
+
+// 	ctx , cancel := CtxTimeout(c)
+// 	defer cancel()
+
+// 	var exist models.Product
+// 	var desp sql.NullString
+// 	var catgID sql.NullInt64
+// 	var suppId sql.NullInt64
+// 	var discType sql.NullString
+// 	var discValue sql.NullFloat64
+
+// 	err = config.DB.QueryRowContext(ctx, "select exists(select 1 from products where product_id=?)", id).Scan(&existID)
+// 	if err == sql.ErrNoRows{
+// 		c.JSON(http.StatusNotFound, gin.H{"error":"product not found"})
+// 		c.Abort()
+// 		return
+// 	} else if err!= nil {
+// 		c.JSON(http.StatusInternalServerError, gin.H{"error":"db error while checking product"})
+// 		c.Abort()
+// 		return
+
+// 	}
+
+// 	if product.ProductCategoryID != nil {
+// 		ok , err := utils.CategoryExists(*product.ProductCategoryID)
+// 		if err != nil{
+// 			c.JSON(http.StatusInternalServerError, gin.H{"error": "db error while checking category"})
+// 			c.Abort()
+// 			return
+// 		}
+// 		if !ok {
+// 			c.JSON(http.StatusBadRequest, gin.H{"error": "category id does not exist"})
+// 			c.Abort()
+// 			return
+// 		}
+// 	}
+
+// 	query := "update products set product_name=?, product_description=?,product_cost=?,product_category_id=?,product_supplier_id=?,"
+
+// }
