@@ -224,6 +224,8 @@ func GetProductByID(c *gin.Context) {
 	id, err := strconv.Atoi(p_id)
 	if err != nil || id <= 0 {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid product id"})
+		c.Abort()
+		return
 	}
 	claims, ok := GetClaims(c)
 	if !ok {
@@ -309,6 +311,8 @@ func GetProductByID(c *gin.Context) {
 	} else {
 		p.DiscountValue = nil
 	}
+
+	c.JSON(http.StatusOK, gin.H{"product": p})
 
 }
 

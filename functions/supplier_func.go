@@ -125,17 +125,46 @@ func GetSupplier(c *gin.Context) {
 	var rows *sql.Rows
 	var err error
 
-	if role == "system_admin" {
+	switch role {
+	case "system_admin":
 		rows, err = config.DB.QueryContext(ctx, "select * from suppliers")
-	} else {
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "cannot fetch suppliers"})
+			c.Abort()
+			return
+		}
+	case "supplier_admin":
 		supplierValue, ok := claims["supplier_id"]
 		if !ok {
+
 			c.JSON(http.StatusForbidden, gin.H{"error": "supplier id missing in token"})
 			c.Abort()
 			return
 		}
 		supplierId := int(supplierValue.(float64))
-		rows, err = config.DB.QueryContext(ctx, "select * from suppliers where supplier_id=?", supplierId)
+		var company string
+		err = config.DB.QueryRowContext(ctx, "select company from suppliers where supplier_id= ?", supplierId).Scan(&company)
+		if err == sql.ErrNoRows {
+			c.JSON(http.StatusForbidden, gin.H{"error": "supplier not found"})
+			c.Abort()
+			return
+		} else if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "error while fetching company"})
+			c.Abort()
+			return
+		}
+		rows, err = config.DB.QueryContext(ctx, "select * from suppliers where company= ?", company)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "error while fetching suppliers"})
+			c.Abort()
+			return
+		}
+
+	default:
+		c.JSON(http.StatusForbidden, gin.H{"error": "unauthorized access"})
+		c.Abort()
+		return
+
 	}
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "cannot fetch suppliers"})
@@ -193,8 +222,24 @@ func GetSupplierByID(c *gin.Context) {
 			c.Abort()
 			return
 		}
-		if int(supplierValue.(float64)) != id {
-			c.JSON(http.StatusForbidden, gin.H{"error": "access denied"})
+		supplierID := int(supplierValue.(float64))
+		var loggedCompany string
+		err := config.DB.QueryRowContext(ctx, "select company from suppliers where supplier_id= ?", supplierID).Scan(&loggedCompany)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "could not fetch logged in supplier company"})
+			c.Abort()
+			return
+		}
+		var getCompany string
+		err = config.DB.QueryRowContext(ctx, "select company from suppliers where supplier_id= ?").Scan(&getCompany)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "could not fetch requested company"})
+			c.Abort()
+			return
+		}
+
+		if loggedCompany != getCompany {
+			c.JSON(http.StatusForbidden, gin.H{"error": "access denied - supplier belongs to a different company"})
 			c.Abort()
 			return
 		}
@@ -262,5 +307,149 @@ func DeleteSupplier(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{"message": "suppplier deleted"})
+
+}
+
+func UpdateSupplier(c *gin.Context) {
+	p_id := c.Param("id")
+	id, err := strconv.Atoi(p_id)
+	if err != nil || id <= 0 {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid supplier id"})
+		c.Abort()
+		return
+	}
+	claims, ok := GetClaims2(c)
+	if !ok {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "authentication required"})
+		c.Abort()
+		return
+	}
+	role, _ := claims["role"].(string)
+	if role != "system_admin" {
+		c.JSON(http.StatusForbidden, gin.H{"error": "only system admin can update supplier"})
+		c.Abort()
+		return
+	}
+	var supplierInput struct {
+		Name        *string `json:"name"`
+		ContactInfo *string `json:"contact_info"`
+		Email       *string `json:"email"`
+		Company     *string `json:"company"`
+	}
+
+	if err := c.BindJSON(&supplierInput); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid payload"})
+		c.Abort()
+		return
+	}
+	if supplierInput.Name == nil && supplierInput.ContactInfo == nil && supplierInput.Email == nil && supplierInput.Company == nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "no fields provided to update"})
+		c.Abort()
+		return
+	}
+	ctx, cancel := CtxTimeout2(c)
+	defer cancel()
+
+	var exists models.Supplier
+	var contactInfo sql.NullString
+	row := config.DB.QueryRowContext(ctx, "select * from suppliers where supplier_id= ?", id)
+	if err := row.Scan(&exists.Name, &contactInfo, &exists.Email, &exists.Comapany); err != nil {
+		if err == sql.ErrNoRows {
+			c.JSON(http.StatusFound, gin.H{"error": "supplier not found"})
+			c.Abort()
+			return
+		}
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to fetch supplier"})
+		c.Abort()
+		return
+	}
+	if contactInfo.Valid {
+		exists.ContactInfo = contactInfo.String
+
+	} else {
+		exists.ContactInfo = ""
+	}
+
+	newName := exists.Name
+	newContact := exists.ContactInfo
+	newEmail := exists.Email
+	newCompany := exists.Comapany
+
+	if supplierInput.Name != nil {
+		newName = strings.TrimSpace(*supplierInput.Name)
+	}
+	if supplierInput.ContactInfo != nil {
+		newContact = strings.TrimSpace(*supplierInput.ContactInfo)
+	}
+	if supplierInput.Email != nil {
+		newEmail = strings.TrimSpace(*supplierInput.Email)
+	}
+	if supplierInput.Company != nil {
+		newCompany = strings.TrimSpace(*supplierInput.Company)
+	}
+	if err := utils.SupplierValidate(newName, newContact, newEmail, newCompany); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "please enter valid supplier details"})
+		c.Abort()
+		return
+	}
+	if supplierInput.Email != nil && !strings.EqualFold(exists.Email, newEmail) {
+		var existing bool
+		err := config.DB.QueryRowContext(ctx, "select exists(select 1 from suppliers where lower(email)= ? and supplier_id <> ? )", strings.ToLower(exists.Email), id).Scan(&existing)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "db error while checking email uniqueness"})
+			c.Abort()
+			return
+		}
+		if existing {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "email already used by another supplier"})
+			c.Abort()
+			return
+		}
+
+	}
+
+	var nameArg interface{} = nil
+	var contactArg interface{} = nil
+	var emailArg interface{} = nil
+	var companyArg interface{} = nil
+
+	if supplierInput.Name != nil {
+		nameArg = newName
+
+	}
+	if supplierInput.ContactInfo != nil {
+		contactArg = newContact
+	}
+	if supplierInput.Email != nil {
+		emailArg = newEmail
+	}
+	if supplierInput.Company != nil {
+		companyArg = newCompany
+	}
+
+	query := "update suppliers set name = ifnull(?, name), contact_info = ifnull(?, contact_info), email = ifnull(?, email), company= ifnull(?, company) where supplier_id = ?"
+	_, err = config.DB.ExecContext(ctx, query, nameArg, contactArg, emailArg, companyArg, id)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "error while updating supplier"})
+		c.Abort()
+		return
+	}
+
+	var supplierUpdated models.Supplier
+	var contactUpated sql.NullString
+	err = config.DB.QueryRowContext(ctx, "select * from suppliers where supplier_id= ?", id).Scan(&supplierUpdated.SupplierID, &supplierUpdated.Name, &contactUpated, &supplierUpdated.Email, &supplierUpdated.Comapany)
+	if err != nil {
+		c.JSON(http.StatusOK, gin.H{"message": "supplier updated", "supplier_id": id, "error": "supplier updated but failed to fetch row"})
+		c.Abort()
+		return
+	}
+
+	if contactUpated.Valid {
+		supplierUpdated.ContactInfo = contactUpated.String
+	} else {
+		supplierUpdated.ContactInfo = ""
+
+	}
+	c.JSON(http.StatusOK, gin.H{"message": "supplier updated", "supplier": supplierUpdated})
 
 }

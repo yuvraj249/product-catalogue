@@ -13,6 +13,7 @@ create table if not exists categories(
    category_id int auto_increment primary key,
    category_name varchar(225) not null,
    category_description text
+   
 );
 
 create table if not exists users(

@@ -196,10 +196,10 @@ func SupplierValidate(
 		return fmt.Errorf("supplier company name required")
 	}
 	if len(company) > 50 {
-		return fmt.Errorf("supplier company name too long!! please enter valid name ")
+		return fmt.Errorf("supplier company name too long. please enter valid name ")
 	}
 	if len(company) < 2 {
-		return fmt.Errorf("supplier company name too short!! please enter valid name ")
+		return fmt.Errorf("supplier company name too short. please enter valid name ")
 	}
 	validCompany := regexp.MustCompile(`^[A-Za-z ]+$`)
 	if !validCompany.MatchString(company) {
@@ -218,6 +218,70 @@ func SupplierValidate(
 
 	if !hasLetter2 {
 		return fmt.Errorf("supplier company name must contain atleast one letter")
+	}
+
+	return nil
+
+}
+
+func CategoryValidate(
+	categoryName string,
+	description string,
+) error {
+	categoryName = strings.TrimSpace(categoryName)
+	if categoryName == "" {
+		return fmt.Errorf("category name required")
+	}
+	if len(categoryName) > 50 {
+		return fmt.Errorf("category name too long. please enter valid name ")
+	}
+	if len(categoryName) < 2 {
+		return fmt.Errorf("category name too short. please enter valid name ")
+	}
+	validName := regexp.MustCompile(`^[A-Za-z ]+$`)
+	if !validName.MatchString(categoryName) {
+		return fmt.Errorf("category name should only contain alphabets and spaces")
+	}
+
+	hasLetter3 := false
+
+	for _, ch := range categoryName {
+		if unicode.IsLetter(ch) {
+			hasLetter3 = true
+			break
+		}
+
+	}
+
+	if !hasLetter3 {
+		return fmt.Errorf("category name must contain atleast one letter")
+	}
+
+	if description != "" {
+		if len(description) > 1000 {
+			return fmt.Errorf("description too long.. ")
+		}
+		if len(description) < 2 {
+			return fmt.Errorf("description too short.. ")
+		}
+		validName := regexp.MustCompile(`^[A-Za-z0-9 ]+$`)
+		if !validName.MatchString(description) {
+			return fmt.Errorf("category name should only contain alphabets and spaces and numbers")
+		}
+		hasLetter4 := false
+
+		for _, ch := range description {
+			if unicode.IsLetter(ch) {
+				hasLetter4 = true
+				break
+			}
+
+		}
+
+		if !hasLetter4 {
+			return fmt.Errorf("description must contain atleast one letter")
+		}
+
 	}
 
 	return nil
