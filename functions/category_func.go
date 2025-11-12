@@ -46,7 +46,7 @@ func CreateCategory(c *gin.Context) {
 
 	role, _ := claims["role"].(string)
 	if role != "system_admin" {
-		c.JSON(http.StatusForbidden, gin.H{"error": "only system amdin is allowed to create categories"})
+		c.JSON(http.StatusForbidden, gin.H{"error": "only system admin is allowed to create categories"})
 		c.Abort()
 		return
 	}
@@ -62,7 +62,7 @@ func CreateCategory(c *gin.Context) {
 	catInput.CategoryDescription = strings.TrimSpace(catInput.CategoryDescription)
 
 	if err := utils.CategoryValidate(catInput.CategoryName, catInput.CategoryDescription); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "error while validating input"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		c.Abort()
 		return
 	}
@@ -70,17 +70,17 @@ func CreateCategory(c *gin.Context) {
 	ctx, cancel := CtxTimeout3(c)
 	defer cancel()
 
-	query := "insert into categories(category_id, category_name, category_description) values(?, ?, ?)"
-	result, err := config.DB.ExecContext(ctx, query, catInput.CategoryID, catInput.CategoryName, NullStringVal3(catInput.CategoryDescription))
+	query := "insert into categories( category_name, category_description) values(?, ?)"
+	result, err := config.DB.ExecContext(ctx, query, catInput.CategoryName, NullStringVal3(catInput.CategoryDescription))
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Could not create product"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Could not create category"})
 		c.Abort()
 		return
 
 	}
 
 	id, _ := result.LastInsertId()
-	c.JSON(http.StatusOK, gin.H{"message": "product created", "product_id": id})
+	c.JSON(http.StatusCreated, gin.H{"message": "category created", "category_id": id})
 
 }
 
@@ -95,18 +95,14 @@ func GetCategory(c *gin.Context) {
 	role, _ := claims["role"].(string)
 	ctx, cancel := CtxTimeout3(c)
 	defer cancel()
-	var rows *sql.Rows
-	var err error
-
-	if role == "system_admin" {
-		rows, err = config.DB.QueryContext(ctx, "select * from categories")
-		if err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "db error while fetching categories"})
-			c.Abort()
-			return
-		}
-	} else {
+	if role != "system_admin" && role != "supplier_admin" {
 		c.JSON(http.StatusForbidden, gin.H{"error": "access denied"})
+		c.Abort()
+		return
+	}
+	rows, err := config.DB.QueryContext(ctx, "select * from categories")
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "db error while fetching categories"})
 		c.Abort()
 		return
 	}
@@ -130,7 +126,7 @@ func GetCategory(c *gin.Context) {
 
 	}
 
-	c.JSON(http.StatusOK, gin.H{"message": categories})
+	c.JSON(http.StatusOK, gin.H{"categories": categories})
 
 }
 
@@ -138,30 +134,28 @@ func GetCategoryByID(c *gin.Context) {
 	c_id := c.Param("id")
 	id, err := strconv.Atoi(c_id)
 	if err != nil || id <= 0 {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid product id"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid category id"})
 		c.Abort()
 		return
 	}
-	claims, ok := GetClaims(c)
+	claims, ok := GetClaims3(c)
 	if !ok {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "authentication required"})
 		c.Abort()
 		return
 	}
 	role, _ := claims["role"].(string)
-	ctx, cancel := CtxTimeout(c)
-	defer cancel()
 
-	var row *sql.Row
-	if role == "system_admin" || role == "supplier_admin" {
-		row = config.DB.QueryRowContext(ctx, "select * from categories where category_id=?", c_id)
-
-	}
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "cannot fetch category"})
+	if role != "system_admin" && role != "supplier_admin" {
+		c.JSON(http.StatusForbidden, gin.H{"error": "access denied"})
 		c.Abort()
 		return
 	}
+
+	ctx, cancel := CtxTimeout3(c)
+	defer cancel()
+
+	row := config.DB.QueryRowContext(ctx, "select * from categories where category_id = ?", id)
 
 	var ct models.Category
 	var catDesp sql.NullString
@@ -191,11 +185,11 @@ func DeleteCategory(c *gin.Context) {
 	c_id := c.Param("id")
 	id, err := strconv.Atoi(c_id)
 	if err != nil || id <= 0 {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid product id"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid category id"})
 		c.Abort()
 		return
 	}
-	claims, ok := GetClaims(c)
+	claims, ok := GetClaims3(c)
 	if !ok {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "authentication required"})
 		c.Abort()
@@ -220,6 +214,8 @@ func DeleteCategory(c *gin.Context) {
 	rowsAffected, _ := result.RowsAffected()
 	if rowsAffected == 0 {
 		c.JSON(http.StatusNotFound, gin.H{"error": "category not found"})
+		c.Abort()
+		return
 	}
 
 	c.JSON(http.StatusOK, gin.H{"message": "category deleted"})
@@ -230,11 +226,11 @@ func UpdateCategory(c *gin.Context) {
 	c_id := c.Param("id")
 	id, err := strconv.Atoi(c_id)
 	if err != nil || id <= 0 {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid product id"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid category id"})
 		c.Abort()
 		return
 	}
-	claims, ok := GetClaims(c)
+	claims, ok := GetClaims3(c)
 	if !ok {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "authentication required"})
 		c.Abort()
@@ -242,7 +238,7 @@ func UpdateCategory(c *gin.Context) {
 	}
 	role, _ := claims["role"].(string)
 	if role != "system_admin" {
-		c.JSON(http.StatusForbidden, gin.H{"error": "only system admin can delete category"})
+		c.JSON(http.StatusForbidden, gin.H{"error": "only system admin can update category"})
 		c.Abort()
 		return
 	}
@@ -267,10 +263,10 @@ func UpdateCategory(c *gin.Context) {
 
 	var exists models.Category
 	var catDesp sql.NullString
-	row := config.DB.QueryRowContext(ctx, "select * from categories where category_id = ?")
+	row := config.DB.QueryRowContext(ctx, "select * from categories where category_id = ?", id)
 	if err := row.Scan(&exists.CategoryID, &exists.CategoryName, &catDesp); err != nil {
 		if err == sql.ErrNoRows {
-			c.JSON(http.StatusFound, gin.H{"error": "category not found"})
+			c.JSON(http.StatusNotFound, gin.H{"error": "category not found"})
 			c.Abort()
 			return
 		}
@@ -295,7 +291,7 @@ func UpdateCategory(c *gin.Context) {
 	}
 
 	if err := utils.CategoryValidate(newName, newDesp); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "please enter valid category details"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		c.Abort()
 		return
 	}
@@ -310,8 +306,8 @@ func UpdateCategory(c *gin.Context) {
 		despArg = newDesp
 	}
 
-	query := "update set category_id = ifnull(?, category_name), category_description = ifnull(?, category_description) where category_id = ?"
-	_, err = config.DB.ExecContext(ctx, query, nameArg, despArg)
+	query := "update categories set category_name = ifnull(?, category_name), category_description = ifnull(?, category_description) where category_id = ?"
+	_, err = config.DB.ExecContext(ctx, query, nameArg, despArg, id)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "error while updating category"})
 		c.Abort()
@@ -328,7 +324,7 @@ func UpdateCategory(c *gin.Context) {
 	}
 
 	if catDesp2.Valid {
-		catUpdated.CategoryName = catDesp2.String
+		catUpdated.CategoryDescription = catDesp2.String
 	} else {
 		catUpdated.CategoryDescription = ""
 	}

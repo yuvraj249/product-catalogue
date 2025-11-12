@@ -107,7 +107,7 @@ func CreateSupplier(c *gin.Context) {
 	}
 
 	id, _ := result.LastInsertId()
-	c.JSON(http.StatusBadRequest, gin.H{"error": "supplier created", "supplier_id": id})
+	c.JSON(http.StatusCreated, gin.H{"message": "supplier created", "supplier_id": id})
 
 }
 
@@ -127,7 +127,7 @@ func GetSupplier(c *gin.Context) {
 
 	switch role {
 	case "system_admin":
-		rows, err = config.DB.QueryContext(ctx, "select * from suppliers")
+		rows, err = config.DB.QueryContext(ctx, "select supplier_id, name, contact_info, email , company from suppliers")
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "cannot fetch suppliers"})
 			c.Abort()
@@ -177,7 +177,7 @@ func GetSupplier(c *gin.Context) {
 	for rows.Next() {
 		var sp models.Supplier
 		var contact_info sql.NullString
-		if err := rows.Scan(&sp.SupplierID, &contact_info, &sp.Email, &sp.Comapany); err != nil {
+		if err := rows.Scan(&sp.SupplierID, &sp.Name, &contact_info, &sp.Email, &sp.Comapany); err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "error while scanning supppliers"})
 			c.Abort()
 			return
@@ -231,7 +231,7 @@ func GetSupplierByID(c *gin.Context) {
 			return
 		}
 		var getCompany string
-		err = config.DB.QueryRowContext(ctx, "select company from suppliers where supplier_id= ?").Scan(&getCompany)
+		err = config.DB.QueryRowContext(ctx, "select company from suppliers where supplier_id= ?", id).Scan(&getCompany)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "could not fetch requested company"})
 			c.Abort()
@@ -245,10 +245,10 @@ func GetSupplierByID(c *gin.Context) {
 		}
 
 	}
-	row := config.DB.QueryRowContext(ctx, "select * from suppliers where supplier_id=?", id)
+	row := config.DB.QueryRowContext(ctx, "select supplier_id, name, contact_info, email, company from suppliers where supplier_id = ?", id)
 	var sp models.Supplier
 	var contact_info sql.NullString
-	if err := row.Scan(&sp.SupplierID, &contact_info, &sp.Email, &sp.Comapany); err != nil {
+	if err := row.Scan(&sp.SupplierID, &sp.Name, &contact_info, &sp.Email, &sp.Comapany); err != nil {
 		if err == sql.ErrNoRows {
 			c.JSON(http.StatusNotFound, gin.H{"error": "supplier not found"})
 			c.Abort()
@@ -304,6 +304,8 @@ func DeleteSupplier(c *gin.Context) {
 	rowsAffected, _ := result.RowsAffected()
 	if rowsAffected == 0 {
 		c.JSON(http.StatusNotFound, gin.H{"error": "supplier not found"})
+		c.Abort()
+		return
 	}
 
 	c.JSON(http.StatusOK, gin.H{"message": "suppplier deleted"})
@@ -353,9 +355,9 @@ func UpdateSupplier(c *gin.Context) {
 	var exists models.Supplier
 	var contactInfo sql.NullString
 	row := config.DB.QueryRowContext(ctx, "select * from suppliers where supplier_id= ?", id)
-	if err := row.Scan(&exists.Name, &contactInfo, &exists.Email, &exists.Comapany); err != nil {
+	if err := row.Scan(&exists.SupplierID, &exists.Name, &contactInfo, &exists.Email, &exists.Comapany); err != nil {
 		if err == sql.ErrNoRows {
-			c.JSON(http.StatusFound, gin.H{"error": "supplier not found"})
+			c.JSON(http.StatusNotFound, gin.H{"error": "supplier not found"})
 			c.Abort()
 			return
 		}
@@ -388,19 +390,22 @@ func UpdateSupplier(c *gin.Context) {
 		newCompany = strings.TrimSpace(*supplierInput.Company)
 	}
 	if err := utils.SupplierValidate(newName, newContact, newEmail, newCompany); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "please enter valid supplier details"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		c.Abort()
 		return
 	}
 	if supplierInput.Email != nil && !strings.EqualFold(exists.Email, newEmail) {
-		var existing bool
-		err := config.DB.QueryRowContext(ctx, "select exists(select 1 from suppliers where lower(email)= ? and supplier_id <> ? )", strings.ToLower(exists.Email), id).Scan(&existing)
+		var count int
+		query := "select count(*) from suppliers where lower(email)= ? and supplier_id <> ?"
+		err := config.DB.QueryRowContext(ctx, query, strings.ToLower(newEmail), id).Scan(&count)
+
 		if err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "db error while checking email uniqueness"})
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "db error while checking email"})
 			c.Abort()
 			return
 		}
-		if existing {
+
+		if count > 0 {
 			c.JSON(http.StatusBadRequest, gin.H{"error": "email already used by another supplier"})
 			c.Abort()
 			return

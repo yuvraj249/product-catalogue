@@ -3,6 +3,7 @@ package utils
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"fmt"
 	"product-catalogue/config"
 	"regexp"
@@ -11,20 +12,37 @@ import (
 	"unicode"
 )
 
-func IsValidEmail(email string) bool {
-	email_check := regexp.MustCompile(`^[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}$`)
-	return email_check.MatchString(email)
-}
+func IsValidEmail(email string) error {
+	email = strings.TrimSpace(email)
 
-func IsValidPassword(password string) bool {
-	if len(password) < 8 {
-		return false
+	if email == "" {
+		return errors.New("email cannot be empty")
 	}
 
-	hasUpper := false
-	hasLower := false
-	hasSpecial := false
-	hasNumber := false
+	re := regexp.MustCompile(`^[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}$`)
+	if !re.MatchString(email) {
+		return errors.New("invalid email format. must contain '@' and a valid domain (e.g., user@example.com)")
+	}
+
+	if strings.HasPrefix(email, "@") || strings.HasSuffix(email, "@") {
+		return errors.New("email cannot start or end with '@'")
+	}
+
+	if strings.Contains(email, "..") {
+		return errors.New("email cannot contain consecutive dots ('..')")
+	}
+
+	return nil
+}
+
+func IsValidPassword(password string) error {
+	if len(password) < 8 {
+		return errors.New("password must be at least 8 characters long")
+	}
+	var hasUpper bool
+	var hasLower bool
+	var hasNumber bool
+	var hasSpecial bool
 
 	for _, ch := range password {
 		switch {
@@ -32,22 +50,38 @@ func IsValidPassword(password string) bool {
 			hasUpper = true
 		case unicode.IsLower(ch):
 			hasLower = true
-		case unicode.IsPunct(ch) || unicode.IsSymbol(ch):
-			hasSpecial = true
 		case unicode.IsNumber(ch):
 			hasNumber = true
+		case unicode.IsPunct(ch) || unicode.IsSymbol(ch):
+			hasSpecial = true
 		}
-
 	}
 
-	return hasUpper && hasLower && hasSpecial && hasNumber
+	var missing []string
+	if !hasUpper {
+		missing = append(missing, "uppercase letter")
+	}
+	if !hasLower {
+		missing = append(missing, "lowercase letter")
+	}
+	if !hasNumber {
+		missing = append(missing, "number")
+	}
+	if !hasSpecial {
+		missing = append(missing, "special character (!, @, #, $, etc.)")
+	}
 
+	if len(missing) > 0 {
+		return errors.New("password must contain at least one " + strings.Join(missing, ", "))
+	}
+
+	return nil
 }
 
 func ProductValidate(
 	name string,
 	description string,
-	cost int,
+	cost float64,
 	categoryID *int,
 	supplierID *int,
 	discountType *string,
@@ -63,9 +97,9 @@ func ProductValidate(
 	if len(name) < 2 {
 		return fmt.Errorf("product name too short!! please enter valid name ")
 	}
-	validName := regexp.MustCompile(`^[A-Za-z ]+$`)
+	validName := regexp.MustCompile(`^[A-Za-z0-9 ]+$`)
 	if !validName.MatchString(name) {
-		return fmt.Errorf("product name should only contain alphabets and spaces")
+		return fmt.Errorf("product name should only contain alphabets , spaces and numbers")
 	}
 
 	hasLetter := false
@@ -82,7 +116,7 @@ func ProductValidate(
 		return fmt.Errorf("product name must contain atleast one letter")
 	}
 
-	if cost <= 0 || cost > 9999999999 {
+	if cost <= 0 || cost > 9999999999.5 {
 		return fmt.Errorf("please enter realistic cost for product ")
 	}
 
@@ -179,14 +213,14 @@ func SupplierValidate(
 
 	validPhone := regexp.MustCompile(`^[0-9+\-() ]{7,15}$`)
 	if !validPhone.MatchString(contact_info) {
-		return fmt.Errorf("contact_info should only contain (+, - or spaces)")
+		return fmt.Errorf("contact_info should only contain (+, -, 0-9 or spaces)")
 	}
 
 	if email == "" {
 		return fmt.Errorf("please enter email")
 	}
 
-	if !IsValidEmail(email) {
+	if IsValidEmail(email) != nil {
 		return fmt.Errorf("invalid email format")
 	}
 
@@ -238,7 +272,7 @@ func CategoryValidate(
 	if len(categoryName) < 2 {
 		return fmt.Errorf("category name too short. please enter valid name ")
 	}
-	validName := regexp.MustCompile(`^[A-Za-z ]+$`)
+	validName := regexp.MustCompile(`^[A-Za-z0-9 ]+$`)
 	if !validName.MatchString(categoryName) {
 		return fmt.Errorf("category name should only contain alphabets and spaces")
 	}
@@ -264,9 +298,9 @@ func CategoryValidate(
 		if len(description) < 2 {
 			return fmt.Errorf("description too short.. ")
 		}
-		validName := regexp.MustCompile(`^[A-Za-z0-9 ]+$`)
+		validName := regexp.MustCompile(`^[A-Za-z ]+$`)
 		if !validName.MatchString(description) {
-			return fmt.Errorf("category name should only contain alphabets and spaces and numbers")
+			return fmt.Errorf("category name should only contain alphabets and spaces")
 		}
 		hasLetter4 := false
 

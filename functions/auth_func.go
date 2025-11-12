@@ -31,13 +31,13 @@ func Login(c *gin.Context) {
 		return
 	}
 
-	if !utils.IsValidEmail(credentials.Email) {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid email format !!"})
+	if errEmail := utils.IsValidEmail(credentials.Email); errEmail != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": errEmail.Error()})
 		return
 	}
 
-	if !utils.IsValidPassword(credentials.Password) {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid Password!! Must contains 8 letters"})
+	if errPwd := utils.IsValidPassword(credentials.Password); errPwd != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": errPwd.Error()})
 		return
 	}
 
@@ -66,9 +66,9 @@ func Login(c *gin.Context) {
 	}
 
 	claims := jwt.MapClaims{
-		"sub_id": id,
-		"role":   role,
-		"exp":    time.Now().Add(time.Hour * 24).Unix(),
+		"user_id": id,
+		"role":    role,
+		"exp":     time.Now().Add(time.Hour * 24).Unix(),
 	}
 	if role == "supplier_admin" && supplierID.Valid {
 		claims["supplier_id"] = supplierID.Int64
@@ -93,18 +93,4 @@ func Login(c *gin.Context) {
 
 	c.JSON(http.StatusOK, gin.H{"message": "login successful", "role": role})
 
-}
-
-func Logout(c *gin.Context) {
-	http.SetCookie(c.Writer, &http.Cookie{
-		Name:     "userCookie",
-		Value:    "",
-		Path:     "/",
-		MaxAge:   -1,
-		HttpOnly: true,
-		Secure:   true,
-		SameSite: http.SameSiteStrictMode,
-	})
-
-	c.JSON(http.StatusOK, gin.H{"message": "logout successful"})
 }
