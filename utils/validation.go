@@ -52,7 +52,7 @@ func IsValidPassword(password string) error {
 			hasLower = true
 		case unicode.IsNumber(ch):
 			hasNumber = true
-		case unicode.IsPunct(ch) || unicode.IsSymbol(ch):
+		case unicode.IsPunct(ch):
 			hasSpecial = true
 		}
 	}
@@ -274,7 +274,7 @@ func CategoryValidate(
 	}
 	validName := regexp.MustCompile(`^[A-Za-z0-9 ]+$`)
 	if !validName.MatchString(categoryName) {
-		return fmt.Errorf("category name should only contain alphabets and spaces")
+		return fmt.Errorf("category name should only contain alphabets,numbers and spaces")
 	}
 
 	hasLetter3 := false
@@ -298,8 +298,8 @@ func CategoryValidate(
 		if len(description) < 2 {
 			return fmt.Errorf("description too short.. ")
 		}
-		validName := regexp.MustCompile(`^[A-Za-z ]+$`)
-		if !validName.MatchString(description) {
+		validName2 := regexp.MustCompile(`^[A-Za-z ]+$`)
+		if !validName2.MatchString(description) {
 			return fmt.Errorf("category name should only contain alphabets and spaces")
 		}
 		hasLetter4 := false

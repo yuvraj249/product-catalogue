@@ -178,7 +178,7 @@ func GetDashboard(c *gin.Context) {
 		resp["low_stock_threshold"] = lowStock
 		resp["low_stock_products"] = lowStockList
 
-		mvntRows, err := config.DB.QueryContext(ctx, "select sm.stock_id, sm.product_id, p.product_name,sm.quantity, sm.movement_type, sm.reason from stock_movements sm join products p on sm.product_id = p.product_id join suppliers s on p.product_supplier_id = s.supplier_id where s.company = ? order by sm.stock_id desc", company)
+		mvntRows, err := config.DB.QueryContext(ctx, "select sm.stock_id, sm.product_id, p.product_name, sm.movement_type, sm.quantity, sm.reason from stock_movements sm join products p on sm.product_id = p.product_id join suppliers s on p.product_supplier_id = s.supplier_id where s.company = ? order by sm.stock_id desc", company)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to fetch recent stock movements"})
 			c.Abort()

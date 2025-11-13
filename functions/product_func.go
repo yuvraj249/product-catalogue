@@ -83,22 +83,37 @@ func CreateProduct(c *gin.Context) {
 	}
 
 	supplierID := int(supplierValue.(float64))
-
-	var product models.Product
-	if err := c.BindJSON(&product); err != nil {
+	var in struct {
+		ProductName        string   `json:"product_name"`
+		ProductDescription *string  `json:"product_description"`
+		ProductCost        float64  `json:"product_cost"`
+		ProductCategoryID  *int     `json:"product_category_id"`
+		DiscountType       *string  `json:"discount_type"`
+		DiscountValue      *float64 `json:"discount_value"`
+	}
+	if err := c.BindJSON(&in); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid payload"})
 		c.Abort()
 		return
 	}
+	var product models.Product
+	product.ProductName = strings.TrimSpace(in.ProductName)
+	if in.ProductDescription != nil {
+		product.ProductDescription = strings.TrimSpace(*in.ProductDescription)
+	} else {
+		product.ProductDescription = ""
+	}
+	product.ProductCost = in.ProductCost
+	product.ProductCategoryID = in.ProductCategoryID
+	product.ProductSupplierID = &supplierID
+	product.DiscountType = in.DiscountType
+	product.DiscountValue = in.DiscountValue
 
-	product.ProductName = strings.TrimSpace(product.ProductName)
 	if err := utils.ProductValidate(product.ProductName, product.ProductDescription, product.ProductCost, product.ProductCategoryID, product.ProductSupplierID, product.DiscountType, product.DiscountValue); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		c.Abort()
 		return
 	}
-
-	product.ProductSupplierID = &supplierID
 
 	ctx, cancel := CtxTimeout(c)
 	defer cancel()
@@ -394,6 +409,10 @@ func UpdateProduct(c *gin.Context) {
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid payload"})
 		c.Abort()
+		return
+	}
+	if product.ProductSupplierID != nil {
+		c.JSON(http.StatusForbidden, gin.H{"error": "cannot change product supplier"})
 		return
 	}
 	if product.ProductName == nil && product.ProductDescription == nil && product.ProductCost == nil && product.ProductCategoryID == nil && product.ProductSupplierID == nil && product.DiscountType == nil && product.DiscountValue == nil {

@@ -263,7 +263,7 @@ func UpdateCategory(c *gin.Context) {
 
 	var exists models.Category
 	var catDesp sql.NullString
-	row := config.DB.QueryRowContext(ctx, "select * from categories where category_id = ?", id)
+	row := config.DB.QueryRowContext(ctx, "select category_id, category_name, category_description from categories where category_id = ?", id)
 	if err := row.Scan(&exists.CategoryID, &exists.CategoryName, &catDesp); err != nil {
 		if err == sql.ErrNoRows {
 			c.JSON(http.StatusNotFound, gin.H{"error": "category not found"})
@@ -290,10 +290,19 @@ func UpdateCategory(c *gin.Context) {
 		newDesp = strings.TrimSpace(*catInput.CategoryDescription)
 	}
 
-	if err := utils.CategoryValidate(newName, newDesp); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		c.Abort()
-		return
+	if catInput.CategoryName != nil {
+		if err := utils.CategoryValidate(newName, ""); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			c.Abort()
+			return
+		}
+	}
+
+	if catInput.CategoryDescription != nil {
+		if err := utils.CategoryValidate(exists.CategoryName, newDesp); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			return
+		}
 	}
 
 	var nameArg interface{} = nil
