@@ -50,7 +50,7 @@ It includes two roles:
 **ENVIRONMENT VARIABLES (.env)**<br>
 Create a ".env" file in the project root with the following:<br>
 
-DSN="root:<your password>@tcp(127.0.0.1:3306)/product_catalogue?parseTime=true"<br>
+DSN="root:<your-password>@tcp(127.0.0.1:3306)/product_catalogue?parseTime=true"<br>
 JWT_SECRET_KEY=<your-generated-secret">  //To generate secret key run go run tools/secret_key/main.go<br>
 PORT=8080<br>
 LOW_STOCK_ALERT=10<br>
