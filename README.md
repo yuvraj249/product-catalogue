@@ -1,11 +1,14 @@
-**PRODUCT CATALOGUE MANAGEMENT API**
+# PRODUCT CATALOGUE MANAGEMENT API #
 - This project provides a backend API for managing products, suppliers, categories, stock movements, and users.<br>  
 It includes two roles:
 - system_admin  
 - supplier_admin  (also known as users)
 
 
-**SYSTEM ADMIN RESPONSIBILITIES**
+
+
+
+# SYSTEM ADMIN RESPONSIBILITIES #
 - Create new suppliers and update existing supplier details.
 - Get/Read all suppliers or Get suppliers by their ID.
 - Delete any supplier by their ID from the database.
@@ -20,7 +23,10 @@ It includes two roles:
 - Cannot Create,Update or Delete products or cannot create stock movements because system_admin is not tied to any supplier.
 
 
-**SUPPLIER ADMIN RESPONSIBILITIES**
+
+
+
+# SUPPLIER ADMIN RESPONSIBILITIES #
 - Get/Read suppliers or Get suppliers by their ID but these suppliers belong to the same company
 - Create products for their supplier (supplier_id is taken automatically from token).
 - Can update their own products but cannot change the product_supplier_id.
@@ -34,20 +40,25 @@ It includes two roles:
 - Can view Dashboard
 
 
-**IMPORTANT ROLE SEPARATION**
+
+
+# IMPORTANT ROLE SEPARATION #
 - System admin controls the entire platform (suppliers, categories, users, full dashboard).
 - Supplier admin controls only their supplier’s or supplier admins belonging to same company's products or and stock (restricted by supplier_id in JWT token).
 - This ensures data isolation and prevents suppliers from accessing or modifying each other’s data.
 
 
-**DATABASE SETUP**
+
+
+# DATABASE SETUP #
 - CREATE DATABASE product_catalogue;
 - You do not need to create any tables. 
 - All tables and sample data are automatically created by migration/init.sql when running the project.
 
 
 
-**ENVIRONMENT VARIABLES (.env)**<br>
+
+# ENVIRONMENT VARIABLES (.env)** #<br>
 Create a ".env" file in the project root with the following:<br>
 
 DSN="root:<your-password>@tcp(127.0.0.1:3306)/product_catalogue?parseTime=true"<br>
@@ -57,7 +68,8 @@ LOW_STOCK_ALERT=10<br>
 
 
 
-**RUN THE PROJECT**
+
+# RUN THE PROJECT #
 1. Run the server:
    go run main.go
 2. API will run on:
@@ -65,7 +77,9 @@ LOW_STOCK_ALERT=10<br>
 
 
 
-**DEFAULT SYSTEM ADMIN LOGIN**<br>
+
+
+# DEFAULT SYSTEM ADMIN LOGIN #<br>
 - A default system admin user is auto-inserted from init.sql:<br>
 
 Email: yuvrajbisht41@gmail.com
@@ -73,9 +87,10 @@ Password: Yuvraj@2411
 
 
 
-**SYSTEM_ADMIN API TESTING GUIDE**
 
-**LOGIN**<br>
+# SYSTEM_ADMIN API TESTING GUIDE #
+
+## LOGIN ##<br>
 API -> POST to http://localhost:8080/auth/login  <br>
 Login as system_admin (enter with email password given above)<br>
 JSON REQUIRED -> (email, password)<br>
@@ -88,7 +103,9 @@ curl -X POST http://localhost:8080/auth/login \ <br>
       }'<br>
 
 
-**CREATE SUPPLIER**<br>
+
+
+## CREATE SUPPLIER ##<br>
 API -> POST to http://localhost:8080/suppliers <br>
 Create Supplier <br>
 JSON REQUIRED -> (name, contact_info, email, company) <br>
@@ -100,7 +117,9 @@ curl -X POST http://localhost:8080/suppliers \ <br>
      -d '{"name":"ABC Pvt Ltd","contact_info":"9876543210","email":"abc@gmail.com","company":"ABC"}'<br>
 
 
-**GET SUPPLIERS**<br>
+
+
+## GET SUPPLIERS ##<br>
 API -> GET http://localhost:8080/suppliers  <br>
 View all suppliers <br>
 Headers -> Authorization: Bearer <TOKEN> <br>
@@ -109,7 +128,9 @@ curl -X GET http://localhost:8080/suppliers \ <br>
      -H "Authorization: Bearer <TOKEN>" <br>
 
 
-**GET SUPPLIER BY ID**<br>
+
+
+## GET SUPPLIER BY ID ##<br>
 API -> GET http://localhost:8080/suppliers/:id   <br>
 View supplier by ID<br>
 Headers -> Authorization: Bearer <TOKEN> <br>
@@ -119,7 +140,9 @@ curl -X GET http://localhost:8080/suppliers/:id \ <br>
      -H "Authorization: Bearer <TOKEN>" <br>
 
 
-**UPDATE SUPPLIER**<br>
+
+
+## UPDATE SUPPLIER ##<br>
 API -> PUT http://localhost:8080/suppliers/:id  <br>
 Update supplier<br> 
 Headers -> Authorization: Bearer <TOKEN> <br>
@@ -133,7 +156,9 @@ curl -X PUT http://localhost:8080/suppliers/:id \ <br>
      -d '{"company":"Updated Pvt Ltd"}' <br>
 
 
-**DELETE SUPPLIER**<br>
+
+
+## DELETE SUPPLIER ##<br>
 API -> DELETE http://localhost:8080/suppliers/:id  <br>
 Delete supplier<br>
 Headers -> Authorization: Bearer <TOKEN> <br>
@@ -143,7 +168,9 @@ curl -X DELETE http://localhost:8080/suppliers/:id \ <br>
      -H "Authorization: Bearer <TOKEN>" <br>
 
 
-**CREATE SUPPLIER ADMIN (USER)**<br>
+
+
+## CREATE SUPPLIER ADMIN (USER) ##<br>
 API -> POST http://localhost:8080/users/supplier-admin  <br>
 Create supplier_admin user<br> 
 Headers -> Authorization: Bearer <TOKEN> <br>
@@ -155,7 +182,9 @@ curl -X POST http://localhost:8080/users/supplier-admin \ <br>
      -d '{"name":"any name","email":"abc@gmail.com","password":"abc@1234","supplier_id":any integer}' <br>
 
 
-**GET USERS**<br>
+
+
+## GET USERS ##<br>
 API -> GET http://localhost:8080/users/supplier-admin  <br>
 List supplier admins<br>
 Headers -> Authorization: Bearer <TOKEN> <br>
@@ -164,7 +193,9 @@ curl -X GET http://localhost:8080/users/supplier-admin \ <br>
      -H "Authorization: Bearer <TOKEN>" <br>
 
 
-**GET USER BY ID**<br>
+
+
+## GET USER BY ID ##<br>
 API -> GET http://localhost:8080/users/supplier-admin/:id  <br>
 Get supplier_admin by ID<br>
 Headers -> Authorization: Bearer <TOKEN> <br>
@@ -174,7 +205,9 @@ curl -X GET http://localhost:8080/users/supplier-admin/:id \ <br>
      -H "Authorization: Bearer <TOKEN>" <br>
 
 
-**DELETE USER**<br>
+
+
+## DELETE USER ##<br>
 API -> GET http://localhost:8080/users/supplier-admin/:id  <br>
 Get supplier_admin by ID<br>
 Headers -> Authorization: Bearer <TOKEN> <br>
@@ -184,7 +217,9 @@ curl -X GET http://localhost:8080/users/supplier-admin/:id \ <br>
      -H "Authorization: Bearer <TOKEN>" <br>
 
 
-**CREATE CATEGORY**<br>
+
+
+## CREATE CATEGORY ##<br>
 API -> POST http://localhost:8080/categories  <br>
 Create category <br>
 Headers -> Authorization: Bearer <TOKEN> <br>
@@ -197,7 +232,9 @@ curl -X POST http://localhost:8080/categories \ <br>
      -d '{"category_name":"ABC", "category_description":"any string"}' //description should contain atleast one letter and it is not mandatory<br>
 
 
-**GET CATEGORY** <br>
+
+
+## GET CATEGORY ##<br>
 API -> GET http://localhost:8080/categories  <br>
 List categories<br>
 Headers -> Authorization: Bearer <TOKEN> <br>
@@ -206,7 +243,9 @@ curl -X GET http://localhost:8080/categories \ <br>
      -H "Authorization: Bearer <TOKEN>" <br>
 
 
-**GET CTAEGORY BY ID**<br>
+
+
+## GET CTAEGORY BY ID ##<br>
 API -> GET http://localhost:8080/categories/:id  <br>
 Get category by ID<br>
 Headers -> Authorization: Bearer <TOKEN> <br>
@@ -216,7 +255,9 @@ curl -X GET http://localhost:8080/categories/:id \ <br>
      -H "Authorization: Bearer <TOKEN>" <br>
 
 
-**UPDATE CATEGORY**<br>
+
+
+## UPDATE CATEGORY ##<br>
 API -> PUT http://localhost:8080/categories/:id  <br>
 Update category<br>
 Headers -> Authorization: Bearer <TOKEN> <br>
@@ -230,7 +271,9 @@ curl -X PUT http://localhost:8080/categories/:id \ <br>
      -d '{"category_name":"abc" "category_description":"Updated"}' <br>
 
 
-**DELETE CATEGORY**<br>
+
+
+## DELETE CATEGORY ##<br>
 API -> DELETE http://localhost:8080/categories/:id  <br>
 Delete category<br>
 Headers -> Authorization: Bearer <TOKEN> <br>
@@ -240,7 +283,9 @@ curl -X DELETE http://localhost:8080/categories/:id \ <br>
      -H "Authorization: Bearer <TOKEN>" <br>
 
 
-**GET PRODUCTS**<br>
+
+
+## GET PRODUCTS ##<br>
 API -> GET http://localhost:8080/products <br> 
 View all products<br>
 Headers -> Authorization: Bearer <TOKEN> <br>
@@ -249,7 +294,9 @@ curl -X GET http://localhost:8080/products \ <br>
      -H "Authorization: Bearer <TOKEN>" <br>
 
 
-**GET PRODUCTS BY ID**<br>
+
+
+## GET PRODUCTS BY ID ##<br>
 API -> GET http://localhost:8080/products/:id  <br>
 View product by ID<br>
 Headers -> Authorization: Bearer <TOKEN> <br>
@@ -259,7 +306,9 @@ curl -X GET http://localhost:8080/products/:id \ <br>
      -H "Authorization: Bearer <TOKEN>" <br>
 
 
-**GET STOCK_MOVEMENTS** <br>
+
+
+## GET STOCK_MOVEMENTS ##<br>
 API -> GET http://localhost:8080/stock_movements  <br>
 View all stock movements <br>
 Headers -> Authorization: Bearer <TOKEN> <br>
@@ -268,7 +317,9 @@ curl -X GET http://localhost:8080/stock_movements \ <br>
      -H "Authorization: Bearer <TOKEN>" <br>
 
 
-**GET DASHBOARD** <br>
+
+
+## GET DASHBOARD  ##<br>
 API -> GET http://localhost:8080/dashboard  <br>
 Dashboard summary<br>
 Headers -> Authorization: Bearer <TOKEN> <br>
@@ -279,10 +330,12 @@ curl -X GET http://localhost:8080/dashboard \ <br>
 
 
 
-**SUPPLIER ADMIN API REQUESTS**<br>
+# SUPPLIER ADMIN API REQUESTS #<br>
 (Requires login as supplier_admin (user))<br>
 
-**LOGIN**<br>
+
+
+## LOGIN ##<br>
 API -> POST http://localhost:8080/auth/login  <br>
 Login as supplier_admin<br>
 JSON REQUIRED -> (email, password)<br>
@@ -292,7 +345,9 @@ curl -X POST http://localhost:8080/auth/login \ <br>
      -d '{"email":"supplier@gmail.com","password":"Supplier@123"}' <br>
 
 
-**GET SUPPLIERS**<br>
+
+
+## GET SUPPLIERS ##<br>
 API -> GET to http://localhost:8080/suppliers  <br>
 View suppliers (supplier_admin can view suppliers of their company)<br>
 Headers -> Authorization: Bearer <TOKEN> <br>
@@ -301,7 +356,9 @@ curl -X GET http://localhost:8080/suppliers \ <br>
      -H "Authorization: Bearer <TOKEN>" <br>
 
 
-**GET SUPPLIER BY ID**<br>
+
+
+## GET SUPPLIER BY ID ##<br>
 API -> GET to http://localhost:8080/suppliers/:id  <br>
 View a supplier by ID (only if it belongs to the supplier_admin's company)  <br>
 Headers -> Authorization: Bearer <TOKEN> <br>
@@ -311,7 +368,9 @@ curl -X GET http://localhost:8080/suppliers/:id \ <br>
      -H "Authorization: Bearer <TOKEN>" <br>
 
 
-**GET CATEGORY** <br>
+
+
+## GET CATEGORY ##<br>
 API -> GET to http://localhost:8080/categories  <br>
 List all categories  <br>
 Headers -> Authorization: Bearer <TOKEN> <br>
@@ -320,7 +379,9 @@ curl -X GET http://localhost:8080/categories \ <br>
      -H "Authorization: Bearer <TOKEN>" <br>
 
 
-**GET CATEGORY BY ID**<br>
+
+
+## GET CATEGORY BY ID ##<br>
 API -> GET to http://localhost:8080/categories/:id  <br>
 Get category details by ID<br> 
 Headers -> Authorization: Bearer <TOKEN> <br>
@@ -330,7 +391,9 @@ curl -X GET http://localhost:8080/categories/:id \ <br>
      -H "Authorization: Bearer <TOKEN>" <br>
 
 
-**GET PRODUCTS**<br>
+
+
+## GET PRODUCTS ##<br>
 API -> GET to http://localhost:8080/products  <br>
 List products visible to this user (supplier_admin sees products for their supplier belonging to same company)<br>
 Headers -> Authorization: Bearer <TOKEN> <br>
@@ -339,7 +402,9 @@ curl -X GET http://localhost:8080/products \ <br>
      -H "Authorization: Bearer <TOKEN>" <br>
 
 
-**GET PRODUCTS BY ID**<br>
+
+
+## GET PRODUCTS BY ID ##<br>
 API -> GET to http://localhost:8080/products/:id  <br>
 Get product by ID (only if product belongs to supplier who is in same company)<br> 
 Headers -> Authorization: Bearer <TOKEN> <br>
@@ -349,7 +414,9 @@ curl -X GET http://localhost:8080/products/:id \ <br>
      -H "Authorization: Bearer <TOKEN>" <br>
 
 
-**CREATE PRODUCT**<br>
+
+
+## CREATE PRODUCT ##<br>
 API -> POST to http://localhost:8080/products  <br>
 Create a new product for the logged-in supplier (supplier_id is taken from token)<br> 
 JSON REQUIRED -> (product_name,product_category_id, product_cost)<br>
@@ -370,7 +437,9 @@ curl -X POST http://localhost:8080/products \ <br>
          }' <br>
 
 
-**UPDATE PRODUCT**<br>
+
+
+## UPDATE PRODUCT ##<br>
 API -> PUT to http://localhost:8080/products/:id  <br>
 Update an existing product (supplier_admin can update only their products)<br>
 JSON OPTIONAL -> (product_name, product_cost, product_category_id, discount_type, discount_value, product_description)<br>
@@ -388,7 +457,9 @@ curl -X POST http://localhost:8080/products/:id \ <br>
          }' <br>
 
 
-**GET STOCK_MOVEMENTS**<br>
+
+
+## GET STOCK_MOVEMENTS ##<br>
 API -> GET to http://localhost:8080/stock_movements <br> 
 View stock movements (supplier_admin sees only movements for the products created by supplier admin of same company)<br> 
 Headers -> Authorization: Bearer <TOKEN>  <br>
@@ -398,7 +469,10 @@ curl -X GET "http://localhost:8080/stock_movements" \ <br>
 
 
 
-**CREATE STOCK_MOVEMENTS**<br>
+
+
+
+## CREATE STOCK_MOVEMENTS ##<br>
 API -> POST to http://localhost:8080/stock_movements <br>
 Create stock movement for a product owned by the supplier admin<br>
 JSON REQUIRED -> (product_id, quantity, movement_type)<br>  
@@ -416,7 +490,9 @@ curl -X POST http://localhost:8080/stock_movements \ <br>
          }'<br>
 
 
-**GET DASHBOARD**<br>
+
+
+## GET DASHBOARD ##<br>
 API -> GET to http://localhost:8080/dashboard  <br>
 View supplier-specific dashboard (totals and low-stock for the supplier logged in and other supplier admins of same company )<br>
 Headers -> Authorization: Bearer <TOKEN> <br>
@@ -426,7 +502,8 @@ curl -X GET http://localhost:8080/dashboard \ <br>
 
 
 
-**INFO**<br>
+
+## INFO ##<br>
 1. Replace <TOKEN> with the JWT from /auth/login.<br>
 2. Supplier_admin must not include product_supplier_id in create/update bodies — the server uses the supplier_id from the JWT<br>
 
