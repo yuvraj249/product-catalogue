@@ -12,25 +12,18 @@ import (
 func AuthMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var token_string string
-		cookie, err := c.Cookie("userCookie")
-		if err == nil && cookie != "" {
-			token_string = strings.TrimSpace(cookie)
+		authHeader := c.GetHeader("Authorization")
+		if authHeader == "" {
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "Token missing in header"})
+			c.Abort()
+			return
 		}
-		if token_string == "" {
-			authHeader := c.GetHeader("Authorization")
-			if authHeader == "" {
-				c.JSON(http.StatusUnauthorized, gin.H{"error": "Token missing in header"})
-				c.Abort()
-				return
-			}
-			if !strings.HasPrefix(authHeader, "Bearer ") {
-				c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid authorization format"})
-				c.Abort()
-				return
-			}
-			token_string = strings.TrimSpace(strings.TrimPrefix(authHeader, "Bearer "))
-
+		if !strings.HasPrefix(authHeader, "Bearer ") {
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid authorization format"})
+			c.Abort()
+			return
 		}
+		token_string = strings.TrimSpace(strings.TrimPrefix(authHeader, "Bearer "))
 
 		secret_k := os.Getenv("JWT_SECRET_KEY")
 		if secret_k == "" {
@@ -52,15 +45,12 @@ func AuthMiddleware() gin.HandlerFunc {
 		claims, ok := token.Claims.(jwt.MapClaims)
 		if !ok {
 			c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid token claims!!"})
+			c.Abort()
 			return
 		}
 		c.Set("token", token)
 		c.Set("claims", claims)
-		if _, err := c.Cookie("userCookie"); err == nil {
-			c.Set("auth_source", "cookie")
-			c.Set("auth_source", "header")
-
-		}
+		c.Set("auth_source", "header")
 
 		c.Next()
 

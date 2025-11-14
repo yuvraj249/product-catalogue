@@ -132,6 +132,12 @@ func CreateProduct(c *gin.Context) {
 
 	}
 
+	if product.ProductSupplierID == nil || *product.ProductSupplierID != supplierID {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid product_supplier_id"})
+		c.Abort()
+		return
+	}
+
 	query := "insert into products(product_name,product_description,product_cost,product_category_id, product_supplier_id,discount_type,discount_value) values(?,?,?,?,?,?,?)"
 	result, err := config.DB.ExecContext(ctx, query, product.ProductName, NullStringVal(product.ProductDescription), product.ProductCost, NullIntPtr(product.ProductCategoryID), NullIntPtr(product.ProductSupplierID), NullStringPtr(product.DiscountType), NullFlaotPtr(product.DiscountValue))
 	if err != nil {

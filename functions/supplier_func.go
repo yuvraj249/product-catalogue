@@ -78,7 +78,7 @@ func CreateSupplier(c *gin.Context) {
 	supplier.Comapany = strings.TrimSpace(supplier.Comapany)
 
 	if err := utils.SupplierValidate(supplier.Name, supplier.ContactInfo, supplier.Email, supplier.Comapany); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "error while validating input"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		c.Abort()
 		return
 	}

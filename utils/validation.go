@@ -235,9 +235,9 @@ func SupplierValidate(
 	if len(company) < 2 {
 		return fmt.Errorf("supplier company name too short. please enter valid name ")
 	}
-	validCompany := regexp.MustCompile(`^[A-Za-z ]+$`)
+	validCompany := regexp.MustCompile(`^[A-Za-z0-9 ]+$`)
 	if !validCompany.MatchString(company) {
-		return fmt.Errorf("supplier company name should only contain alphabets and spaces")
+		return fmt.Errorf("supplier company name should only contain alphabets,numbers and spaces")
 	}
 
 	hasLetter2 := false
@@ -298,9 +298,9 @@ func CategoryValidate(
 		if len(description) < 2 {
 			return fmt.Errorf("description too short.. ")
 		}
-		validName2 := regexp.MustCompile(`^[A-Za-z ]+$`)
+		validName2 := regexp.MustCompile(`^[A-Za-z0-9 ]+$`)
 		if !validName2.MatchString(description) {
-			return fmt.Errorf("category name should only contain alphabets and spaces")
+			return fmt.Errorf("category description should only contain alphabets,numbers and spaces")
 		}
 		hasLetter4 := false
 
