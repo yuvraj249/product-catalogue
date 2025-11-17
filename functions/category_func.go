@@ -76,7 +76,7 @@ func GetCategory(c *gin.Context) {
 		c.Abort()
 		return
 	}
-	rows, err := config.DB.QueryContext(ctx, "select * from categories")
+	rows, err := config.DB.QueryContext(ctx, "select category_id, category_name, category_description from categories")
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "db error while fetching categories"})
 		c.Abort()
