@@ -1,7 +1,6 @@
 package functions
 
 import (
-	"context"
 	"database/sql"
 	"net/http"
 	"product-catalogue/config"
@@ -9,28 +8,12 @@ import (
 	"product-catalogue/utils"
 	"strconv"
 	"strings"
-	"time"
 
 	"github.com/gin-gonic/gin"
-	"github.com/golang-jwt/jwt/v5"
 )
 
-func GetClaims5(c *gin.Context) (jwt.MapClaims, bool) {
-	claimsExist, ok := c.Get("claims")
-	if !ok {
-		return nil, false
-	}
-	claims, ok := claimsExist.(jwt.MapClaims)
-	return claims, ok
-
-}
-
-func CtxTimeout5(c *gin.Context) (context.Context, context.CancelFunc) {
-	return context.WithTimeout(c.Request.Context(), 4*time.Second)
-}
-
 func CreateSuppAdmin(c *gin.Context) {
-	claims, ok := GetClaims5(c)
+	claims, ok := GetClaims(c)
 	if !ok {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "authentication required"})
 		c.Abort()
@@ -78,7 +61,7 @@ func CreateSuppAdmin(c *gin.Context) {
 		return
 	}
 
-	ctx, cancel := CtxTimeout5(c)
+	ctx, cancel := CtxTimeout(c)
 	defer cancel()
 
 	exists, err := SupplierExists(ctx, admin.SupplierID)
@@ -133,7 +116,7 @@ func CreateSuppAdmin(c *gin.Context) {
 }
 
 func GetsuppAdmin(c *gin.Context) {
-	claims, ok := GetClaims5(c)
+	claims, ok := GetClaims(c)
 	if !ok {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "authentication required"})
 		c.Abort()
@@ -146,7 +129,7 @@ func GetsuppAdmin(c *gin.Context) {
 		return
 	}
 
-	ctx, cancel := CtxTimeout5(c)
+	ctx, cancel := CtxTimeout(c)
 	defer cancel()
 
 	rows, err := config.DB.QueryContext(ctx, "select user_id, name, email, role, supplier_id from users order by user_id asc")
@@ -178,7 +161,7 @@ func GetsuppAdmin(c *gin.Context) {
 }
 
 func GetsuppAdminByID(c *gin.Context) {
-	claims, ok := GetClaims5(c)
+	claims, ok := GetClaims(c)
 	if !ok {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "authentication required"})
 		c.Abort()
@@ -200,7 +183,7 @@ func GetsuppAdminByID(c *gin.Context) {
 		return
 	}
 
-	ctx, cancel := CtxTimeout5(c)
+	ctx, cancel := CtxTimeout(c)
 	defer cancel()
 
 	var user models.User
@@ -237,7 +220,7 @@ func GetsuppAdminByID(c *gin.Context) {
 }
 
 func DeleteSuppAdmin(c *gin.Context) {
-	claims, ok := GetClaims5(c)
+	claims, ok := GetClaims(c)
 	if !ok {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "authentication required"})
 		c.Abort()
@@ -258,7 +241,7 @@ func DeleteSuppAdmin(c *gin.Context) {
 		return
 	}
 
-	ctx, cancel := CtxTimeout5(c)
+	ctx, cancel := CtxTimeout(c)
 	defer cancel()
 
 	result, err := config.DB.ExecContext(ctx, "DELETE FROM users WHERE user_id = ?", uid)

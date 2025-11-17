@@ -9,10 +9,8 @@ import (
 	"product-catalogue/models"
 	"strconv"
 	"strings"
-	"time"
 
 	"github.com/gin-gonic/gin"
-	"github.com/golang-jwt/jwt/v5"
 )
 
 var lowStockAlert int
@@ -24,20 +22,6 @@ func init() {
 			lowStockAlert = v
 		}
 	}
-}
-
-func GetClaims4(c *gin.Context) (jwt.MapClaims, bool) {
-	claimsExist, ok := c.Get("claims")
-	if !ok {
-		return nil, false
-	}
-	claims, ok := claimsExist.(jwt.MapClaims)
-	return claims, ok
-
-}
-
-func CtxTimeout4(c *gin.Context) (context.Context, context.CancelFunc) {
-	return context.WithTimeout(c.Request.Context(), 4*time.Second)
 }
 
 func SupplierCompany(ctx context.Context, supplierID int) (string, error) {
@@ -82,7 +66,7 @@ func CountStock(ctx context.Context, productID int) (int, error) {
 }
 
 func CreateStockMovement(c *gin.Context) {
-	claims, ok := GetClaims4(c)
+	claims, ok := GetClaims(c)
 	if !ok {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "authentication required"})
 		c.Abort()
@@ -133,7 +117,7 @@ func CreateStockMovement(c *gin.Context) {
 		c.Abort()
 		return
 	}
-	ctx, cancel := CtxTimeout3(c)
+	ctx, cancel := CtxTimeout(c)
 	defer cancel()
 
 	var prodSuppID int
@@ -199,7 +183,7 @@ func CreateStockMovement(c *gin.Context) {
 }
 
 func GetStockMovements(c *gin.Context) {
-	claims, ok := GetClaims4(c)
+	claims, ok := GetClaims(c)
 	if !ok {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "authentication required"})
 		c.Abort()
@@ -216,7 +200,7 @@ func GetStockMovements(c *gin.Context) {
 		}
 		prodFilter = pid
 	}
-	ctx, cancel := CtxTimeout4(c)
+	ctx, cancel := CtxTimeout(c)
 	defer cancel()
 
 	var args []interface{}

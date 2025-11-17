@@ -9,10 +9,8 @@ import (
 	"product-catalogue/utils"
 	"strconv"
 	"strings"
-	"time"
 
 	"github.com/gin-gonic/gin"
-	"github.com/golang-jwt/jwt/v5"
 )
 
 func SupplierExists(ctx context.Context, supplierID int) (bool, error) {
@@ -29,29 +27,8 @@ func SupplierExists(ctx context.Context, supplierID int) (bool, error) {
 
 }
 
-func GetClaims2(c *gin.Context) (jwt.MapClaims, bool) {
-	claimsExist, ok := c.Get("claims")
-	if !ok {
-		return nil, false
-	}
-	claims, ok := claimsExist.(jwt.MapClaims)
-	return claims, ok
-
-}
-
-func CtxTimeout2(c *gin.Context) (context.Context, context.CancelFunc) {
-	return context.WithTimeout(c.Request.Context(), 4*time.Second)
-}
-
-func NullStringVal2(s string) interface{} {
-	if strings.TrimSpace(s) == "" {
-		return nil
-	}
-	return s
-}
-
 func CreateSupplier(c *gin.Context) {
-	claims, ok := GetClaims2(c)
+	claims, ok := GetClaims(c)
 	if !ok {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "authentication required"})
 		c.Abort()
@@ -83,7 +60,7 @@ func CreateSupplier(c *gin.Context) {
 		return
 	}
 
-	ctx, cancel := CtxTimeout2(c)
+	ctx, cancel := CtxTimeout(c)
 	defer cancel()
 
 	var exists bool
@@ -99,7 +76,7 @@ func CreateSupplier(c *gin.Context) {
 		return
 	}
 
-	result, err := config.DB.ExecContext(ctx, "insert into suppliers(name, contact_info, email, company) values(?,?,?,?)", supplier.Name, NullStringVal2(supplier.ContactInfo), supplier.Email, supplier.Comapany)
+	result, err := config.DB.ExecContext(ctx, "insert into suppliers(name, contact_info, email, company) values(?,?,?,?)", supplier.Name, NullStringVal(supplier.ContactInfo), supplier.Email, supplier.Comapany)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "cannot not create supplier"})
 		c.Abort()
@@ -112,7 +89,7 @@ func CreateSupplier(c *gin.Context) {
 }
 
 func GetSupplier(c *gin.Context) {
-	claims, ok := GetClaims2(c)
+	claims, ok := GetClaims(c)
 	if !ok {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "authentication required"})
 		c.Abort()
@@ -120,7 +97,7 @@ func GetSupplier(c *gin.Context) {
 	}
 
 	role, _ := claims["role"].(string)
-	ctx, cancel := CtxTimeout2(c)
+	ctx, cancel := CtxTimeout(c)
 	defer cancel()
 	var rows *sql.Rows
 	var err error
@@ -205,14 +182,14 @@ func GetSupplierByID(c *gin.Context) {
 
 	}
 
-	claims, ok := GetClaims2(c)
+	claims, ok := GetClaims(c)
 	if !ok {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "authentication reuqired"})
 		c.Abort()
 		return
 	}
 	role, _ := claims["role"].(string)
-	ctx, cancel := CtxTimeout2(c)
+	ctx, cancel := CtxTimeout(c)
 	defer cancel()
 
 	if role != "system_admin" {
@@ -279,7 +256,7 @@ func DeleteSupplier(c *gin.Context) {
 
 	}
 
-	claims, ok := GetClaims2(c)
+	claims, ok := GetClaims(c)
 	if !ok {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "authentication reuqired"})
 		c.Abort()
@@ -292,7 +269,7 @@ func DeleteSupplier(c *gin.Context) {
 		return
 	}
 
-	ctx, cancel := CtxTimeout2(c)
+	ctx, cancel := CtxTimeout(c)
 	defer cancel()
 
 	result, err := config.DB.ExecContext(ctx, "delete from suppliers where supplier_id=?", id)
@@ -320,7 +297,7 @@ func UpdateSupplier(c *gin.Context) {
 		c.Abort()
 		return
 	}
-	claims, ok := GetClaims2(c)
+	claims, ok := GetClaims(c)
 	if !ok {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "authentication required"})
 		c.Abort()
@@ -349,7 +326,7 @@ func UpdateSupplier(c *gin.Context) {
 		c.Abort()
 		return
 	}
-	ctx, cancel := CtxTimeout2(c)
+	ctx, cancel := CtxTimeout(c)
 	defer cancel()
 
 	var exists models.Supplier

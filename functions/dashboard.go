@@ -8,21 +8,10 @@ import (
 	"strconv"
 
 	"github.com/gin-gonic/gin"
-	"github.com/golang-jwt/jwt/v5"
 )
 
-func GetClaims6(c *gin.Context) (jwt.MapClaims, bool) {
-	claimsExist, ok := c.Get("claims")
-	if !ok {
-		return nil, false
-	}
-	claims, ok := claimsExist.(jwt.MapClaims)
-	return claims, ok
-
-}
-
 func GetDashboard(c *gin.Context) {
-	claims, ok := GetClaims6(c)
+	claims, ok := GetClaims(c)
 	if !ok {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "authentication required"})
 		c.Abort()
@@ -36,7 +25,7 @@ func GetDashboard(c *gin.Context) {
 			lowStock = vl
 		}
 	}
-	ctx, cancel := CtxTimeout5(c)
+	ctx, cancel := CtxTimeout(c)
 	defer cancel()
 
 	type lowStockProd struct {

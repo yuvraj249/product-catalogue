@@ -1,7 +1,6 @@
 package functions
 
 import (
-	"context"
 	"database/sql"
 	"net/http"
 	"product-catalogue/config"
@@ -9,35 +8,12 @@ import (
 	"product-catalogue/utils"
 	"strconv"
 	"strings"
-	"time"
 
 	"github.com/gin-gonic/gin"
-	"github.com/golang-jwt/jwt/v5"
 )
 
-func GetClaims3(c *gin.Context) (jwt.MapClaims, bool) {
-	claimsExist, ok := c.Get("claims")
-	if !ok {
-		return nil, false
-	}
-	claims, ok := claimsExist.(jwt.MapClaims)
-	return claims, ok
-
-}
-
-func NullStringVal3(s string) interface{} {
-	if strings.TrimSpace(s) == "" {
-		return nil
-	}
-	return s
-}
-
-func CtxTimeout3(c *gin.Context) (context.Context, context.CancelFunc) {
-	return context.WithTimeout(c.Request.Context(), 4*time.Second)
-}
-
 func CreateCategory(c *gin.Context) {
-	claims, ok := GetClaims3(c)
+	claims, ok := GetClaims(c)
 	if !ok {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "authentication required"})
 		c.Abort()
@@ -67,11 +43,11 @@ func CreateCategory(c *gin.Context) {
 		return
 	}
 
-	ctx, cancel := CtxTimeout3(c)
+	ctx, cancel := CtxTimeout(c)
 	defer cancel()
 
 	query := "insert into categories( category_name, category_description) values(?, ?)"
-	result, err := config.DB.ExecContext(ctx, query, catInput.CategoryName, NullStringVal3(catInput.CategoryDescription))
+	result, err := config.DB.ExecContext(ctx, query, catInput.CategoryName, NullStringVal(catInput.CategoryDescription))
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Could not create category"})
 		c.Abort()
@@ -85,7 +61,7 @@ func CreateCategory(c *gin.Context) {
 }
 
 func GetCategory(c *gin.Context) {
-	claims, ok := GetClaims3(c)
+	claims, ok := GetClaims(c)
 	if !ok {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "authentication required"})
 		c.Abort()
@@ -93,7 +69,7 @@ func GetCategory(c *gin.Context) {
 	}
 
 	role, _ := claims["role"].(string)
-	ctx, cancel := CtxTimeout3(c)
+	ctx, cancel := CtxTimeout(c)
 	defer cancel()
 	if role != "system_admin" && role != "supplier_admin" {
 		c.JSON(http.StatusForbidden, gin.H{"error": "access denied"})
@@ -138,7 +114,7 @@ func GetCategoryByID(c *gin.Context) {
 		c.Abort()
 		return
 	}
-	claims, ok := GetClaims3(c)
+	claims, ok := GetClaims(c)
 	if !ok {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "authentication required"})
 		c.Abort()
@@ -152,10 +128,10 @@ func GetCategoryByID(c *gin.Context) {
 		return
 	}
 
-	ctx, cancel := CtxTimeout3(c)
+	ctx, cancel := CtxTimeout(c)
 	defer cancel()
 
-	row := config.DB.QueryRowContext(ctx, "select * from categories where category_id = ?", id)
+	row := config.DB.QueryRowContext(ctx, "select category_id, category_name, category_description from categories where category_id = ?", id)
 
 	var ct models.Category
 	var catDesp sql.NullString
@@ -189,7 +165,7 @@ func DeleteCategory(c *gin.Context) {
 		c.Abort()
 		return
 	}
-	claims, ok := GetClaims3(c)
+	claims, ok := GetClaims(c)
 	if !ok {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "authentication required"})
 		c.Abort()
@@ -202,7 +178,7 @@ func DeleteCategory(c *gin.Context) {
 		return
 	}
 
-	ctx, cancel := CtxTimeout3(c)
+	ctx, cancel := CtxTimeout(c)
 	defer cancel()
 
 	result, err := config.DB.ExecContext(ctx, "delete from categories where category_id= ?", id)
@@ -230,7 +206,7 @@ func UpdateCategory(c *gin.Context) {
 		c.Abort()
 		return
 	}
-	claims, ok := GetClaims3(c)
+	claims, ok := GetClaims(c)
 	if !ok {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "authentication required"})
 		c.Abort()
@@ -258,7 +234,7 @@ func UpdateCategory(c *gin.Context) {
 		return
 	}
 
-	ctx, cancel := CtxTimeout3(c)
+	ctx, cancel := CtxTimeout(c)
 	defer cancel()
 
 	var exists models.Category
@@ -325,7 +301,7 @@ func UpdateCategory(c *gin.Context) {
 
 	var catUpdated models.Category
 	var catDesp2 sql.NullString
-	err = config.DB.QueryRowContext(ctx, "select * from categories where category_id= ?", id).Scan(&catUpdated.CategoryID, &catUpdated.CategoryName, &catDesp2)
+	err = config.DB.QueryRowContext(ctx, "select category_id, category_name, category_description from categories where category_id= ?", id).Scan(&catUpdated.CategoryID, &catUpdated.CategoryName, &catDesp2)
 	if err != nil {
 		c.JSON(http.StatusOK, gin.H{"message": "category updated", "category_id": id, "error": "category updated but failed to fetch row"})
 		c.Abort()

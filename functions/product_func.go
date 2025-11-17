@@ -44,14 +44,21 @@ func NullStringPtr(p *string) interface{} {
 	return v
 }
 
-func NullFlaotPtr(p *float64) interface{} {
-	if p == nil {
-		return nil
-	}
-	return *p
-}
+// func NullFlaotPtr(p *float64) interface{} {
+// 	if p == nil {
+// 		return nil
+// 	}
+// 	return *p
+// }
 
-func NullIntPtr(p *int) interface{} {
+// func NullIntPtr(p *int) interface{} {
+// 	if p == nil {
+// 		return nil
+// 	}
+// 	return *p
+// }
+
+func NullPtr[Type any](p *Type) interface{} {
 	if p == nil {
 		return nil
 	}
@@ -139,7 +146,7 @@ func CreateProduct(c *gin.Context) {
 	}
 
 	query := "insert into products(product_name,product_description,product_cost,product_category_id, product_supplier_id,discount_type,discount_value) values(?,?,?,?,?,?,?)"
-	result, err := config.DB.ExecContext(ctx, query, product.ProductName, NullStringVal(product.ProductDescription), product.ProductCost, NullIntPtr(product.ProductCategoryID), NullIntPtr(product.ProductSupplierID), NullStringPtr(product.DiscountType), NullFlaotPtr(product.DiscountValue))
+	result, err := config.DB.ExecContext(ctx, query, product.ProductName, NullStringVal(product.ProductDescription), product.ProductCost, NullPtr(product.ProductCategoryID), NullPtr(product.ProductSupplierID), NullStringPtr(product.DiscountType), NullPtr(product.DiscountValue))
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Could not create product"})
 		c.Abort()
@@ -532,7 +539,7 @@ func UpdateProduct(c *gin.Context) {
 		}
 	}
 
-	_, err = config.DB.ExecContext(ctx, "update products set product_name = ifnull(?, product_name), product_description = ifnull(?, product_description), product_cost = ifnull(?, product_cost), product_category_id = ifnull(?, product_category_id), discount_type = ifnull(?, discount_type), discount_value = ifnull(?, discount_value) where product_id = ?", NullStringPtr(&newName), NullStringPtr(&newDesc), newCost, NullIntPtr(newCat), NullStringPtr(newDiscType), NullFlaotPtr(newDiscVal), id)
+	_, err = config.DB.ExecContext(ctx, "update products set product_name = ifnull(?, product_name), product_description = ifnull(?, product_description), product_cost = ifnull(?, product_cost), product_category_id = ifnull(?, product_category_id), discount_type = ifnull(?, discount_type), discount_value = ifnull(?, discount_value) where product_id = ?", NullStringPtr(&newName), NullStringPtr(&newDesc), newCost, NullPtr(newCat), NullStringPtr(newDiscType), NullPtr(newDiscVal), id)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "error while updating product"})
 		c.Abort()
