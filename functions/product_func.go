@@ -106,12 +106,6 @@ func CreateProduct(c *gin.Context) {
 		c.Abort()
 		return
 	}
-	if in.ProductCost <= 0 {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "product_cost must be greater than 0"})
-		c.Abort()
-		return
-	}
-
 	product.ProductCost = in.ProductCost
 	catg := in.ProductCategoryID
 	product.ProductCategoryID = &catg
@@ -141,13 +135,6 @@ func CreateProduct(c *gin.Context) {
 		}
 
 	}
-
-	if product.ProductSupplierID == nil || *product.ProductSupplierID != supplierID {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid product_supplier_id"})
-		c.Abort()
-		return
-	}
-
 	query := "insert into products(product_name,product_description,product_cost,product_category_id, product_supplier_id,discount_type,discount_value) values(?,?,?,?,?,?,?)"
 	result, err := config.DB.ExecContext(ctx, query, product.ProductName, NullStringVal(product.ProductDescription), product.ProductCost, NullPtr(product.ProductCategoryID), NullPtr(product.ProductSupplierID), NullStringPtr(product.DiscountType), NullPtr(product.DiscountValue))
 	if err != nil {

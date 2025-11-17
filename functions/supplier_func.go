@@ -52,9 +52,9 @@ func CreateSupplier(c *gin.Context) {
 	supplier.Name = strings.TrimSpace(supplier.Name)
 	supplier.ContactInfo = strings.TrimSpace(supplier.ContactInfo)
 	supplier.Email = strings.TrimSpace(supplier.Email)
-	supplier.Comapany = strings.TrimSpace(supplier.Comapany)
+	supplier.Company = strings.TrimSpace(supplier.Company)
 
-	if err := utils.SupplierValidate(supplier.Name, supplier.ContactInfo, supplier.Email, supplier.Comapany); err != nil {
+	if err := utils.SupplierValidate(supplier.Name, supplier.ContactInfo, supplier.Email, supplier.Company); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		c.Abort()
 		return
@@ -63,20 +63,20 @@ func CreateSupplier(c *gin.Context) {
 	ctx, cancel := CtxTimeout(c)
 	defer cancel()
 
-	var exists bool
-	if err := config.DB.QueryRowContext(ctx, "select exists(select 1 from suppliers where email =?)", supplier.Email).Scan(&exists); err != nil {
+	var count int
+	if err := config.DB.QueryRowContext(ctx, "select count(*) from suppliers where lower(email) = lower(?)", supplier.Email).Scan(&count); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "db error while reading suppliers"})
 		c.Abort()
 		return
 	}
 
-	if exists {
+	if count > 0 {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "supplier with this email already exists"})
 		c.Abort()
 		return
 	}
 
-	result, err := config.DB.ExecContext(ctx, "insert into suppliers(name, contact_info, email, company) values(?,?,?,?)", supplier.Name, NullStringVal(supplier.ContactInfo), supplier.Email, supplier.Comapany)
+	result, err := config.DB.ExecContext(ctx, "insert into suppliers(name, contact_info, email, company) values(?,?,?,?)", supplier.Name, NullStringVal(supplier.ContactInfo), supplier.Email, supplier.Company)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "cannot not create supplier"})
 		c.Abort()
@@ -130,7 +130,7 @@ func GetSupplier(c *gin.Context) {
 			c.Abort()
 			return
 		}
-		rows, err = config.DB.QueryContext(ctx, "select * from suppliers where company= ?", company)
+		rows, err = config.DB.QueryContext(ctx, "select  supplier_id, name, contact_info, email, company from suppliers where company= ?", company)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "error while fetching suppliers"})
 			c.Abort()
@@ -143,18 +143,13 @@ func GetSupplier(c *gin.Context) {
 		return
 
 	}
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "cannot fetch suppliers"})
-		c.Abort()
-		return
-	}
 	defer rows.Close()
 
 	suppliers := []models.Supplier{}
 	for rows.Next() {
 		var sp models.Supplier
 		var contact_info sql.NullString
-		if err := rows.Scan(&sp.SupplierID, &sp.Name, &contact_info, &sp.Email, &sp.Comapany); err != nil {
+		if err := rows.Scan(&sp.SupplierID, &sp.Name, &contact_info, &sp.Email, &sp.Company); err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "error while scanning supppliers"})
 			c.Abort()
 			return
@@ -225,7 +220,7 @@ func GetSupplierByID(c *gin.Context) {
 	row := config.DB.QueryRowContext(ctx, "select supplier_id, name, contact_info, email, company from suppliers where supplier_id = ?", id)
 	var sp models.Supplier
 	var contact_info sql.NullString
-	if err := row.Scan(&sp.SupplierID, &sp.Name, &contact_info, &sp.Email, &sp.Comapany); err != nil {
+	if err := row.Scan(&sp.SupplierID, &sp.Name, &contact_info, &sp.Email, &sp.Company); err != nil {
 		if err == sql.ErrNoRows {
 			c.JSON(http.StatusNotFound, gin.H{"error": "supplier not found"})
 			c.Abort()
@@ -331,8 +326,8 @@ func UpdateSupplier(c *gin.Context) {
 
 	var exists models.Supplier
 	var contactInfo sql.NullString
-	row := config.DB.QueryRowContext(ctx, "select * from suppliers where supplier_id= ?", id)
-	if err := row.Scan(&exists.SupplierID, &exists.Name, &contactInfo, &exists.Email, &exists.Comapany); err != nil {
+	row := config.DB.QueryRowContext(ctx, "select  supplier_id, name, contact_info, email, company from suppliers where supplier_id= ?", id)
+	if err := row.Scan(&exists.SupplierID, &exists.Name, &contactInfo, &exists.Email, &exists.Company); err != nil {
 		if err == sql.ErrNoRows {
 			c.JSON(http.StatusNotFound, gin.H{"error": "supplier not found"})
 			c.Abort()
@@ -352,7 +347,7 @@ func UpdateSupplier(c *gin.Context) {
 	newName := exists.Name
 	newContact := exists.ContactInfo
 	newEmail := exists.Email
-	newCompany := exists.Comapany
+	newCompany := exists.Company
 
 	if supplierInput.Name != nil {
 		newName = strings.TrimSpace(*supplierInput.Name)
@@ -419,7 +414,7 @@ func UpdateSupplier(c *gin.Context) {
 
 	var supplierUpdated models.Supplier
 	var contactUpated sql.NullString
-	err = config.DB.QueryRowContext(ctx, "select * from suppliers where supplier_id= ?", id).Scan(&supplierUpdated.SupplierID, &supplierUpdated.Name, &contactUpated, &supplierUpdated.Email, &supplierUpdated.Comapany)
+	err = config.DB.QueryRowContext(ctx, "select  supplier_id, name, contact_info, email, company from suppliers where supplier_id= ?", id).Scan(&supplierUpdated.SupplierID, &supplierUpdated.Name, &contactUpated, &supplierUpdated.Email, &supplierUpdated.Company)
 	if err != nil {
 		c.JSON(http.StatusOK, gin.H{"message": "supplier updated", "supplier_id": id, "error": "supplier updated but failed to fetch row"})
 		c.Abort()

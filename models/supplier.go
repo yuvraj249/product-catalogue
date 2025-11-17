@@ -5,5 +5,5 @@ type Supplier struct {
 	Name        string `json:"name"`
 	ContactInfo string `json:"contact_info,omitempty"`
 	Email       string `json:"email,omitempty"`
-	Comapany    string `json:"company,omitempty"`
+	Company     string `json:"company,omitempty"`
 }

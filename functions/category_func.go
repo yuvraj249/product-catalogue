@@ -266,33 +266,13 @@ func UpdateCategory(c *gin.Context) {
 		newDesp = strings.TrimSpace(*catInput.CategoryDescription)
 	}
 
-	if catInput.CategoryName != nil {
-		if err := utils.CategoryValidate(newName, ""); err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-			c.Abort()
-			return
-		}
-	}
-
-	if catInput.CategoryDescription != nil {
-		if err := utils.CategoryValidate(exists.CategoryName, newDesp); err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-			return
-		}
-	}
-
-	var nameArg interface{} = nil
-	var despArg interface{} = nil
-
-	if catInput.CategoryName != nil {
-		nameArg = newName
-	}
-	if catInput.CategoryDescription != nil {
-		despArg = newDesp
+	if err := utils.CategoryValidate(newName, newDesp); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
 	}
 
 	query := "update categories set category_name = ifnull(?, category_name), category_description = ifnull(?, category_description) where category_id = ?"
-	_, err = config.DB.ExecContext(ctx, query, nameArg, despArg, id)
+	_, err = config.DB.ExecContext(ctx, query, NullStringPtr(&newName), NullStringPtr(&newDesp), id)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "error while updating category"})
 		c.Abort()
