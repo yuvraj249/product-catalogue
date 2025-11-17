@@ -44,20 +44,6 @@ func NullStringPtr(p *string) interface{} {
 	return v
 }
 
-// func NullFlaotPtr(p *float64) interface{} {
-// 	if p == nil {
-// 		return nil
-// 	}
-// 	return *p
-// }
-
-// func NullIntPtr(p *int) interface{} {
-// 	if p == nil {
-// 		return nil
-// 	}
-// 	return *p
-// }
-
 func NullPtr[Type any](p *Type) interface{} {
 	if p == nil {
 		return nil
@@ -94,7 +80,7 @@ func CreateProduct(c *gin.Context) {
 		ProductName        string   `json:"product_name"`
 		ProductDescription *string  `json:"product_description"`
 		ProductCost        float64  `json:"product_cost"`
-		ProductCategoryID  *int     `json:"product_category_id"`
+		ProductCategoryID  int      `json:"product_category_id"`
 		DiscountType       *string  `json:"discount_type"`
 		DiscountValue      *float64 `json:"discount_value"`
 	}
@@ -104,14 +90,31 @@ func CreateProduct(c *gin.Context) {
 		return
 	}
 	var product models.Product
+	if strings.TrimSpace(in.ProductName) == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "product_name is required"})
+		c.Abort()
+		return
+	}
 	product.ProductName = strings.TrimSpace(in.ProductName)
 	if in.ProductDescription != nil {
 		product.ProductDescription = strings.TrimSpace(*in.ProductDescription)
 	} else {
 		product.ProductDescription = ""
 	}
+	if in.ProductCategoryID <= 0 {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "product_category_id is required and must be a positive integer"})
+		c.Abort()
+		return
+	}
+	if in.ProductCost <= 0 {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "product_cost must be greater than 0"})
+		c.Abort()
+		return
+	}
+
 	product.ProductCost = in.ProductCost
-	product.ProductCategoryID = in.ProductCategoryID
+	catg := in.ProductCategoryID
+	product.ProductCategoryID = &catg
 	product.ProductSupplierID = &supplierID
 	product.DiscountType = in.DiscountType
 	product.DiscountValue = in.DiscountValue
