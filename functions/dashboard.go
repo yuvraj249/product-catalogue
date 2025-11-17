@@ -28,13 +28,6 @@ func GetDashboard(c *gin.Context) {
 	ctx, cancel := CtxTimeout(c)
 	defer cancel()
 
-	type lowStockProd struct {
-		ProductID int    `json:"product_id"`
-		Name      string `json:"product_name"`
-		Stock     int    `json:"current_stock"`
-		Supplier  *int   `json:"product_supplier_id,omitempty"`
-	}
-
 	resp := gin.H{}
 
 	if role == "system_admin" {
@@ -166,43 +159,6 @@ func GetDashboard(c *gin.Context) {
 
 		resp["low_stock_threshold"] = lowStock
 		resp["low_stock_products"] = lowStockList
-
-		mvntRows, err := config.DB.QueryContext(ctx, "select sm.stock_id, sm.product_id, p.product_name, sm.movement_type, sm.quantity, sm.reason from stock_movements sm join products p on sm.product_id = p.product_id join suppliers s on p.product_supplier_id = s.supplier_id where s.company = ? order by sm.stock_id desc", company)
-		if err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to fetch recent stock movements"})
-			c.Abort()
-			return
-		}
-		defer mvntRows.Close()
-
-		type stMove struct {
-			StockID      int    `json:"stock_id"`
-			ProductID    int    `json:"product_id"`
-			ProductName  string `json:"product_name"`
-			MovementType string `json:"movement_type"`
-			Quantity     int    `json:"quantity"`
-			Reason       string `json:"reason"`
-		}
-
-		recent := []stMove{}
-
-		for mvntRows.Next() {
-			var m stMove
-			var reason sql.NullString
-			err := mvntRows.Scan(&m.StockID, &m.ProductID, &m.ProductName, &m.MovementType, &m.Quantity, &reason)
-			if err != nil {
-				c.JSON(http.StatusInternalServerError, gin.H{"error": "error scanning movements"})
-				c.Abort()
-				return
-			}
-			if reason.Valid {
-				m.Reason = reason.String
-			} else {
-				m.Reason = ""
-			}
-			recent = append(recent, m)
-		}
-		resp["recent_stock_movements"] = recent
 
 		c.JSON(http.StatusOK, resp)
 		return
