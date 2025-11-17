@@ -109,10 +109,10 @@ curl -X POST http://localhost:8080/auth/login \ <br>
 API -> POST to http://localhost:8080/suppliers <br>
 Create Supplier <br>
 JSON REQUIRED -> (name, contact_info, email, company) <br>
-Headers -> Authorization: Bearer <TOKEN> <br>
+Headers -> Authorization: Bearer TOKEN <br>
 
 curl -X POST http://localhost:8080/suppliers \ <br>
-     -H "Authorization: Bearer <TOKEN>" \ <br>
+     -H "Authorization: Bearer TOKEN" \ <br>
      -H "Content-Type: application/json" \ <br>
      -d '{"name":"ABC Pvt Ltd","contact_info":"9876543210","email":"abc@gmail.com","company":"ABC"}'<br>
 
@@ -122,10 +122,10 @@ curl -X POST http://localhost:8080/suppliers \ <br>
 ## GET SUPPLIERS ##
 API -> GET http://localhost:8080/suppliers  <br>
 View all suppliers <br>
-Headers -> Authorization: Bearer <TOKEN> <br>
+Headers -> Authorization: Bearer TOKEN <br>
 
 curl -X GET http://localhost:8080/suppliers \ <br>
-     -H "Authorization: Bearer <TOKEN>" <br>
+     -H "Authorization: Bearer TOKEN" <br>
 
 
 
@@ -133,11 +133,11 @@ curl -X GET http://localhost:8080/suppliers \ <br>
 ## GET SUPPLIER BY ID ##
 API -> GET http://localhost:8080/suppliers/:id   <br>
 View supplier by ID<br>
-Headers -> Authorization: Bearer <TOKEN> <br>
+Headers -> Authorization: Bearer TOKEN <br>
 - Add any int in place of :id<br>
 
 curl -X GET http://localhost:8080/suppliers/:id \ <br>
-     -H "Authorization: Bearer <TOKEN>" <br>
+     -H "Authorization: Bearer TOKEN" <br>
 
 
 
@@ -145,13 +145,13 @@ curl -X GET http://localhost:8080/suppliers/:id \ <br>
 ## UPDATE SUPPLIER ##
 API -> PUT http://localhost:8080/suppliers/:id  <br>
 Update supplier<br> 
-Headers -> Authorization: Bearer <TOKEN> <br>
+Headers -> Authorization: Bearer TOKEN <br>
 JSON REQUIRED -> (name, contact_info, email, company)<br>
 - can update any number of fields or all fields<br>
 - Add any int in place of :id<br>
 
 curl -X PUT http://localhost:8080/suppliers/:id \ <br>
-     -H "Authorization: Bearer <TOKEN>" \ <br>
+     -H "Authorization: Bearer TOKEN" \ <br>
      -H "Content-Type: application/json" \ <br>
      -d '{"company":"Updated Pvt Ltd"}' <br>
 
@@ -161,11 +161,11 @@ curl -X PUT http://localhost:8080/suppliers/:id \ <br>
 ## DELETE SUPPLIER ##
 API -> DELETE http://localhost:8080/suppliers/:id  <br>
 Delete supplier<br>
-Headers -> Authorization: Bearer <TOKEN> <br>
+Headers -> Authorization: Bearer TOKEN <br>
 - Add any int in place of :id<br>
 
 curl -X DELETE http://localhost:8080/suppliers/:id \ <br>
-     -H "Authorization: Bearer <TOKEN>" <br>
+     -H "Authorization: Bearer TOKEN" <br>
 
 
 
@@ -173,11 +173,11 @@ curl -X DELETE http://localhost:8080/suppliers/:id \ <br>
 ## CREATE SUPPLIER ADMIN (USER) ##
 API -> POST http://localhost:8080/users/supplier-admin  <br>
 Create supplier_admin user<br> 
-Headers -> Authorization: Bearer <TOKEN> <br>
+Headers -> Authorization: Bearer TOKEN <br>
 JSON REQUIRED -> (name, email, password, supplier_id)<br>
 
 curl -X POST http://localhost:8080/users/supplier-admin \ <br>
-     -H "Authorization: Bearer <TOKEN>" \ <br>
+     -H "Authorization: Bearer TOKEN" \ <br>
      -H "Content-Type: application/json" \ <br>
      -d '{"name":"any name","email":"abc@gmail.com","password":"abc@1234","supplier_id":any integer}' <br>
 
@@ -187,10 +187,10 @@ curl -X POST http://localhost:8080/users/supplier-admin \ <br>
 ## GET USERS ##
 API -> GET http://localhost:8080/users/supplier-admin  <br>
 List supplier admins<br>
-Headers -> Authorization: Bearer <TOKEN> <br>
+Headers -> Authorization: Bearer TOKEN <br>
 
 curl -X GET http://localhost:8080/users/supplier-admin \ <br>
-     -H "Authorization: Bearer <TOKEN>" <br>
+     -H "Authorization: Bearer TOKEN" <br>
 
 
 
@@ -198,11 +198,11 @@ curl -X GET http://localhost:8080/users/supplier-admin \ <br>
 ## GET USER BY ID ##
 API -> GET http://localhost:8080/users/supplier-admin/:id  <br>
 Get supplier_admin by ID<br>
-Headers -> Authorization: Bearer <TOKEN> <br>
+Headers -> Authorization: Bearer TOKEN <br>
 - Add any int in place of :id<br>
 
 curl -X GET http://localhost:8080/users/supplier-admin/:id \ <br>
-     -H "Authorization: Bearer <TOKEN>" <br>
+     -H "Authorization: Bearer TOKEN" <br>
 
 
 
@@ -210,11 +210,11 @@ curl -X GET http://localhost:8080/users/supplier-admin/:id \ <br>
 ## DELETE USER ##
 API -> GET http://localhost:8080/users/supplier-admin/:id  <br>
 Get supplier_admin by ID<br>
-Headers -> Authorization: Bearer <TOKEN> <br>
+Headers -> Authorization: Bearer TOKEN <br>
 - Add any int in place of :id <br>
 
 curl -X GET http://localhost:8080/users/supplier-admin/:id \ <br>
-     -H "Authorization: Bearer <TOKEN>" <br>
+     -H "Authorization: Bearer TOKEN" <br>
 
 
 
@@ -222,12 +222,12 @@ curl -X GET http://localhost:8080/users/supplier-admin/:id \ <br>
 ## CREATE CATEGORY ##
 API -> POST http://localhost:8080/categories  <br>
 Create category <br>
-Headers -> Authorization: Bearer <TOKEN> <br>
+Headers -> Authorization: Bearer TOKEN <br>
 JSON REQUIRED -> category_name <br>
 OPTIONAL -> category_description<br>
 
 curl -X POST http://localhost:8080/categories \ <br>
-     -H "Authorization: Bearer <TOKEN>" \ <br>
+     -H "Authorization: Bearer TOKEN" \ <br>
      -H "Content-Type: application/json" \ <br>
      -d '{"category_name":"ABC", "category_description":"any string"}' //description should contain atleast one letter and it is not mandatory<br>
 
@@ -237,10 +237,10 @@ curl -X POST http://localhost:8080/categories \ <br>
 ## GET CATEGORY ##
 API -> GET http://localhost:8080/categories  <br>
 List categories<br>
-Headers -> Authorization: Bearer <TOKEN> <br>
+Headers -> Authorization: Bearer TOKEN <br>
 
 curl -X GET http://localhost:8080/categories \ <br>
-     -H "Authorization: Bearer <TOKEN>" <br>
+     -H "Authorization: Bearer TOKEN" <br>
 
 
 
@@ -248,11 +248,11 @@ curl -X GET http://localhost:8080/categories \ <br>
 ## GET CTAEGORY BY ID ##
 API -> GET http://localhost:8080/categories/:id  <br>
 Get category by ID<br>
-Headers -> Authorization: Bearer <TOKEN> <br>
+Headers -> Authorization: Bearer TOKEN <br>
 - Add any int in place of :id<br>
 
 curl -X GET http://localhost:8080/categories/:id \ <br>
-     -H "Authorization: Bearer <TOKEN>" <br>
+     -H "Authorization: Bearer TOKEN" <br>
 
 
 
@@ -260,13 +260,13 @@ curl -X GET http://localhost:8080/categories/:id \ <br>
 ## UPDATE CATEGORY ##
 API -> PUT http://localhost:8080/categories/:id  <br>
 Update category<br>
-Headers -> Authorization: Bearer <TOKEN> <br>
+Headers -> Authorization: Bearer TOKEN <br>
 JSON REQUIRED -> category_name, category_description<br>
 - can update any number of fields or all fields<br>
 - Add any int in place of :id <br>
 
 curl -X PUT http://localhost:8080/categories/:id \ <br>
-     -H "Authorization: Bearer <TOKEN>" \ <br>
+     -H "Authorization: Bearer TOKEN" \ <br>
      -H "Content-Type: application/json" \ <br>
      -d '{"category_name":"abc" "category_description":"Updated"}' <br>
 
@@ -276,11 +276,11 @@ curl -X PUT http://localhost:8080/categories/:id \ <br>
 ## DELETE CATEGORY ##
 API -> DELETE http://localhost:8080/categories/:id  <br>
 Delete category<br>
-Headers -> Authorization: Bearer <TOKEN> <br>
+Headers -> Authorization: Bearer TOKEN <br>
 - Add any int in place of :id<br>
 
 curl -X DELETE http://localhost:8080/categories/:id \ <br>
-     -H "Authorization: Bearer <TOKEN>" <br>
+     -H "Authorization: Bearer TOKEN" <br>
 
 
 
@@ -288,10 +288,10 @@ curl -X DELETE http://localhost:8080/categories/:id \ <br>
 ## GET PRODUCTS ##
 API -> GET http://localhost:8080/products <br> 
 View all products<br>
-Headers -> Authorization: Bearer <TOKEN> <br>
+Headers -> Authorization: Bearer TOKEN <br>
 
 curl -X GET http://localhost:8080/products \ <br>
-     -H "Authorization: Bearer <TOKEN>" <br>
+     -H "Authorization: Bearer TOKEN" <br>
 
 
 
@@ -299,11 +299,11 @@ curl -X GET http://localhost:8080/products \ <br>
 ## GET PRODUCTS BY ID ##
 API -> GET http://localhost:8080/products/:id  <br>
 View product by ID<br>
-Headers -> Authorization: Bearer <TOKEN> <br>
+Headers -> Authorization: Bearer TOKEN <br>
 - Add any int in place of :id <br>
 
 curl -X GET http://localhost:8080/products/:id \ <br>
-     -H "Authorization: Bearer <TOKEN>" <br>
+     -H "Authorization: Bearer TOKEN" <br>
 
 
 
@@ -311,10 +311,23 @@ curl -X GET http://localhost:8080/products/:id \ <br>
 ## GET STOCK_MOVEMENTS ##
 API -> GET http://localhost:8080/stock_movements  <br>
 View all stock movements <br>
-Headers -> Authorization: Bearer <TOKEN> <br>
+Headers -> Authorization: Bearer TOKEN <br>
 
 curl -X GET http://localhost:8080/stock_movements \ <br>
-     -H "Authorization: Bearer <TOKEN>" <br>
+     -H "Authorization: Bearer TOKEN" <br>
+
+
+
+
+
+## GET STOCK_MOVEMENTS BY ID ##
+API -> GET to http://localhost:8080/stock_movements?product_id=:id <br> 
+View stock movements for specific product <br> 
+Headers -> Authorization: Bearer TOKEN  <br>
+
+curl -X GET "http://localhost:8080/stock_movements?product_id=:id" \ <br>
+     -H "Authorization: Bearer TOKEN" <br>
+
 
 
 
@@ -322,10 +335,11 @@ curl -X GET http://localhost:8080/stock_movements \ <br>
 ## GET DASHBOARD  ##
 API -> GET http://localhost:8080/dashboard  <br>
 Dashboard summary<br>
-Headers -> Authorization: Bearer <TOKEN> <br>
+Headers -> Authorization: Bearer TOKEN <br>
 
 curl -X GET http://localhost:8080/dashboard \ <br>
-     -H "Authorization: Bearer <TOKEN>" <br>
+     -H "Authorization: Bearer TOKEN" <br>
+
 
 
 
@@ -350,10 +364,10 @@ curl -X POST http://localhost:8080/auth/login \ <br>
 ## GET SUPPLIERS ##
 API -> GET to http://localhost:8080/suppliers  <br>
 View suppliers (supplier_admin can view suppliers of their company)<br>
-Headers -> Authorization: Bearer <TOKEN> <br>
+Headers -> Authorization: Bearer TOKEN <br>
 
 curl -X GET http://localhost:8080/suppliers \ <br>
-     -H "Authorization: Bearer <TOKEN>" <br>
+     -H "Authorization: Bearer TOKEN" <br>
 
 
 
@@ -361,11 +375,11 @@ curl -X GET http://localhost:8080/suppliers \ <br>
 ## GET SUPPLIER BY ID ##
 API -> GET to http://localhost:8080/suppliers/:id  <br>
 View a supplier by ID (only if it belongs to the supplier_admin's company)  <br>
-Headers -> Authorization: Bearer <TOKEN> <br>
+Headers -> Authorization: Bearer TOKEN <br>
 - Add any int in place of :id <br>
 
 curl -X GET http://localhost:8080/suppliers/:id \ <br>
-     -H "Authorization: Bearer <TOKEN>" <br>
+     -H "Authorization: Bearer TOKEN" <br>
 
 
 
@@ -373,10 +387,10 @@ curl -X GET http://localhost:8080/suppliers/:id \ <br>
 ## GET CATEGORY ##
 API -> GET to http://localhost:8080/categories  <br>
 List all categories  <br>
-Headers -> Authorization: Bearer <TOKEN> <br>
+Headers -> Authorization: Bearer TOKEN <br>
 
 curl -X GET http://localhost:8080/categories \ <br>
-     -H "Authorization: Bearer <TOKEN>" <br>
+     -H "Authorization: Bearer TOKEN" <br>
 
 
 
@@ -384,11 +398,11 @@ curl -X GET http://localhost:8080/categories \ <br>
 ## GET CATEGORY BY ID ##
 API -> GET to http://localhost:8080/categories/:id  <br>
 Get category details by ID<br> 
-Headers -> Authorization: Bearer <TOKEN> <br>
+Headers -> Authorization: Bearer TOKEN <br>
 - Add any int in place of :id<br>
 
 curl -X GET http://localhost:8080/categories/:id \ <br>
-     -H "Authorization: Bearer <TOKEN>" <br>
+     -H "Authorization: Bearer TOKEN" <br>
 
 
 
@@ -396,10 +410,10 @@ curl -X GET http://localhost:8080/categories/:id \ <br>
 ## GET PRODUCTS ##
 API -> GET to http://localhost:8080/products  <br>
 List products visible to this user (supplier_admin sees products for their supplier belonging to same company)<br>
-Headers -> Authorization: Bearer <TOKEN> <br>
+Headers -> Authorization: Bearer TOKEN <br>
 
 curl -X GET http://localhost:8080/products \ <br>
-     -H "Authorization: Bearer <TOKEN>" <br>
+     -H "Authorization: Bearer TOKEN" <br>
 
 
 
@@ -407,11 +421,11 @@ curl -X GET http://localhost:8080/products \ <br>
 ## GET PRODUCTS BY ID ##
 API -> GET to http://localhost:8080/products/:id  <br>
 Get product by ID (only if product belongs to supplier who is in same company)<br> 
-Headers -> Authorization: Bearer <TOKEN> <br>
+Headers -> Authorization: Bearer TOKEN <br>
 - Add any int in place of :id <br>
 
 curl -X GET http://localhost:8080/products/:id \ <br>
-     -H "Authorization: Bearer <TOKEN>" <br>
+     -H "Authorization: Bearer TOKEN" <br>
 
 
 
@@ -425,7 +439,7 @@ Note -> If discount_type is provided, discount_value is required. If discount_ty
 
 
 curl -X POST http://localhost:8080/products \ <br>
-     -H "Authorization: Bearer <TOKEN>" \ <br>
+     -H "Authorization: Bearer TOKEN" \ <br>
      -H "Content-Type: application/json" \ <br>
      -d '{ <br>
            "product_name":"Screen", <br>
@@ -447,7 +461,7 @@ Notes -> You can update any field. If discount_type is present you must include 
 - Add any int in place of :id<br>
 
 curl -X POST http://localhost:8080/products/:id \ <br>
-     -H "Authorization: Bearer <TOKEN>" \ <br>
+     -H "Authorization: Bearer TOKEN" \ <br>
      -H "Content-Type: application/json" \ <br>
      -d '{ <br>
            "product_name":"Earpods", <br>
@@ -462,11 +476,22 @@ curl -X POST http://localhost:8080/products/:id \ <br>
 ## GET STOCK_MOVEMENTS ##
 API -> GET to http://localhost:8080/stock_movements <br> 
 View stock movements (supplier_admin sees only movements for the products created by supplier admin of same company)<br> 
-Headers -> Authorization: Bearer <TOKEN>  <br>
+Headers -> Authorization: Bearer TOKEN  <br>
 
 curl -X GET "http://localhost:8080/stock_movements" \ <br>
-     -H "Authorization: Bearer <TOKEN>" <br>
+     -H "Authorization: Bearer TOKEN" <br>
 
+
+
+
+
+## GET STOCK_MOVEMENTS BY ID ##
+API -> GET to http://localhost:8080/stock_movements?product_id=:id <br> 
+View stock movements for specific product (supplier_admin sees only movements for product created by supplier admin of same company)<br> 
+Headers -> Authorization: Bearer TOKEN  <br>
+
+curl -X GET "http://localhost:8080/stock_movements?product_id=:id" \ <br>
+     -H "Authorization: Bearer TOKEN" <br>
 
 
 
@@ -480,7 +505,7 @@ JSON OPTIONAL -> (reason)<br>
 Notes → movement_type must be "IN" or "OUT". Quantity must be > 0. OUT will be rejected if it would drive stock below LOW_STOCK_ALERT (10 for this project).<br>
 
 curl -X POST http://localhost:8080/stock_movements \ <br>
-     -H "Authorization: Bearer <TOKEN>" \ <br>
+     -H "Authorization: Bearer TOKEN" \ <br>
      -H "Content-Type: application/json" \ <br>
      -d '{ <br>
            "product_id":any integer, <br>
@@ -492,20 +517,20 @@ curl -X POST http://localhost:8080/stock_movements \ <br>
 
 
 
+
 ## GET DASHBOARD ##
 API -> GET to http://localhost:8080/dashboard  <br>
 View supplier-specific dashboard (totals and low-stock for the supplier logged in and other supplier admins of same company )<br>
-Headers -> Authorization: Bearer <TOKEN> <br>
+Headers -> Authorization: Bearer TOKEN <br>
 
 curl -X GET http://localhost:8080/dashboard \ <br>
-     -H "Authorization: Bearer <TOKEN>" <br>
+     -H "Authorization: Bearer TOKEN" <br>
 
 
 
 
 ## INFO ##
-1. Replace <TOKEN> with the JWT from /auth/login.<br>
-2. Supplier_admin must not include product_supplier_id in create/update bodies — the server uses the supplier_id from the JWT<br>
+1. Supplier_admin must not include product_supplier_id in create/update bodies — the server uses the supplier_id from the JWT<br>
 
 
 
