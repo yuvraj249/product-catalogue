@@ -13,14 +13,14 @@ import (
 )
 
 func CreateCategory(c *gin.Context) {
-	claims, ok := GetClaims(c)
+	_, ok := GetClaims(c)
 	if !ok {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "authentication required"})
 		c.Abort()
 		return
 	}
 
-	role, _ := claims["role"].(string)
+	role := c.GetString("role")
 	if role != "system_admin" {
 		c.JSON(http.StatusForbidden, gin.H{"error": "only system admin is allowed to create categories"})
 		c.Abort()
@@ -61,14 +61,14 @@ func CreateCategory(c *gin.Context) {
 }
 
 func GetCategory(c *gin.Context) {
-	claims, ok := GetClaims(c)
+	_, ok := GetClaims(c)
 	if !ok {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "authentication required"})
 		c.Abort()
 		return
 	}
 
-	role, _ := claims["role"].(string)
+	role := c.GetString("role")
 	ctx, cancel := CtxTimeout(c)
 	defer cancel()
 	if role != "system_admin" && role != "supplier_admin" {
@@ -114,13 +114,13 @@ func GetCategoryByID(c *gin.Context) {
 		c.Abort()
 		return
 	}
-	claims, ok := GetClaims(c)
+	_, ok := GetClaims(c)
 	if !ok {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "authentication required"})
 		c.Abort()
 		return
 	}
-	role, _ := claims["role"].(string)
+	role := c.GetString("role")
 
 	if role != "system_admin" && role != "supplier_admin" {
 		c.JSON(http.StatusForbidden, gin.H{"error": "access denied"})
@@ -165,13 +165,13 @@ func DeleteCategory(c *gin.Context) {
 		c.Abort()
 		return
 	}
-	claims, ok := GetClaims(c)
+	_, ok := GetClaims(c)
 	if !ok {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "authentication required"})
 		c.Abort()
 		return
 	}
-	role, _ := claims["role"].(string)
+	role := c.GetString("role")
 	if role != "system_admin" {
 		c.JSON(http.StatusForbidden, gin.H{"error": "only system admin can delete category"})
 		c.Abort()
@@ -206,13 +206,13 @@ func UpdateCategory(c *gin.Context) {
 		c.Abort()
 		return
 	}
-	claims, ok := GetClaims(c)
+	_, ok := GetClaims(c)
 	if !ok {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "authentication required"})
 		c.Abort()
 		return
 	}
-	role, _ := claims["role"].(string)
+	role := c.GetString("role")
 	if role != "system_admin" {
 		c.JSON(http.StatusForbidden, gin.H{"error": "only system admin can update category"})
 		c.Abort()

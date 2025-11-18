@@ -62,7 +62,7 @@ func CreateProduct(c *gin.Context) {
 		c.Abort()
 		return
 	}
-	role, _ := claims["role"].(string)
+	role := c.GetString("role")
 	if role != "supplier_admin" {
 		c.JSON(http.StatusForbidden, gin.H{"error": "only supplier amdin is allowed to create product"})
 		c.Abort()
@@ -156,7 +156,7 @@ func GetProduct(c *gin.Context) {
 		c.Abort()
 		return
 	}
-	role, _ := claims["role"].(string)
+	role := c.GetString("role")
 
 	ctx, cancel := CtxTimeout(c)
 	defer cancel()
@@ -278,7 +278,7 @@ func GetProductByID(c *gin.Context) {
 		c.Abort()
 		return
 	}
-	role, _ := claims["role"].(string)
+	role := c.GetString("role")
 	ctx, cancel := CtxTimeout(c)
 	defer cancel()
 
@@ -384,7 +384,7 @@ func UpdateProduct(c *gin.Context) {
 		c.Abort()
 		return
 	}
-	role, _ := claims["role"].(string)
+	role := c.GetString("role")
 	if role != "supplier_admin" {
 		c.JSON(http.StatusForbidden, gin.H{"error": "only supplier admin can update product"})
 		c.Abort()
@@ -598,7 +598,7 @@ func DeleteProduct(c *gin.Context) {
 		c.Abort()
 		return
 	}
-	role, _ := claims["role"].(string)
+	role := c.GetString("role")
 	if role != "supplier_admin" {
 		c.JSON(http.StatusForbidden, gin.H{"error": "only supplier_admin can delete products"})
 		c.Abort()

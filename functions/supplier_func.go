@@ -28,14 +28,14 @@ func SupplierExists(ctx context.Context, supplierID int) (bool, error) {
 }
 
 func CreateSupplier(c *gin.Context) {
-	claims, ok := GetClaims(c)
+	_, ok := GetClaims(c)
 	if !ok {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "authentication required"})
 		c.Abort()
 		return
 	}
 
-	role, _ := claims["role"].(string)
+	role := c.GetString("role")
 	if role != "system_admin" {
 		c.JSON(http.StatusForbidden, gin.H{"error": "only system amdin is allowed to create suppliers"})
 		c.Abort()
@@ -96,7 +96,7 @@ func GetSupplier(c *gin.Context) {
 		return
 	}
 
-	role, _ := claims["role"].(string)
+	role := c.GetString("role")
 	ctx, cancel := CtxTimeout(c)
 	defer cancel()
 	var rows *sql.Rows
@@ -183,7 +183,7 @@ func GetSupplierByID(c *gin.Context) {
 		c.Abort()
 		return
 	}
-	role, _ := claims["role"].(string)
+	role := c.GetString("role")
 	ctx, cancel := CtxTimeout(c)
 	defer cancel()
 
@@ -251,13 +251,13 @@ func DeleteSupplier(c *gin.Context) {
 
 	}
 
-	claims, ok := GetClaims(c)
+	_, ok := GetClaims(c)
 	if !ok {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "authentication reuqired"})
 		c.Abort()
 		return
 	}
-	role, _ := claims["role"].(string)
+	role := c.GetString("role")
 	if role != "system_admin" {
 		c.JSON(http.StatusForbidden, gin.H{"error": "only system admin can delete supplier"})
 		c.Abort()
@@ -292,13 +292,13 @@ func UpdateSupplier(c *gin.Context) {
 		c.Abort()
 		return
 	}
-	claims, ok := GetClaims(c)
+	_, ok := GetClaims(c)
 	if !ok {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "authentication required"})
 		c.Abort()
 		return
 	}
-	role, _ := claims["role"].(string)
+	role := c.GetString("role")
 	if role != "system_admin" {
 		c.JSON(http.StatusForbidden, gin.H{"error": "only system admin can update supplier"})
 		c.Abort()

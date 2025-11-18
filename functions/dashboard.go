@@ -18,7 +18,7 @@ func GetDashboard(c *gin.Context) {
 		return
 	}
 
-	role, _ := claims["role"].(string)
+	role := c.GetString("role")
 	lowStock := 10
 	if st := os.Getenv("LOW_STOCK_ALERT"); st != "" {
 		if vl, err := strconv.Atoi(st); err == nil && vl >= 0 {

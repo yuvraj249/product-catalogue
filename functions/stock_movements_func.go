@@ -72,7 +72,7 @@ func CreateStockMovement(c *gin.Context) {
 		c.Abort()
 		return
 	}
-	role, _ := claims["role"].(string)
+	role := c.GetString("role")
 
 	if role != "supplier_admin" {
 		c.JSON(http.StatusForbidden, gin.H{"error": "only supplier_admin can create stock movements"})
@@ -189,7 +189,7 @@ func GetStockMovements(c *gin.Context) {
 		c.Abort()
 		return
 	}
-	role, _ := claims["role"].(string)
+	role := c.GetString("role")
 	prodFilter := 0
 	if p := c.Query("product_id"); p != "" {
 		pid, err := strconv.Atoi(p)
