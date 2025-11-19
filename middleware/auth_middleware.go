@@ -51,6 +51,32 @@ func AuthMiddleware() gin.HandlerFunc {
 		c.Set("token", token)
 		c.Set("claims", claims)
 		c.Set("auth_source", "header")
+		roleValue, ok := claims["role"]
+		if !ok {
+			c.JSON(http.StatusForbidden, gin.H{"error": "role missing in token!!"})
+			c.Abort()
+			return
+		}
+		role, ok := roleValue.(string)
+		if !ok || role == "" {
+			c.JSON(http.StatusForbidden, gin.H{"error": "Invalid or empty role in token!!"})
+			c.Abort()
+			return
+		}
+		c.Set("role", role)
+		if role == "supplier_admin" {
+			if supplierVal, ok := claims["supplier_id"]; ok {
+				c.Set("supplier_id", int(supplierVal.(float64)))
+			}
+		}
+
+		userVal, ok := claims["user_id"]
+		if !ok {
+			c.JSON(http.StatusForbidden, gin.H{"error": "user_id missing in token!!"})
+			c.Abort()
+			return
+		}
+		c.Set("user_id", int(userVal.(float64)))
 
 		c.Next()
 
