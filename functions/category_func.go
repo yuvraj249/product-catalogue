@@ -13,13 +13,6 @@ import (
 )
 
 func CreateCategory(c *gin.Context) {
-	_, ok := GetClaims(c)
-	if !ok {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "authentication required"})
-		c.Abort()
-		return
-	}
-
 	role := c.GetString("role")
 	if role != "system_admin" {
 		c.JSON(http.StatusForbidden, gin.H{"error": "only system admin is allowed to create categories"})
@@ -61,13 +54,6 @@ func CreateCategory(c *gin.Context) {
 }
 
 func GetCategory(c *gin.Context) {
-	_, ok := GetClaims(c)
-	if !ok {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "authentication required"})
-		c.Abort()
-		return
-	}
-
 	role := c.GetString("role")
 	ctx, cancel := CtxTimeout(c)
 	defer cancel()
@@ -111,12 +97,6 @@ func GetCategoryByID(c *gin.Context) {
 	id, err := strconv.Atoi(c_id)
 	if err != nil || id <= 0 {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid category id"})
-		c.Abort()
-		return
-	}
-	_, ok := GetClaims(c)
-	if !ok {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "authentication required"})
 		c.Abort()
 		return
 	}
@@ -165,12 +145,6 @@ func DeleteCategory(c *gin.Context) {
 		c.Abort()
 		return
 	}
-	_, ok := GetClaims(c)
-	if !ok {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "authentication required"})
-		c.Abort()
-		return
-	}
 	role := c.GetString("role")
 	if role != "system_admin" {
 		c.JSON(http.StatusForbidden, gin.H{"error": "only system admin can delete category"})
@@ -203,12 +177,6 @@ func UpdateCategory(c *gin.Context) {
 	id, err := strconv.Atoi(c_id)
 	if err != nil || id <= 0 {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid category id"})
-		c.Abort()
-		return
-	}
-	_, ok := GetClaims(c)
-	if !ok {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "authentication required"})
 		c.Abort()
 		return
 	}

@@ -11,13 +11,6 @@ import (
 )
 
 func GetDashboard(c *gin.Context) {
-	claims, ok := GetClaims(c)
-	if !ok {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "authentication required"})
-		c.Abort()
-		return
-	}
-
 	role := c.GetString("role")
 	lowStock := 10
 	if st := os.Getenv("LOW_STOCK_ALERT"); st != "" {
@@ -95,15 +88,9 @@ func GetDashboard(c *gin.Context) {
 	}
 
 	if role == "supplier_admin" {
-		supplierVal, ok := claims["supplier_id"]
-		if !ok {
-			c.JSON(http.StatusForbidden, gin.H{"error": "supplier_id missing in token"})
-			c.Abort()
-			return
-		}
-		suppID := int(supplierVal.(float64))
+		supplierVal := c.GetInt("supplier_id")
 		var company string
-		err := config.DB.QueryRowContext(ctx, "select company from suppliers where supplier_id=?", suppID).Scan(&company)
+		err := config.DB.QueryRowContext(ctx, "select company from suppliers where supplier_id=?", supplierVal).Scan(&company)
 		if err != nil {
 			if err == sql.ErrNoRows {
 				c.JSON(http.StatusNotFound, gin.H{"error": "supplier not found"})

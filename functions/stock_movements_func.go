@@ -66,12 +66,7 @@ func CountStock(ctx context.Context, productID int) (int, error) {
 }
 
 func CreateStockMovement(c *gin.Context) {
-	claims, ok := GetClaims(c)
-	if !ok {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "authentication required"})
-		c.Abort()
-		return
-	}
+
 	role := c.GetString("role")
 
 	if role != "supplier_admin" {
@@ -105,18 +100,8 @@ func CreateStockMovement(c *gin.Context) {
 		return
 	}
 
-	supplierID, ok := claims["supplier_id"]
-	if !ok {
-		c.JSON(http.StatusForbidden, gin.H{"error": "supplier_id missing in token"})
-		c.Abort()
-		return
-	}
-	userID, ok := claims["user_id"].(float64)
-	if !ok {
-		c.JSON(http.StatusForbidden, gin.H{"error": "user_id missing in token"})
-		c.Abort()
-		return
-	}
+	supplierID := c.GetInt("supplier_id")
+	userID := c.GetInt("user_id")
 	ctx, cancel := CtxTimeout(c)
 	defer cancel()
 
@@ -132,8 +117,8 @@ func CreateStockMovement(c *gin.Context) {
 		c.Abort()
 		return
 	}
-	suppID := int(supplierID.(float64))
-	if suppID != prodSuppID {
+
+	if supplierID != prodSuppID {
 		c.JSON(http.StatusForbidden, gin.H{"error": "you don't have permission to change stock for this product"})
 		c.Abort()
 		return
@@ -183,12 +168,6 @@ func CreateStockMovement(c *gin.Context) {
 }
 
 func GetStockMovements(c *gin.Context) {
-	claims, ok := GetClaims(c)
-	if !ok {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "authentication required"})
-		c.Abort()
-		return
-	}
 	role := c.GetString("role")
 	prodFilter := 0
 	if p := c.Query("product_id"); p != "" {
@@ -223,14 +202,8 @@ func GetStockMovements(c *gin.Context) {
 			return
 		}
 	case "supplier_admin":
-		supplierID, ok := claims["supplier_id"]
-		if !ok {
-			c.JSON(http.StatusForbidden, gin.H{"error": "supplier_id missing in token"})
-			c.Abort()
-			return
-		}
-		suppID := int(supplierID.(float64))
-		company, err := SupplierCompany(ctx, suppID)
+		supplierID := c.GetInt("supplier_id")
+		company, err := SupplierCompany(ctx, supplierID)
 		if err != nil {
 			if err == sql.ErrNoRows {
 				c.JSON(http.StatusForbidden, gin.H{"error": "supplier not found"})

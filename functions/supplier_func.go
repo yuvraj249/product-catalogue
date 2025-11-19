@@ -28,13 +28,6 @@ func SupplierExists(ctx context.Context, supplierID int) (bool, error) {
 }
 
 func CreateSupplier(c *gin.Context) {
-	_, ok := GetClaims(c)
-	if !ok {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "authentication required"})
-		c.Abort()
-		return
-	}
-
 	role := c.GetString("role")
 	if role != "system_admin" {
 		c.JSON(http.StatusForbidden, gin.H{"error": "only system amdin is allowed to create suppliers"})
@@ -89,13 +82,6 @@ func CreateSupplier(c *gin.Context) {
 }
 
 func GetSupplier(c *gin.Context) {
-	claims, ok := GetClaims(c)
-	if !ok {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "authentication required"})
-		c.Abort()
-		return
-	}
-
 	role := c.GetString("role")
 	ctx, cancel := CtxTimeout(c)
 	defer cancel()
@@ -111,16 +97,9 @@ func GetSupplier(c *gin.Context) {
 			return
 		}
 	case "supplier_admin":
-		supplierValue, ok := claims["supplier_id"]
-		if !ok {
-
-			c.JSON(http.StatusForbidden, gin.H{"error": "supplier id missing in token"})
-			c.Abort()
-			return
-		}
-		supplierId := int(supplierValue.(float64))
+		supplierValue := c.GetInt("supplier_id")
 		var company string
-		err = config.DB.QueryRowContext(ctx, "select company from suppliers where supplier_id= ?", supplierId).Scan(&company)
+		err = config.DB.QueryRowContext(ctx, "select company from suppliers where supplier_id= ?", supplierValue).Scan(&company)
 		if err == sql.ErrNoRows {
 			c.JSON(http.StatusForbidden, gin.H{"error": "supplier not found"})
 			c.Abort()
@@ -176,27 +155,14 @@ func GetSupplierByID(c *gin.Context) {
 		return
 
 	}
-
-	claims, ok := GetClaims(c)
-	if !ok {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "authentication reuqired"})
-		c.Abort()
-		return
-	}
 	role := c.GetString("role")
 	ctx, cancel := CtxTimeout(c)
 	defer cancel()
 
 	if role != "system_admin" {
-		supplierValue, ok := claims["supplier_id"]
-		if !ok {
-			c.JSON(http.StatusForbidden, gin.H{"error": "supplier id missing in token"})
-			c.Abort()
-			return
-		}
-		supplierID := int(supplierValue.(float64))
+		supplierValue := c.GetInt("supplier_id")
 		var loggedCompany string
-		err := config.DB.QueryRowContext(ctx, "select company from suppliers where supplier_id= ?", supplierID).Scan(&loggedCompany)
+		err := config.DB.QueryRowContext(ctx, "select company from suppliers where supplier_id= ?", supplierValue).Scan(&loggedCompany)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "could not fetch logged in supplier company"})
 			c.Abort()
@@ -250,13 +216,6 @@ func DeleteSupplier(c *gin.Context) {
 		return
 
 	}
-
-	_, ok := GetClaims(c)
-	if !ok {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "authentication reuqired"})
-		c.Abort()
-		return
-	}
 	role := c.GetString("role")
 	if role != "system_admin" {
 		c.JSON(http.StatusForbidden, gin.H{"error": "only system admin can delete supplier"})
@@ -289,12 +248,6 @@ func UpdateSupplier(c *gin.Context) {
 	id, err := strconv.Atoi(p_id)
 	if err != nil || id <= 0 {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid supplier id"})
-		c.Abort()
-		return
-	}
-	_, ok := GetClaims(c)
-	if !ok {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "authentication required"})
 		c.Abort()
 		return
 	}

@@ -12,18 +12,7 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
-	"github.com/golang-jwt/jwt/v5"
 )
-
-func GetClaims(c *gin.Context) (jwt.MapClaims, bool) {
-	claimsExist, ok := c.Get("claims")
-	if !ok {
-		return nil, false
-	}
-	claims, ok := claimsExist.(jwt.MapClaims)
-	return claims, ok
-
-}
 
 func NullStringVal(s string) interface{} {
 	if strings.TrimSpace(s) == "" {
@@ -56,26 +45,13 @@ func CtxTimeout(c *gin.Context) (context.Context, context.CancelFunc) {
 }
 
 func CreateProduct(c *gin.Context) {
-	claims, ok := GetClaims(c)
-	if !ok {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "authentication required"})
-		c.Abort()
-		return
-	}
 	role := c.GetString("role")
 	if role != "supplier_admin" {
 		c.JSON(http.StatusForbidden, gin.H{"error": "only supplier amdin is allowed to create product"})
 		c.Abort()
 		return
 	}
-	supplierValue, ok := claims["supplier_id"]
-	if !ok {
-		c.JSON(http.StatusForbidden, gin.H{"error": "supplier_id missing in token !!"})
-		c.Abort()
-		return
-	}
-
-	supplierID := int(supplierValue.(float64))
+	supplierValue := c.GetInt("supplier_id")
 	var in struct {
 		ProductName        string   `json:"product_name"`
 		ProductDescription *string  `json:"product_description"`
@@ -109,7 +85,7 @@ func CreateProduct(c *gin.Context) {
 	product.ProductCost = in.ProductCost
 	catg := in.ProductCategoryID
 	product.ProductCategoryID = &catg
-	product.ProductSupplierID = &supplierID
+	product.ProductSupplierID = &supplierValue
 	product.DiscountType = in.DiscountType
 	product.DiscountValue = in.DiscountValue
 
@@ -150,12 +126,6 @@ func CreateProduct(c *gin.Context) {
 }
 
 func GetProduct(c *gin.Context) {
-	claims, ok := GetClaims(c)
-	if !ok {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "authentication required"})
-		c.Abort()
-		return
-	}
 	role := c.GetString("role")
 
 	ctx, cancel := CtxTimeout(c)
@@ -173,15 +143,9 @@ func GetProduct(c *gin.Context) {
 			return
 		}
 	case "supplier_admin":
-		supplierVal, ok := claims["supplier_id"]
-		if !ok {
-			c.JSON(http.StatusForbidden, gin.H{"error": "supplier_id missing in token"})
-			c.Abort()
-			return
-		}
-		suppID := int(supplierVal.(float64))
+		supplierVal := c.GetInt("supplier_id")
 		var company string
-		if err = config.DB.QueryRowContext(ctx, "select company from suppliers WHERE supplier_id = ?", suppID).Scan(&company); err != nil {
+		if err = config.DB.QueryRowContext(ctx, "select company from suppliers WHERE supplier_id = ?", supplierVal).Scan(&company); err != nil {
 			if err == sql.ErrNoRows {
 				c.JSON(http.StatusForbidden, gin.H{"error": "supplier not found"})
 				c.Abort()
@@ -272,12 +236,6 @@ func GetProductByID(c *gin.Context) {
 		c.Abort()
 		return
 	}
-	claims, ok := GetClaims(c)
-	if !ok {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "authentication required"})
-		c.Abort()
-		return
-	}
 	role := c.GetString("role")
 	ctx, cancel := CtxTimeout(c)
 	defer cancel()
@@ -288,14 +246,8 @@ func GetProductByID(c *gin.Context) {
 	case "system_admin":
 		row = config.DB.QueryRowContext(ctx, "select product_id, product_name, product_description, product_cost, product_category_id, product_supplier_id, discount_type, discount_value from products where product_id=?", id)
 	case "supplier_admin":
-		supplierVal, ok := claims["supplier_id"]
-		if !ok {
-			c.JSON(http.StatusForbidden, gin.H{"error": "supplier_id missing in token"})
-			c.Abort()
-			return
-		}
-		suppID := int(supplierVal.(float64))
-		row = config.DB.QueryRowContext(ctx, "select p.product_id, p.product_name, p.product_description, p.product_cost, p.product_category_id, p.product_supplier_id, p.discount_type,p.discount_value from products p join suppliers s on p.product_supplier_id = s.supplier_id where p.product_id = ? and s.company = (select company from suppliers where supplier_id = ?)", id, suppID)
+		supplierVal := c.GetInt("supplier_id")
+		row = config.DB.QueryRowContext(ctx, "select p.product_id, p.product_name, p.product_description, p.product_cost, p.product_category_id, p.product_supplier_id, p.discount_type,p.discount_value from products p join suppliers s on p.product_supplier_id = s.supplier_id where p.product_id = ? and s.company = (select company from suppliers where supplier_id = ?)", id, supplierVal)
 
 	default:
 		c.JSON(http.StatusForbidden, gin.H{"error": "access denied"})
@@ -377,13 +329,6 @@ func UpdateProduct(c *gin.Context) {
 		return
 
 	}
-
-	claims, ok := GetClaims(c)
-	if !ok {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "authentication required"})
-		c.Abort()
-		return
-	}
 	role := c.GetString("role")
 	if role != "supplier_admin" {
 		c.JSON(http.StatusForbidden, gin.H{"error": "only supplier admin can update product"})
@@ -392,13 +337,7 @@ func UpdateProduct(c *gin.Context) {
 
 	}
 
-	supplierValue, ok := claims["supplier_id"]
-	if !ok {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "supplier id missing in token"})
-		c.Abort()
-		return
-	}
-	suppID := int(supplierValue.(float64))
+	supplierValue := c.GetInt("supplier_id")
 	var product struct {
 		ProductName        *string  `json:"product_name"`
 		ProductDescription *string  `json:"product_description"`
@@ -475,7 +414,7 @@ func UpdateProduct(c *gin.Context) {
 	} else {
 		exist.DiscountValue = nil
 	}
-	if exist.ProductSupplierID == nil || *exist.ProductSupplierID != suppID {
+	if exist.ProductSupplierID == nil || *exist.ProductSupplierID != supplierValue {
 		c.JSON(http.StatusForbidden, gin.H{"error": "you can only update your own products"})
 		return
 	}
@@ -592,12 +531,6 @@ func DeleteProduct(c *gin.Context) {
 		c.Abort()
 		return
 	}
-	claims, ok := GetClaims(c)
-	if !ok {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "authentication required"})
-		c.Abort()
-		return
-	}
 	role := c.GetString("role")
 	if role != "supplier_admin" {
 		c.JSON(http.StatusForbidden, gin.H{"error": "only supplier_admin can delete products"})
@@ -605,14 +538,7 @@ func DeleteProduct(c *gin.Context) {
 		return
 	}
 
-	supplierVal, ok := claims["supplier_id"]
-	if !ok {
-		c.JSON(http.StatusForbidden, gin.H{"error": "supplier_id missing in token"})
-		c.Abort()
-		return
-	}
-
-	suppID := int(supplierVal.(float64))
+	supplierVal := c.GetInt("supplier_id")
 	ctx, cancel := CtxTimeout(c)
 	defer cancel()
 
@@ -629,7 +555,7 @@ func DeleteProduct(c *gin.Context) {
 		return
 	}
 
-	if !prodSuppID.Valid || int(prodSuppID.Int64) != suppID {
+	if !prodSuppID.Valid || int(prodSuppID.Int64) != supplierVal {
 		c.JSON(http.StatusForbidden, gin.H{"error": "you can only delete your own products"})
 		c.Abort()
 		return

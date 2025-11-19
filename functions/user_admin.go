@@ -13,13 +13,6 @@ import (
 )
 
 func CreateSuppAdmin(c *gin.Context) {
-	_, ok := GetClaims(c)
-	if !ok {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "authentication required"})
-		c.Abort()
-		return
-	}
-
 	role := c.GetString("role")
 	if role != "system_admin" {
 		c.JSON(http.StatusForbidden, gin.H{"error": "only system_admin can create supplier admin users"})
@@ -116,12 +109,6 @@ func CreateSuppAdmin(c *gin.Context) {
 }
 
 func GetsuppAdmin(c *gin.Context) {
-	_, ok := GetClaims(c)
-	if !ok {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "authentication required"})
-		c.Abort()
-		return
-	}
 	role := c.GetString("role")
 	if role != "system_admin" {
 		c.JSON(http.StatusForbidden, gin.H{"error": "only system_admin can list users"})
@@ -161,13 +148,6 @@ func GetsuppAdmin(c *gin.Context) {
 }
 
 func GetsuppAdminByID(c *gin.Context) {
-	_, ok := GetClaims(c)
-	if !ok {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "authentication required"})
-		c.Abort()
-		return
-	}
-
 	role := c.GetString("role")
 	if role != "system_admin" {
 		c.JSON(http.StatusForbidden, gin.H{"error": "only system_admin can view user details"})
@@ -220,12 +200,6 @@ func GetsuppAdminByID(c *gin.Context) {
 }
 
 func DeleteSuppAdmin(c *gin.Context) {
-	_, ok := GetClaims(c)
-	if !ok {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "authentication required"})
-		c.Abort()
-		return
-	}
 	role := c.GetString("role")
 	if role != "system_admin" {
 		c.JSON(http.StatusForbidden, gin.H{"error": "only system_admin can delete users"})
