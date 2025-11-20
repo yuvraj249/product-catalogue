@@ -44,7 +44,7 @@ func Login(c *gin.Context) {
 	var id int
 	var pwd_hash, role string
 	var supplierID sql.NullInt64
-	err := config.DB.QueryRow("select user_id , password_hash, role, supplier_id from users where email=?", credentials.Email).Scan(&id, &pwd_hash, &role, &supplierID)
+	err := config.DB.QueryRow("select user_id, password_hash, role, supplier_id from users where email = ?", credentials.Email).Scan(&id, &pwd_hash, &role, &supplierID)
 	if err == sql.ErrNoRows {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid credentials"})
 		return
