@@ -218,7 +218,7 @@ func DeleteSuppAdmin(c *gin.Context) {
 	ctx, cancel := CtxTimeout(c)
 	defer cancel()
 
-	result, err := config.DB.ExecContext(ctx, "DELETE FROM users WHERE user_id = ?", uid)
+	result, err := config.DB.ExecContext(ctx, "delete from users where user_id = ?", uid)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to delete user"})
 		c.Abort()
