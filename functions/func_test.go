@@ -668,7 +668,7 @@ func TestDeleteCategory(t *testing.T) {
 	}
 }
 
-func TestCreateSupplier_Handler(t *testing.T) {
+func TestCreateSupplier(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 	TruncateAll(t)
 	adminEmail, adminPass := "admin_create_sup@test.com", "Admin@123"
@@ -746,4 +746,69 @@ func TestCreateSupplier_Handler(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestDeleteSupplier(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+	TruncateAll(t)
+	adminEmail, adminPass := "admin_create_sup@test.com", "Admin@123"
+	SeedAdmin(t, adminEmail, adminPass)
+	adminToken := LoginAndGetToken(t, adminEmail, adminPass)
+	_, _ = config.DB.Exec("insert into suppliers(name,email,company) values(?,?,?)", "SupDel", "sup_del@test.com", "C")
+	_, _ = config.DB.Exec("insert into users(name,email,password_hash,role) values(?,?,?,?)",
+		"SupDelUser", "sup_del@test.com", "$2a$10$CCw/Xx/.lW1BCcc0MYIH5.xh2QJq7pBqMrWeE.WPxgRI4F8Af12s2", "supplier_admin")
+	supToken := LoginAndGetToken(t, "sup_del@test.com", "Yuvraj@2411")
+	r := gin.New()
+	r.Use(middleware.AuthMiddleware())
+	r.DELETE("/suppliers/:id", functions.DeleteSupplier)
+
+	testcases := []struct {
+		name         string
+		token        string
+		prepare      func() int64
+		expectedCode int
+	}{
+		{
+			name:  "invalid id",
+			token: adminToken,
+			prepare: func() int64 {
+				return 0
+			},
+			expectedCode: http.StatusBadRequest,
+		},
+		{
+			name:  "forbidden for supplier_admin",
+			token: supToken,
+			prepare: func() int64 {
+				res, _ := config.DB.Exec("insert into suppliers(name,contact_info,email,company) values(?,?,?,?)", "Tester4", "99999999", "tester@gmail.com", "Apple")
+				id, _ := res.LastInsertId()
+				return id
+			},
+			expectedCode: http.StatusForbidden,
+		},
+	}
+	for _, tc := range testcases {
+		tc := tc
+		t.Run(tc.name, func(t *testing.T) {
+			TruncateAll(t)
+			id := tc.prepare()
+			url := fmt.Sprintf("/suppliers/%d", id)
+			if id == 0 && tc.name == "invalid id bad request" {
+				url = "/suppliers/xyz"
+			}
+			req := httptest.NewRequest(http.MethodDelete, url, nil)
+			if tc.token != "" {
+				req.Header.Set("Authorization", "Bearer "+tc.token)
+			}
+			w := httptest.NewRecorder()
+			r.ServeHTTP(w, req)
+
+			if w.Code != tc.expectedCode {
+				t.Fatalf("%s expected %d got %d body=%s", tc.name, tc.expectedCode, w.Code, w.Body.String())
+			}
+
+		})
+
+	}
+
 }

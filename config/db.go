@@ -5,8 +5,6 @@ import (
 	"fmt"
 	"log"
 	"os"
-
-	//"path/filepath"
 	"strings"
 
 	_ "github.com/go-sql-driver/mysql"
@@ -20,12 +18,6 @@ func JoinDB() {
 	if err != nil {
 		log.Println(".env file not found!!")
 	}
-	// wd, _ := os.Getwd()
-	// if strings.HasSuffix(wd, "/functions") {
-	// 	wd = filepath.Dir(wd)
-	// }
-	// envPath := filepath.Join(wd, ".env")
-	// _ = godotenv.Load(envPath)
 	dsn := os.Getenv("DSN")
 	if dsn == "" {
 		log.Fatal("DSN not found")
@@ -43,11 +35,6 @@ func JoinDB() {
 	if err != nil {
 		log.Fatalf("Error while performing migration: %v", err)
 	}
-	// migPath := filepath.Join(wd, "migration", "init.sql")
-
-	// if err := ExecMigration(DB, migPath); err != nil {
-	// 	log.Fatalf("Error while performing migration: %v", err)
-	// }
 	fmt.Println("Database connected as well as migration executed!!")
 }
 
