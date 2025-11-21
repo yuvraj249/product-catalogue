@@ -55,23 +55,22 @@ func FindMigrationFile() (string, error) {
 	return path, nil
 }
 
-func ExecMigration(db *sql.DB, path string) error {
-	content, err := os.ReadFile(path)
-	if err != nil {
-		return err
-	}
-	queries := strings.Split(string(content), ";")
-	for _, q := range queries {
-		q = strings.TrimSpace(q)
-		if q == "" {
-			continue
-		}
-		if _, err := db.Exec(q); err != nil {
-			return err
-		}
-	}
-	return nil
-}
+// 	content, err := os.ReadFile(path)
+// 	if err != nil {
+// 		return err
+// 	}
+// 	queries := strings.Split(string(content), ";")
+// 	for _, q := range queries {
+// 		q = strings.TrimSpace(q)
+// 		if q == "" {
+// 			continue
+// 		}
+// 		if _, err := db.Exec(q); err != nil {
+// 			return err
+// 		}
+// 	}
+// 	return nil
+// }
 
 func SeedAdmin(t *testing.T, email, pass string) {
 	t.Helper()
@@ -140,7 +139,7 @@ func TestMain(m *testing.M) {
 		log.Fatal(err)
 	}
 
-	if err := ExecMigration(db, mig); err != nil {
+	if err := config.ExecMigration(db, mig); err != nil {
 		log.Fatal(err)
 	}
 
@@ -669,33 +668,16 @@ func TestDeleteCategory(t *testing.T) {
 	}
 }
 
-func SeedSupplierForTests(t *testing.T, email, pass, company string) int64 {
-	t.Helper()
-	res, err := config.DB.Exec("insert into suppliers(name, contact_info, email, company) values(?,?,?,?)",
-		"TestSupplier", "0000000000", email, company)
-	if err != nil {
-		t.Fatalf("seed supplier insert error: %v", err)
-	}
-	sid, err := res.LastInsertId()
-	if err != nil {
-		t.Fatalf("seed supplier lastid error: %v", err)
-	}
-	hash, _ := utils.HashPwd(pass)
-	_, err = config.DB.Exec("insert into users(name,email,password_hash,role) values(?,?,?,?)",
-		"SupplierUser", email, hash, "supplier_admin")
-	if err != nil {
-		t.Fatalf("seed supplier user insert error: %v", err)
-	}
-
-	return sid
-}
-
 func TestCreateSupplier_Handler(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 	TruncateAll(t)
 	adminEmail, adminPass := "admin_create_sup@test.com", "Admin@123"
 	SeedAdmin(t, adminEmail, adminPass)
 	adminToken := LoginAndGetToken(t, adminEmail, adminPass)
+	_, _ = config.DB.Exec("insert into suppliers(name,email,company) values(?,?,?)", "SupDel", "sup_del@test.com", "C")
+	_, _ = config.DB.Exec("insert into users(name,email,password_hash,role) values(?,?,?,?)",
+		"SupDelUser", "sup_del@test.com", "$2a$10$CCw/Xx/.lW1BCcc0MYIH5.xh2QJq7pBqMrWeE.WPxgRI4F8Af12s2", "supplier_admin")
+	supToken := LoginAndGetToken(t, "sup_del@test.com", "Yuvraj@2411")
 
 	r := gin.New()
 	r.Use(middleware.AuthMiddleware())
@@ -708,11 +690,18 @@ func TestCreateSupplier_Handler(t *testing.T) {
 		expectedCode int
 	}{
 		{
-			name:         "forbidden if not system admin",
+			name:         "token missing",
 			token:        "",
 			body:         `{"name":"S1","contact_info":"C","email":"s1p@test.com","company":"Co"}`,
 			expectedCode: http.StatusUnauthorized,
 		},
+		{
+			name:         "forbidden for supplier_admin",
+			token:        supToken,
+			body:         `{"name":"S1","contact_info":"C","email":"s1p@test.com","company":"Co"}`,
+			expectedCode: http.StatusForbidden,
+		},
+
 		{
 			name:         "invalid payload",
 			token:        adminToken,
@@ -741,7 +730,7 @@ func TestCreateSupplier_Handler(t *testing.T) {
 	}
 
 	for _, tc := range cases {
-		tc := tc
+		TruncateAll(t)
 		t.Run(tc.name, func(t *testing.T) {
 			_, _ = config.DB.Exec("delete from suppliers")
 			req := httptest.NewRequest(http.MethodPost, "/supplier", strings.NewReader(tc.body))
