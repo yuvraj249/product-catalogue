@@ -55,23 +55,6 @@ func FindMigrationFile() (string, error) {
 	return path, nil
 }
 
-// 	content, err := os.ReadFile(path)
-// 	if err != nil {
-// 		return err
-// 	}
-// 	queries := strings.Split(string(content), ";")
-// 	for _, q := range queries {
-// 		q = strings.TrimSpace(q)
-// 		if q == "" {
-// 			continue
-// 		}
-// 		if _, err := db.Exec(q); err != nil {
-// 			return err
-// 		}
-// 	}
-// 	return nil
-// }
-
 func SeedAdmin(t *testing.T, email, pass string) {
 	t.Helper()
 	hash, _ := utils.HashPwd(pass)
@@ -205,52 +188,38 @@ func TestLogin(t *testing.T) {
 
 func TestCreateCategory(t *testing.T) {
 	gin.SetMode(gin.TestMode)
-	TruncateAll(t)
 	adminEmail, adminPass := "admin_td@test.com", "Admin@123"
-	SeedAdmin(t, adminEmail, adminPass)
-	adminToken := LoginAndGetToken(t, adminEmail, adminPass)
-	_, _ = config.DB.Exec("insert into suppliers(name,email,company) values(?,?,?)", "Sup", "sup_td@test.com", "Comp")
-	_, _ = config.DB.Exec("insert into users(name,email,password_hash,role) values(?,?,?,?)",
-		"SupUser", "sup_td@test.com", "$2a$10$CCw/Xx/.lW1BCcc0MYIH5.xh2QJq7pBqMrWeE.WPxgRI4F8Af12s2", "supplier_admin")
-	supplierToken := LoginAndGetToken(t, "sup_td@test.com", "Yuvraj@2411")
-
 	r := gin.New()
 	r.Use(middleware.AuthMiddleware())
-	r.POST("/category", functions.CreateCategory)
+	r.POST("/categories", functions.CreateCategory)
 
 	cases := []struct {
 		name         string
-		token        string
 		body         string
 		expectedCode int
 	}{
 		{
 			name:         "no token",
-			token:        "",
 			body:         `{"category_name":"X","category_description":"Y"}`,
 			expectedCode: http.StatusUnauthorized,
 		},
 		{
 			name:         "supplier_admin cannot create",
-			token:        supplierToken,
 			body:         `{"category_name":"X","category_description":"Y"}`,
 			expectedCode: http.StatusForbidden,
 		},
 		{
 			name:         "invalid json",
-			token:        adminToken,
 			body:         `{`,
 			expectedCode: http.StatusBadRequest,
 		},
 		{
 			name:         "invalid category name",
-			token:        adminToken,
 			body:         `{"category_name":"@#$","category_description":"valid"}`,
 			expectedCode: http.StatusBadRequest,
 		},
 		{
 			name:         "valid create",
-			token:        adminToken,
 			body:         `{"category_name":"Electronics","category_description":"Devices"}`,
 			expectedCode: http.StatusCreated,
 		},
@@ -261,10 +230,31 @@ func TestCreateCategory(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			TruncateAll(t)
 
-			req := httptest.NewRequest(http.MethodPost, "/category", strings.NewReader(tc.body))
-			if tc.token != "" {
-				req.Header.Set("Authorization", "Bearer "+tc.token)
+			SeedAdmin(t, adminEmail, adminPass)
+			adminToken := LoginAndGetToken(t, adminEmail, adminPass)
+			_, _ = config.DB.Exec("insert into users(name,email,password_hash,role) values(?,?,?,?)",
+				"SupUser", "sup_td@test.com", "$2a$10$CCw/Xx/.lW1BCcc0MYIH5.xh2QJq7pBqMrWeE.WPxgRI4F8Af12s2", "supplier_admin")
+			supToken := LoginAndGetToken(t, "sup_td@test.com", "Yuvraj@2411")
+			req := httptest.NewRequest(http.MethodPost, "/categories", strings.NewReader(tc.body))
+
+			switch tc.name {
+			case "invalid json", "invalid category name", "valid create":
+				if adminToken == "" {
+					t.Fatalf("token empty for the subset: %s", tc.name)
+				} else {
+
+					req.Header.Set("Authorization", "Bearer "+adminToken)
+				}
+			case "supplier_admin cannot create":
+				if supToken == " " {
+					t.Fatalf("token empty for the subset: %s", tc.name)
+				} else {
+					req.Header.Set("Authorization", "Bearer "+supToken)
+				}
+			case "no token":
+				req.Header.Set("Authorization", "Bearer "+"")
 			}
+
 			req.Header.Set("Content-Type", "application/json")
 
 			w := httptest.NewRecorder()
@@ -289,7 +279,6 @@ func TestCreateCategory(t *testing.T) {
 
 func TestGetCategory(t *testing.T) {
 	gin.SetMode(gin.TestMode)
-	TruncateAll(t)
 
 	adminEmail, adminPass := "admin_get@test.com", "Admin@123"
 	SeedAdmin(t, adminEmail, adminPass)
@@ -301,7 +290,7 @@ func TestGetCategory(t *testing.T) {
 
 	r := gin.New()
 	r.Use(middleware.AuthMiddleware())
-	r.GET("/category", functions.GetCategory)
+	r.GET("/categories", functions.GetCategory)
 
 	cases := []struct {
 		name         string
@@ -343,7 +332,7 @@ func TestGetCategory(t *testing.T) {
 				}
 			}
 
-			req := httptest.NewRequest(http.MethodGet, "/category", nil)
+			req := httptest.NewRequest(http.MethodGet, "/categories", nil)
 			if tc.token != "" {
 				req.Header.Set("Authorization", "Bearer "+tc.token)
 			}
@@ -362,7 +351,6 @@ func TestGetCategory(t *testing.T) {
 
 func TestGetCategoryByID(t *testing.T) {
 	gin.SetMode(gin.TestMode)
-	TruncateAll(t)
 
 	adminEmail, adminPass := "admin_getid@test.com", "Admin@123"
 	SeedAdmin(t, adminEmail, adminPass)
@@ -374,7 +362,7 @@ func TestGetCategoryByID(t *testing.T) {
 
 	r := gin.New()
 	r.Use(middleware.AuthMiddleware())
-	r.GET("/category/:id", functions.GetCategoryByID)
+	r.GET("/categories/:id", functions.GetCategoryByID)
 
 	cases := []struct {
 		name         string
@@ -388,7 +376,7 @@ func TestGetCategoryByID(t *testing.T) {
 			name:         "invalid id param",
 			token:        adminToken,
 			prepare:      func() int64 { return 0 },
-			url:          "/category/abc",
+			url:          "/categories/abc",
 			expectedCode: http.StatusBadRequest,
 		},
 		{
@@ -398,7 +386,7 @@ func TestGetCategoryByID(t *testing.T) {
 
 				return 0
 			},
-			url:          "/category/9999999",
+			url:          "/categories/9999999",
 			expectedCode: http.StatusNotFound,
 		},
 		{
@@ -445,7 +433,7 @@ func TestGetCategoryByID(t *testing.T) {
 
 				return 0
 			},
-			url:          "/category/1",
+			url:          "/categories/1",
 			expectedCode: http.StatusUnauthorized,
 		},
 	}
@@ -460,7 +448,7 @@ func TestGetCategoryByID(t *testing.T) {
 			}
 			url := tc.url
 			if url == "" && id != 0 {
-				url = fmt.Sprintf("/category/%d", id)
+				url = fmt.Sprintf("/categories/%d", id)
 			}
 
 			req := httptest.NewRequest(http.MethodGet, url, nil)
@@ -479,7 +467,6 @@ func TestGetCategoryByID(t *testing.T) {
 
 func TestUpdateCategory(t *testing.T) {
 	gin.SetMode(gin.TestMode)
-	TruncateAll(t)
 
 	adminEmail, adminPass := "admin_update@test.com", "Admin@123"
 	SeedAdmin(t, adminEmail, adminPass)
@@ -491,7 +478,7 @@ func TestUpdateCategory(t *testing.T) {
 
 	r := gin.New()
 	r.Use(middleware.AuthMiddleware())
-	r.PUT("/category/:id", functions.UpdateCategory)
+	r.PUT("/categories/:id", functions.UpdateCategory)
 
 	cases := []struct {
 		name         string
@@ -560,9 +547,9 @@ func TestUpdateCategory(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			TruncateAll(t)
 			id := tc.prepare()
-			url := fmt.Sprintf("/category/%d", id)
+			url := fmt.Sprintf("/categories/%d", id)
 			if id == 0 && tc.name == "invalid id" {
-				url = "/category/abc"
+				url = "/categories/abc"
 			}
 			req := httptest.NewRequest(http.MethodPut, url, strings.NewReader(tc.body))
 			req.Header.Set("Content-Type", "application/json")
@@ -586,7 +573,6 @@ func TestUpdateCategory(t *testing.T) {
 
 func TestDeleteCategory(t *testing.T) {
 	gin.SetMode(gin.TestMode)
-	TruncateAll(t)
 
 	adminEmail, adminPass := "admin_delete@test.com", "Admin@123"
 	SeedAdmin(t, adminEmail, adminPass)
@@ -599,7 +585,7 @@ func TestDeleteCategory(t *testing.T) {
 
 	r := gin.New()
 	r.Use(middleware.AuthMiddleware())
-	r.DELETE("/category/:id", functions.DeleteCategory)
+	r.DELETE("/categories/:id", functions.DeleteCategory)
 
 	cases := []struct {
 		name         string
@@ -650,9 +636,9 @@ func TestDeleteCategory(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			TruncateAll(t)
 			id := tc.prepare()
-			url := fmt.Sprintf("/category/%d", id)
+			url := fmt.Sprintf("/categories/%d", id)
 			if id == 0 && tc.name == "invalid id bad request" {
-				url = "/category/xyz"
+				url = "/categories/xyz"
 			}
 			req := httptest.NewRequest(http.MethodDelete, url, nil)
 			if tc.token != "" {
@@ -670,7 +656,6 @@ func TestDeleteCategory(t *testing.T) {
 
 func TestCreateSupplier(t *testing.T) {
 	gin.SetMode(gin.TestMode)
-	TruncateAll(t)
 	adminEmail, adminPass := "admin_create_sup@test.com", "Admin@123"
 	SeedAdmin(t, adminEmail, adminPass)
 	adminToken := LoginAndGetToken(t, adminEmail, adminPass)
@@ -748,9 +733,106 @@ func TestCreateSupplier(t *testing.T) {
 	}
 }
 
+func TestUpdateSupplier(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+	adminEmail, adminPass := "admin_delete@test.com", "Admin@123"
+	SeedAdmin(t, adminEmail, adminPass)
+	adminToken := LoginAndGetToken(t, adminEmail, adminPass)
+	_, _ = config.DB.Exec("insert into suppliers(name,email,company) values(?,?,?)", "SupDel", "sup_del@test.com", "C")
+	_, _ = config.DB.Exec("insert into users(name,email,password_hash,role) values(?,?,?,?)",
+		"SupDelUser", "sup_del@test.com", "$2a$10$CCw/Xx/.lW1BCcc0MYIH5.xh2QJq7pBqMrWeE.WPxgRI4F8Af12s2", "supplier_admin")
+	supToken := LoginAndGetToken(t, "sup_del@test.com", "Yuvraj@2411")
+	r := gin.New()
+	r.Use(middleware.AuthMiddleware())
+	r.PUT("/suppliers/:id", functions.UpdateSupplier)
+	testcases := []struct {
+		name         string
+		token        string
+		prepare      func() int64
+		body         string
+		expectedCode int
+		verify       func(id int64) error
+	}{
+		{
+			name:  "no fields",
+			token: adminToken,
+			prepare: func() int64 {
+				res, _ := config.DB.Exec("insert into suppliers(name,contact_info,email,company) values(?,?,?,?)", "Tester4", "99999999", "tester@gmail.com", "Apple")
+				id, _ := res.LastInsertId()
+				return id
+			},
+			body:         `{}`,
+			expectedCode: http.StatusBadRequest,
+		},
+		{
+			name:  "forbidden for supplier_admin",
+			token: supToken,
+			prepare: func() int64 {
+				res, _ := config.DB.Exec("insert into suppliers(name,contact_info,email,company) values(?,?,?,?)", "Tester4", "99999999", "tester@gmail.com", "Apple")
+				id, _ := res.LastInsertId()
+				return id
+			},
+			body:         `{"supplier_name":"Stubbs"}`,
+			expectedCode: http.StatusForbidden,
+		},
+		{
+			name:  "invalid id bad request",
+			token: adminToken,
+			prepare: func() int64 {
+				return 0
+			},
+			body:         `{"supplier_name":"NewName"}`,
+			expectedCode: http.StatusBadRequest,
+		},
+		{
+			name:  "valid update",
+			token: adminToken,
+			prepare: func() int64 {
+				res, _ := config.DB.Exec("insert into suppliers(name,contact_info,email,company) values(?,?,?,?)", "Testerrrr", "99999999", "tester@gmail.com", "Apple")
+				id, _ := res.LastInsertId()
+				return id
+			},
+			body:         `{"name":"Testerrrr", "contact_info":"989898989", "email":"tester@gmail.com", "company":"Apple"}`,
+			expectedCode: http.StatusOK,
+			verify: func(id int64) error {
+				var name string
+				if err := config.DB.QueryRow("select name from suppliers where supplier_id=?", id).Scan(&name); err != nil {
+					return err
+				}
+				if name != "Tester4" {
+					return fmt.Errorf("expected name Hardware got %s", name)
+				}
+				return nil
+			},
+		},
+	}
+	for _, tc := range testcases {
+		tc := tc
+		t.Run(tc.name, func(t *testing.T) {
+			TruncateAll(t)
+			id := tc.prepare()
+			url := fmt.Sprintf("/suppliers/%d", id)
+			if id == 0 && tc.name == "invalid id bad request" {
+				url = "/suppliers/xyz"
+			}
+			req := httptest.NewRequest(http.MethodPut, url, strings.NewReader(tc.body))
+			if tc.token != "" {
+				req.Header.Set("Authorization", "Bearer "+tc.token)
+			}
+			w := httptest.NewRecorder()
+			r.ServeHTTP(w, req)
+
+			if w.Code != tc.expectedCode {
+				t.Fatalf("%s expected %d got %d body=%s", tc.name, tc.expectedCode, w.Code, w.Body.String())
+			}
+
+		})
+	}
+
+}
+
 func TestDeleteSupplier(t *testing.T) {
 	gin.SetMode(gin.TestMode)
-	TruncateAll(t)
 	adminEmail, adminPass := "admin_create_sup@test.com", "Admin@123"
 	SeedAdmin(t, adminEmail, adminPass)
 	adminToken := LoginAndGetToken(t, adminEmail, adminPass)
@@ -786,6 +868,24 @@ func TestDeleteSupplier(t *testing.T) {
 			},
 			expectedCode: http.StatusForbidden,
 		},
+		{
+			name:  "delete not found",
+			token: adminToken,
+			prepare: func() int64 {
+				return 99999999
+			},
+			expectedCode: http.StatusNotFound,
+		},
+		{
+			name:  "successful delete",
+			token: adminToken,
+			prepare: func() int64 {
+				res, _ := config.DB.Exec("insert into suppliers(name,contact_info,email,company) values(?,?,?,?)", "Tester4", "99999999", "tester@gmail.com", "Apple")
+				id, _ := res.LastInsertId()
+				return id
+			},
+			expectedCode: http.StatusOK,
+		},
 	}
 	for _, tc := range testcases {
 		tc := tc
@@ -811,4 +911,373 @@ func TestDeleteSupplier(t *testing.T) {
 
 	}
 
+}
+
+func TestGetSupplier(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+	adminEmail, adminPass := "admin_getid@test.com", "Admin@123"
+	r := gin.New()
+	r.Use(middleware.AuthMiddleware())
+	r.GET("/suppliers", functions.GetSupplier)
+
+	testcases := []struct {
+		name         string
+		prepare      func()
+		expectedCode int
+		expectBody   string
+	}{
+		{
+			name: "unauthorized (no token)",
+			prepare: func() {
+				_, _ = config.DB.Exec("insert into suppliers(name,contact_info,email,company) values(?,?,?,?)", "ABC", "111", "a@test", "CoA")
+			},
+			expectedCode: http.StatusUnauthorized,
+		},
+		{
+			name: "empty list for system_admin",
+			prepare: func() {
+
+			},
+			expectedCode: http.StatusOK,
+		},
+		{
+			name: "system_admin sees all suppliers",
+			prepare: func() {
+				_, _ = config.DB.Exec("insert into suppliers(name,contact_info,email,company) values(?,?,?,?)", "ABC", "111", "a@test", "CoA")
+				_, _ = config.DB.Exec("insert into suppliers(name,contact_info,email,company) values(?,?,?,?)", "CFD", "222", "b@test", "CoB")
+			},
+			expectedCode: http.StatusOK,
+		},
+		{
+			name: "supplier_admin sees all suppliers of same company",
+			prepare: func() {
+				_, _ = config.DB.Exec("insert into suppliers(name,contact_info,email,company) values(?,?,?,?)", "ABC", "111", "a@test", "CoA")
+				_, _ = config.DB.Exec("insert into suppliers(name,contact_info,email,company) values(?,?,?,?)", "CFD", "222", "b@test", "CoA")
+			},
+			expectedCode: http.StatusOK,
+		},
+	}
+
+	for _, tc := range testcases {
+		tc := tc
+		t.Run(tc.name, func(t *testing.T) {
+			TruncateAll(t)
+			SeedAdmin(t, adminEmail, adminPass)
+			adminToken := LoginAndGetToken(t, adminEmail, adminPass)
+			if tc.prepare != nil {
+				tc.prepare()
+			}
+			req := httptest.NewRequest(http.MethodGet, "/suppliers", nil)
+			if tc.name == "supplier_admin sees all suppliers of same company" {
+				var sid int64
+				err := config.DB.QueryRow("select supplier_id from suppliers where company= ?", "CoA").Scan(&sid)
+				if err != nil {
+					t.Fatalf("failed to find supplier row inserted in prepare: %v", err)
+				}
+				pass := "Yuvraj@2411"
+				hash, _ := utils.HashPwd(pass)
+				_, err = config.DB.Exec("insert into users(name,email,password_hash,role,supplier_id) values(?,?,?,?,?)",
+					"SupUser", "supget@test.com", hash, "supplier_admin", sid)
+				if err != nil {
+					t.Fatalf("failed to insert supplier user: %v", err)
+				}
+				supToken := LoginAndGetToken(t, "supget@test.com", pass)
+				if supToken == "" {
+					t.Fatalf("supplier login failed for subtest %s", tc.name)
+				}
+				req.Header.Set("Authorization", "Bearer "+supToken)
+			} else if tc.expectedCode != http.StatusUnauthorized {
+				req.Header.Set("Authorization", "Bearer "+adminToken)
+			}
+
+			w := httptest.NewRecorder()
+			r.ServeHTTP(w, req)
+
+			if w.Code != tc.expectedCode {
+				t.Fatalf("%sexpected %d got %d body=%s", tc.name, tc.expectedCode, w.Code, w.Body.String())
+			}
+			if tc.expectedCode == http.StatusOK && !strings.Contains(w.Body.String(), tc.expectBody) {
+				t.Fatalf("%s expected body to contain %q; got %s", tc.name, tc.expectBody, w.Body.String())
+			}
+
+		})
+
+	}
+
+}
+
+func TestGetSupplierByID(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+	adminEmail, adminPass := "admin_getbyid@test.com", "Admin@123"
+	r := gin.New()
+	r.Use(middleware.AuthMiddleware())
+	r.GET("/suppliers/:id", functions.GetSupplierByID)
+
+	testcases := []struct {
+		name         string
+		prepare      func() int64
+		expectedCode int
+		expectBody   string
+	}{
+		{
+			name: "invalid id param",
+			prepare: func() int64 {
+				return 0
+			},
+			expectedCode: http.StatusBadRequest,
+		},
+		{
+			name: "unauthorized (no token)",
+			prepare: func() int64 {
+				res, _ := config.DB.Exec("insert into suppliers(name,contact_info,email,company) values(?,?,?,?)",
+					"UnauthSup", "111", "unauth@test.com", "CoX")
+				id, _ := res.LastInsertId()
+				return id
+			},
+			expectedCode: http.StatusUnauthorized,
+		},
+		{
+			name: "not found (system_admin)",
+			prepare: func() int64 {
+				return 99999999
+			},
+			expectedCode: http.StatusNotFound,
+		},
+		{
+			name: "system_admin found",
+			prepare: func() int64 {
+				res, _ := config.DB.Exec("insert into suppliers(name,contact_info,email,company) values(?,?,?,?)",
+					"SysFound", "222", "sysfound@test.com", "CoSys")
+				id, _ := res.LastInsertId()
+				return id
+			},
+			expectedCode: http.StatusOK,
+			expectBody:   "SysFound",
+		},
+		{
+			name: "supplier_admin can get supplier in same company",
+			prepare: func() int64 {
+				res1, _ := config.DB.Exec("insert into suppliers(name,contact_info,email,company) values(?,?,?,?)",
+					"CoASup1", "333", "coasup1@test.com", "CoA")
+				id1, _ := res1.LastInsertId()
+
+				_, _ = config.DB.Exec("insert into suppliers(name,contact_info,email,company) values(?,?,?,?)",
+					"CoASup2", "444", "coasup2@test.com", "CoA")
+				pass := "Supplier@123"
+				hash, _ := utils.HashPwd(pass)
+				_, _ = config.DB.Exec("insert into users(name,email,password_hash,role,supplier_id) values(?,?,?,?,?)",
+					"CoAAdmin", "coasupadmin@test.com", hash, "supplier_admin", id1)
+
+				res2, _ := config.DB.Exec("select supplier_id from suppliers where email = ?", "coasup2@test.com")
+				var targetID int64
+				_ = res2
+				_ = config.DB.QueryRow("select supplier_id from suppliers where email = ?", "coasup2@test.com").Scan(&targetID)
+				return targetID
+			},
+			expectedCode: http.StatusOK,
+			expectBody:   "CoASup2",
+		},
+		{
+			name: "supplier_admin forbidden for different company",
+			prepare: func() int64 {
+				resA, _ := config.DB.Exec("insert into suppliers(name,contact_info,email,company) values(?,?,?,?)",
+					"CompanyX", "555", "compx@test.com", "CompanyX")
+				idA, _ := resA.LastInsertId()
+
+				resB, _ := config.DB.Exec("insert into suppliers(name,contact_info,email,company) values(?,?,?,?)",
+					"CompanyY", "666", "compy@test.com", "CompanyY")
+				idB, _ := resB.LastInsertId()
+				pass := "Supplier@321"
+				hash, _ := utils.HashPwd(pass)
+				_, _ = config.DB.Exec("insert into users(name,email,password_hash,role,supplier_id) values(?,?,?,?,?)",
+					"CompXAdmin", "compxadmin@test.com", hash, "supplier_admin", idA)
+				return idB
+			},
+			expectedCode: http.StatusForbidden,
+		},
+	}
+
+	for _, tc := range testcases {
+		tc := tc
+		t.Run(tc.name, func(t *testing.T) {
+			TruncateAll(t)
+
+			SeedAdmin(t, adminEmail, adminPass)
+			adminToken := LoginAndGetToken(t, adminEmail, adminPass)
+
+			var id int64 = 0
+			if tc.prepare != nil {
+				id = tc.prepare()
+			}
+
+			url := ""
+			if tc.name == "invalid id param" {
+				url = "/suppliers/abc"
+			} else if id == 0 {
+				url = fmt.Sprintf("/suppliers/%d", 99999999)
+			} else {
+				url = fmt.Sprintf("/suppliers/%d", id)
+			}
+
+			req := httptest.NewRequest(http.MethodGet, url, nil)
+			switch tc.name {
+			case "unauthorized (no token)":
+			case "supplier_admin can get supplier in same company":
+				supToken := LoginAndGetToken(t, "coasupadmin@test.com", "Supplier@123")
+				if supToken == "" {
+					t.Fatalf("failed to login supplier admin for subtest %s", tc.name)
+				}
+				req.Header.Set("Authorization", "Bearer "+supToken)
+			case "supplier_admin forbidden for different company":
+				supToken := LoginAndGetToken(t, "compxadmin@test.com", "Supplier@321")
+				if supToken == "" {
+					t.Fatalf("failed to login supplier admin for subtest %s", tc.name)
+				}
+				req.Header.Set("Authorization", "Bearer "+supToken)
+			default:
+				req.Header.Set("Authorization", "Bearer "+adminToken)
+			}
+
+			w := httptest.NewRecorder()
+			r.ServeHTTP(w, req)
+
+			if w.Code != tc.expectedCode {
+				t.Fatalf("%s expected %d got %d body=%s", tc.name, tc.expectedCode, w.Code, w.Body.String())
+			}
+			if tc.expectedCode == http.StatusOK && tc.expectBody != "" && !strings.Contains(w.Body.String(), tc.expectBody) {
+				t.Fatalf("%s expected body to contain %q; got %s", tc.name, tc.expectBody, w.Body.String())
+			}
+		})
+	}
+}
+
+func TestCreateProduct(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+	adminEmail, adminPass := "admin_prod_create@test.com", "Admin@123"
+
+	r := gin.New()
+	r.Use(middleware.AuthMiddleware())
+	r.POST("/products", functions.CreateProduct)
+
+	testcases := []struct {
+		name         string
+		prepare      func() (supplierToken string, catID int)
+		body         string
+		expectedCode int
+	}{
+		{
+			name: "unauthorized no token",
+			prepare: func() (string, int) {
+				return "", 0
+			},
+			body:         `{"product_name":"Product1","product_description":"D","product_cost":100,"product_category_id":1}`,
+			expectedCode: http.StatusUnauthorized,
+		},
+		{
+			name: "forbidden for system_admin",
+			prepare: func() (string, int) {
+				SeedAdmin(t, adminEmail, adminPass)
+				adminToken := LoginAndGetToken(t, adminEmail, adminPass)
+				res, _ := config.DB.Exec("insert into categories(category_name,category_description) values(?,?)", "CatA", "X")
+				cid, _ := res.LastInsertId()
+				return adminToken, int(cid)
+			},
+			body:         `{"product_name":"P1","product_description":"D","product_cost":100,"product_category_id":1}`,
+			expectedCode: http.StatusForbidden,
+		},
+		{
+			name: "invalid payload JSON",
+			prepare: func() (string, int) {
+				SeedAdmin(t, adminEmail, adminPass)
+				res, _ := config.DB.Exec("insert into suppliers(name,contact_info,email,company) values(?,?,?,?)", "SupP", "999", "supprod@test.com", "CoP")
+				sid, _ := res.LastInsertId()
+				pass := "SupPass@1"
+				hash, _ := utils.HashPwd(pass)
+				_, _ = config.DB.Exec("insert into users(name,email,password_hash,role,supplier_id) values(?,?,?,?,?)", "SuppUser", "supprod@test.com", hash, "supplier_admin", sid)
+				token := LoginAndGetToken(t, "supprod@test.com", pass)
+				rc, _ := config.DB.Exec("insert into categories(category_name,category_description) values(?,?)", "CatP", "desc")
+				cid, _ := rc.LastInsertId()
+				return token, int(cid)
+			},
+			body:         `{`,
+			expectedCode: http.StatusBadRequest,
+		},
+		{
+			name: "invalid product name (empty)",
+			prepare: func() (string, int) {
+				res, _ := config.DB.Exec("insert into suppliers(name,contact_info,email,company) values(?,?,?,?)", "SupP", "999", "supprod@test.com", "CoP")
+				sid, _ := res.LastInsertId()
+				pass := "SupPass@1"
+				hash, _ := utils.HashPwd(pass)
+				_, _ = config.DB.Exec("insert into users(name,email,password_hash,role,supplier_id) values(?,?,?,?,?)", "SuppUser", "supprod@test.com", hash, "supplier_admin", sid)
+				token := LoginAndGetToken(t, "supprod@test.com", pass)
+
+				rc, _ := config.DB.Exec("insert into categories(category_name,category_description) values(?,?)", "CatP", "desc")
+				cid, _ := rc.LastInsertId()
+				return token, int(cid)
+			},
+			body:         `{"product_name":"   ","product_description":"D","product_cost":10,"product_category_id":1}`,
+			expectedCode: http.StatusBadRequest,
+		},
+		{
+			name: "invalid category id",
+			prepare: func() (string, int) {
+
+				res, _ := config.DB.Exec("insert into suppliers(name,contact_info,email,company) values(?,?,?,?)", "SupP", "999", "supprod@test.com", "CoP")
+				sid, _ := res.LastInsertId()
+				pass := "SupPass@1"
+				hash, _ := utils.HashPwd(pass)
+				_, _ = config.DB.Exec("insert into users(name,email,password_hash,role,supplier_id) values(?,?,?,?,?)", "SuppUser", "supprod@test.com", hash, "supplier_admin", sid)
+				token := LoginAndGetToken(t, "supprod@test.com", pass)
+				return token, 999999
+			},
+			body:         `{"product_name":"Pvalid","product_description":"D","product_cost":10,"product_category_id":999999}`,
+			expectedCode: http.StatusBadRequest,
+		},
+		{
+			name: "valid create by supplier_admin",
+			prepare: func() (string, int) {
+				res, _ := config.DB.Exec("insert into suppliers(name,contact_info,email,company) values(?,?,?,?)", "SupP", "999", "supprod@test.com", "CoP")
+				sid, _ := res.LastInsertId()
+				pass := "SupPass@1"
+				hash, _ := utils.HashPwd(pass)
+				_, _ = config.DB.Exec("insert into users(name,email,password_hash,role,supplier_id) values(?,?,?,?,?)", "SuppUser", "supprod@test.com", hash, "supplier_admin", sid)
+				token := LoginAndGetToken(t, "supprod@test.com", pass)
+				rc, _ := config.DB.Exec("insert into categories(category_name,category_description) values(?,?)", "CatP", "desc")
+				cid, _ := rc.LastInsertId()
+				return token, int(cid)
+			},
+			body:         `{"product_name":"Pvalid","product_description":"D","product_cost":10,"product_category_id":1}`,
+			expectedCode: http.StatusOK,
+		},
+	}
+
+	for _, tc := range testcases {
+		tc := tc
+		t.Run(tc.name, func(t *testing.T) {
+			TruncateAll(t)
+			token, cid := "", 0
+			if tc.prepare != nil {
+				token, cid = tc.prepare()
+			}
+			body := tc.body
+			if cid > 0 {
+				body = strings.Replace(body, `"product_category_id":1`, fmt.Sprintf(`"product_category_id":%d`, cid), 1)
+				body = strings.Replace(body, `"product_category_id":999999`, fmt.Sprintf(`"product_category_id":%d`, cid), 1)
+			}
+
+			req := httptest.NewRequest(http.MethodPost, "/products", strings.NewReader(body))
+			if token != "" {
+				req.Header.Set("Authorization", "Bearer "+token)
+			}
+			req.Header.Set("Content-Type", "application/json")
+
+			w := httptest.NewRecorder()
+			r.ServeHTTP(w, req)
+
+			if w.Code != tc.expectedCode {
+				t.Fatalf("[%s] expected %d got %d body=%s", tc.name, tc.expectedCode, w.Code, w.Body.String())
+			}
+		})
+	}
 }
