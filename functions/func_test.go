@@ -1276,7 +1276,116 @@ func TestCreateProduct(t *testing.T) {
 			r.ServeHTTP(w, req)
 
 			if w.Code != tc.expectedCode {
-				t.Fatalf("[%s] expected %d got %d body=%s", tc.name, tc.expectedCode, w.Code, w.Body.String())
+				t.Fatalf("%s expected %d got %d body=%s", tc.name, tc.expectedCode, w.Code, w.Body.String())
+			}
+		})
+	}
+}
+
+func TestGetProducts(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+	adminEmail, adminPass := "admin_prod_gets@test.com", "Admin@123"
+
+	r := gin.New()
+	r.Use(middleware.AuthMiddleware())
+	r.GET("/products", functions.GetProduct)
+
+	testcases := []struct {
+		name         string
+		prepare      func()
+		expectedCode int
+		expectBody   string
+	}{
+		{
+			name: "unauthorized",
+			prepare: func() {
+				res, _ := config.DB.Exec("insert into suppliers(name,contact_info,email,company) values(?,?,?,?)", "Sx", "111", "sx@test.com", "CoX")
+				sid, _ := res.LastInsertId()
+				_, _ = config.DB.Exec("insert into categories(category_name,category_description) values(?,?)", "CatX", "d")
+				cidRes, _ := config.DB.Exec("select category_id from categories where category_name = ?", "CatX")
+				_ = cidRes
+
+				_, _ = config.DB.Exec("insert into products(product_name,product_description,product_cost,product_category_id,product_supplier_id) values(?,?,?,?,?)", "Px", "d", 10, 1, sid)
+			},
+			expectedCode: http.StatusForbidden,
+		},
+		{
+			name: "system_admin sees all",
+			prepare: func() {
+				SeedAdmin(t, adminEmail, adminPass)
+				res1, _ := config.DB.Exec("insert into suppliers(name,contact_info,email,company) values(?,?,?,?)", "S1", "111", "s1@test", "CoA")
+				sid1, _ := res1.LastInsertId()
+				res2, _ := config.DB.Exec("insert into suppliers(name,contact_info,email,company) values(?,?,?,?)", "S2", "222", "s2@test", "CoB")
+				sid2, _ := res2.LastInsertId()
+				rc, _ := config.DB.Exec("insert into categories(category_name,category_description) values(?,?)", "Cat1", "d")
+				cid, _ := rc.LastInsertId()
+				_, _ = config.DB.Exec("insert into products(product_name,product_description,product_cost,product_category_id,product_supplier_id) values(?,?,?,?,?)", "Prod1", "d", 11.5, cid, sid1)
+				_, _ = config.DB.Exec("insert into products(product_name,product_description,product_cost,product_category_id,product_supplier_id) values(?,?,?,?,?)", "Prod2", "d", 22.5, cid, sid2)
+			},
+			expectedCode: http.StatusOK,
+			expectBody:   "Prod1",
+		},
+		{
+			name: "supplier_admin sees same company products only",
+			prepare: func() {
+				SeedAdmin(t, adminEmail, adminPass)
+				res1, _ := config.DB.Exec("insert into suppliers(name,contact_info,email,company) values(?,?,?,?)", "SC1", "111", "sc1@test.com", "SameCo")
+				sid1, _ := res1.LastInsertId()
+				_, _ = config.DB.Exec("insert into suppliers(name,contact_info,email,company) values(?,?,?,?)", "SC2", "222", "sc2@test.com", "SameCo")
+				res3, _ := config.DB.Exec("insert into suppliers(name,contact_info,email,company) values(?,?,?,?)", "diddy", "333", "dx@test.com", "OtherCo")
+				sid3, _ := res3.LastInsertId()
+				rc, _ := config.DB.Exec("insert into categories(category_name,category_description) values(?,?)", "CatS", "d")
+				cid, _ := rc.LastInsertId()
+				_, _ = config.DB.Exec("insert into products(product_name,product_description,product_cost,product_category_id,product_supplier_id) values(?,?,?,?,?)", "SameCoProd", "d", 10, cid, sid1)
+				_, _ = config.DB.Exec("insert into products(product_name,product_description,product_cost,product_category_id,product_supplier_id) values(?,?,?,?,?)", "OtherProd", "d", 20, cid, sid3)
+				pass := "SupSee@1"
+				hash, _ := utils.HashPwd(pass)
+				_, _ = config.DB.Exec("insert into users(name,email,password_hash,role,supplier_id) values(?,?,?,?,?)", "SupSee", "supsee@test.com", hash, "supplier_admin", sid1)
+			},
+			expectedCode: http.StatusOK,
+			expectBody:   "SameCoProd",
+		},
+	}
+
+	for _, tc := range testcases {
+		tc := tc
+		t.Run(tc.name, func(t *testing.T) {
+			TruncateAll(t)
+			if tc.prepare != nil {
+				tc.prepare()
+			}
+
+			req := httptest.NewRequest(http.MethodGet, "/products", nil)
+
+			if tc.name == "system_admin sees all" || tc.name == "supplier_admin sees same company products only" {
+				adminToken := LoginAndGetToken(t, adminEmail, adminPass)
+				if tc.name == "system_admin sees all" {
+					req.Header.Set("Authorization", "Bearer "+adminToken)
+				} else {
+
+					supToken := LoginAndGetToken(t, "supsee@test.com", "SupSee@1")
+					if supToken == "" {
+						t.Fatalf("supplier login failed for subtest %s", tc.name)
+					}
+					req.Header.Set("Authorization", "Bearer "+supToken)
+				}
+			}
+
+			w := httptest.NewRecorder()
+			r.ServeHTTP(w, req)
+
+			if tc.name == "unauthorized" {
+				if w.Code != http.StatusUnauthorized && w.Code != http.StatusForbidden {
+					t.Fatalf("%s expected %d got %d body=%s", tc.name, tc.expectedCode, w.Code, w.Body.String())
+				}
+				return
+			}
+
+			if w.Code != tc.expectedCode {
+				t.Fatalf("%s expected %d got %d body=%s", tc.name, tc.expectedCode, w.Code, w.Body.String())
+			}
+			if tc.expectBody != "" && !strings.Contains(w.Body.String(), tc.expectBody) {
+				t.Fatalf("%s expected body to contain %q; got %s", tc.name, tc.expectBody, w.Body.String())
 			}
 		})
 	}
