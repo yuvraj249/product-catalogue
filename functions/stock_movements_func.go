@@ -268,3 +268,4 @@ func GetStockMovements(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"movements": movements})
 
 }
+

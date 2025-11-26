@@ -2821,3 +2821,106 @@ func TestGetStockMov(t *testing.T) {
 		})
 	}
 }
+
+func TestDashboard(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+	adminEmail, adminPass := "sup_admin_get@test.com", "Admin@123"
+	SeedAdmin(t, adminEmail, adminPass)
+	adminToken := LoginAndGetToken(t, adminEmail, adminPass)
+	const supPass = "Supplier@123"
+	const supEmail = "Supplier@testing.com"
+	r := gin.New()
+	r.Use(middleware.AuthMiddleware())
+	r.GET("/dashboard", functions.GetDashboard)
+	testcases := []struct {
+		name         string
+		prepare      func()
+		expectedCode int
+	}{
+		{
+			name: "unauthorized (no token)",
+			prepare: func() {
+
+			},
+			expectedCode: http.StatusUnauthorized,
+		},
+		{
+			name: "system_admin empty counts",
+			prepare: func() {
+
+			},
+			expectedCode: http.StatusOK,
+		},
+		{
+			name: "system_admin dashboard (low stock products)",
+			prepare: func() {
+				resS, _ := config.DB.Exec("insert into suppliers(name,email,company) values(?,?,?)", "LowSup", "lowsup@test.com", "LowCo")
+				sid, _ := resS.LastInsertId()
+				rc, _ := config.DB.Exec("insert into categories(category_name,category_description) values(?,?)", "LowCat", "desc")
+				cid, _ := rc.LastInsertId()
+				pr, _ := config.DB.Exec("insert into products(product_name,product_description,product_cost,product_category_id,product_supplier_id) values(?,?,?,?,?)", "LowProd", "desc", 10, cid, sid)
+				pid, _ := pr.LastInsertId()
+				_, _ = config.DB.Exec("insert into stock_movements(product_id,quantity,movement_type,performed_by) values(?,?,?,?)", pid, 5, "IN", 1)
+				_, _ = config.DB.Exec("insert into stock_movements(product_id,quantity,movement_type,performed_by) values(?,?,?,?)", pid, 100, "OUT", 1)
+			},
+			expectedCode: http.StatusOK,
+		},
+		{
+			name: "supplier_admin dashboard (has products)",
+			prepare: func() {
+				resS, _ := config.DB.Exec("insert into suppliers(name,email,company) values(?,?,?)", "LowSup", "lowsup@test.com", "LowCo")
+				sid, _ := resS.LastInsertId()
+				rc, _ := config.DB.Exec("insert into categories(category_name,category_description) values(?,?)", "LowCat", "desc")
+				cid, _ := rc.LastInsertId()
+				_, _ = config.DB.Exec("insert into products(product_name,product_description,product_cost,product_category_id,product_supplier_id) values(?,?,?,?,?)", "LowProd", "desc", 10, cid, sid)
+				hash, _ := utils.HashPwd(supPass)
+				_, _ = config.DB.Exec("insert into users(name,email,password_hash,role,supplier_id) values(?,?,?,?,?)", "CompanyAdmin", supEmail, hash, "supplier_admin", sid)
+			},
+			expectedCode: http.StatusOK,
+		},
+		{
+			name: "supplier_admin dashboard (no products)",
+			prepare: func() {
+				resS, _ := config.DB.Exec("insert into suppliers(name,email,company) values(?,?,?)", "LowSup", "lowsup@test.com", "LowCo")
+				sid, _ := resS.LastInsertId()
+				hash, _ := utils.HashPwd(supPass)
+				_, _ = config.DB.Exec("insert into users(name,email,password_hash,role,supplier_id) values(?,?,?,?,?)", "CompanyAdmin", supEmail, hash, "supplier_admin", sid)
+			},
+			expectedCode: http.StatusOK,
+		},
+	}
+	for _, tc := range testcases {
+		tc := tc
+		t.Run(tc.name, func(t *testing.T) {
+			t.Cleanup(func() {
+				TruncateAll(t)
+			})
+			if tc.prepare != nil {
+				tc.prepare()
+			}
+			req := httptest.NewRequest(http.MethodGet, "/dashboard", nil)
+			req.Header.Set("Content-Type", "application/json")
+			switch tc.name {
+			case "unauthorized (no token)":
+				req.Header.Set("Authorization", "Bearer "+"")
+			case "system_admin empty counts", "system_admin dashboard (low stock products)":
+				req.Header.Set("Authorization", "Bearer "+adminToken)
+			case "supplier_admin dashboard (has products)", "supplier_admin dashboard (no products)":
+				supToken := LoginAndGetToken(t, supEmail, supPass)
+				if supToken != "" {
+					req.Header.Set("Authorization", "Bearer "+supToken)
+				}
+			default:
+				req.Header.Set("Authorization", "Bearer "+adminToken)
+			}
+			w := httptest.NewRecorder()
+			r.ServeHTTP(w, req)
+
+			if w.Code != tc.expectedCode {
+				t.Fatalf("%s expected %d got %d body=%s", tc.name, tc.expectedCode, w.Code, w.Body.String())
+			}
+
+		})
+	}
+
+}
