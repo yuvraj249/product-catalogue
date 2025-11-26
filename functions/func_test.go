@@ -97,12 +97,9 @@ func TestMain(m *testing.M) {
 	root = filepath.Dir(root)
 	envPath := filepath.Join(root, ".env")
 	_ = godotenv.Load(envPath)
-	dsn := os.Getenv("TEST_DSN")
+	dsn := os.Getenv("DSN")
 	if dsn == "" {
-		dsn = os.Getenv("DSN")
-	}
-	if dsn == "" {
-		log.Fatal("DSN or TEST_DSN must be provided")
+		log.Fatal("DSN must be provided")
 	}
 
 	jwt := os.Getenv("JWT_SECRET_KEY")
@@ -1252,6 +1249,9 @@ func TestCreateProduct(t *testing.T) {
 		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
 			TruncateAll(t)
+			t.Cleanup(func() {
+				TruncateAll(t)
+			})
 			token, cid := "", 0
 			if tc.prepare != nil {
 				token, cid = tc.prepare()
@@ -2025,12 +2025,15 @@ func TestCreateSuppAdmin(t *testing.T) {
 			expectedCode: http.StatusBadRequest,
 		},
 		{
-			name: "supplier_id does not exist",
+			name: "successful create",
 			prepare: func() int64 {
-				return 0
+				res, _ := config.DB.Exec("insert into suppliers(name,email,company) values(?,?,?)", "Sgood", "sgood@test.com", "GCo")
+				id, _ := res.LastInsertId()
+				return id
 			},
-			body:         `{"name":"Ucsdd","email":"u4@test.com","password":"Supplier@123","supplier_id":999999}`,
-			expectedCode: http.StatusBadRequest,
+			body:         `{"name":"TesterAdmin","email":"newadmin@test.com","password":"Supplier@123","supplier_id":1}`,
+			expectedCode: http.StatusCreated,
+			expectBody:   "supplier_admin user created successfully",
 		},
 		{
 			name: "email already registered",
@@ -2045,15 +2048,12 @@ func TestCreateSuppAdmin(t *testing.T) {
 			expectedCode: http.StatusBadRequest,
 		},
 		{
-			name: "successful create",
+			name: "supplier_id does not exist",
 			prepare: func() int64 {
-				res, _ := config.DB.Exec("insert into suppliers(name,email,company) values(?,?,?)", "Sgood", "sgood@test.com", "GCo")
-				id, _ := res.LastInsertId()
-				return id
+				return 0
 			},
-			body:         `{"name":"TesterAdmin","email":"newadmin@test.com","password":"Supplier@123","supplier_id":1}`,
-			expectedCode: http.StatusCreated,
-			expectBody:   "supplier_admin user created successfully",
+			body:         `{"name":"Ucsdd","email":"u4@test.com","password":"Supplier@123","supplier_id":999999}`,
+			expectedCode: http.StatusBadRequest,
 		},
 	}
 	for _, tc := range testcases {
