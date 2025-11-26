@@ -230,7 +230,9 @@ func TestCreateCategory(t *testing.T) {
 	for _, tc := range cases {
 		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
-			TruncateAll(t)
+			t.Cleanup(func() {
+				TruncateAll(t)
+			})
 			_, _ = config.DB.Exec("insert into users(name,email,password_hash,role) values(?,?,?,?)",
 				"SupUser", "sup_td@test.com", "$2a$10$CCw/Xx/.lW1BCcc0MYIH5.xh2QJq7pBqMrWeE.WPxgRI4F8Af12s2", "supplier_admin")
 			supToken := LoginAndGetToken(t, "sup_td@test.com", "Yuvraj@2411")
@@ -323,7 +325,9 @@ func TestGetCategory(t *testing.T) {
 	for _, tc := range cases {
 		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
-			TruncateAll(t)
+			t.Cleanup(func() {
+				TruncateAll(t)
+			})
 			if tc.seedRows > 0 {
 				_, _ = config.DB.Exec("insert into categories(category_name, category_description) values(?,?)", "Electronics", "Devices")
 				if tc.seedRows > 1 {
@@ -438,7 +442,9 @@ func TestGetCategoryByID(t *testing.T) {
 	for _, tc := range cases {
 		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
-			TruncateAll(t)
+			t.Cleanup(func() {
+				TruncateAll(t)
+			})
 			var id = int64(0)
 			if tc.prepare != nil {
 				id = tc.prepare()
@@ -541,7 +547,9 @@ func TestUpdateCategory(t *testing.T) {
 	for _, tc := range cases {
 		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
-			TruncateAll(t)
+			t.Cleanup(func() {
+				TruncateAll(t)
+			})
 			id := tc.prepare()
 			url := fmt.Sprintf("/categories/%d", id)
 			if id == 0 && tc.name == "invalid id" {
@@ -629,7 +637,9 @@ func TestDeleteCategory(t *testing.T) {
 	for _, tc := range cases {
 		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
-			TruncateAll(t)
+			t.Cleanup(func() {
+				TruncateAll(t)
+			})
 			id := tc.prepare()
 			url := fmt.Sprintf("/categories/%d", id)
 			if id == 0 && tc.name == "invalid id bad request" {
@@ -710,7 +720,9 @@ func TestCreateSupplier(t *testing.T) {
 	}
 
 	for _, tc := range cases {
-		TruncateAll(t)
+		t.Cleanup(func() {
+			TruncateAll(t)
+		})
 		t.Run(tc.name, func(t *testing.T) {
 			_, _ = config.DB.Exec("delete from suppliers")
 			req := httptest.NewRequest(http.MethodPost, "/supplier", strings.NewReader(tc.body))
@@ -804,7 +816,9 @@ func TestUpdateSupplier(t *testing.T) {
 	for _, tc := range testcases {
 		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
-			TruncateAll(t)
+			t.Cleanup(func() {
+				TruncateAll(t)
+			})
 			id := tc.prepare()
 			url := fmt.Sprintf("/suppliers/%d", id)
 			if id == 0 && tc.name == "invalid id bad request" {
@@ -885,7 +899,9 @@ func TestDeleteSupplier(t *testing.T) {
 	for _, tc := range testcases {
 		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
-			TruncateAll(t)
+			t.Cleanup(func() {
+				TruncateAll(t)
+			})
 			id := tc.prepare()
 			url := fmt.Sprintf("/suppliers/%d", id)
 			if id == 0 && tc.name == "invalid id bad request" {
@@ -958,7 +974,9 @@ func TestGetSupplier(t *testing.T) {
 	for _, tc := range testcases {
 		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
-			TruncateAll(t)
+			t.Cleanup(func() {
+				TruncateAll(t)
+			})
 			if tc.prepare != nil {
 				tc.prepare()
 			}
@@ -1097,7 +1115,9 @@ func TestGetSupplierByID(t *testing.T) {
 	for _, tc := range testcases {
 		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
-			TruncateAll(t)
+			t.Cleanup(func() {
+				TruncateAll(t)
+			})
 			var id int64 = 0
 			if tc.prepare != nil {
 				id = tc.prepare()
@@ -1248,9 +1268,13 @@ func TestCreateProduct(t *testing.T) {
 	for _, tc := range testcases {
 		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
-			TruncateAll(t)
 			t.Cleanup(func() {
 				TruncateAll(t)
+			})
+			t.Cleanup(func() {
+				t.Cleanup(func() {
+					TruncateAll(t)
+				})
 			})
 			token, cid := "", 0
 			if tc.prepare != nil {
@@ -1345,7 +1369,9 @@ func TestGetProducts(t *testing.T) {
 	for _, tc := range testcases {
 		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
-			TruncateAll(t)
+			t.Cleanup(func() {
+				TruncateAll(t)
+			})
 			if tc.prepare != nil {
 				tc.prepare()
 			}
@@ -1497,7 +1523,9 @@ func TestGetProductByID(t *testing.T) {
 	for _, tc := range testcases {
 		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
-			TruncateAll(t)
+			t.Cleanup(func() {
+				TruncateAll(t)
+			})
 			var pID int64
 			if tc.prepare != nil {
 				pID = tc.prepare()
@@ -1714,7 +1742,9 @@ func TestUpdateProduct(t *testing.T) {
 	for _, tc := range testcases {
 		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
-			TruncateAll(t)
+			t.Cleanup(func() {
+				TruncateAll(t)
+			})
 			var pID int64
 			var supplierEmail string
 			if tc.prepare != nil {
@@ -1884,7 +1914,9 @@ func TestDeleteProduct(t *testing.T) {
 	for _, tc := range testcases {
 		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
-			TruncateAll(t)
+			t.Cleanup(func() {
+				TruncateAll(t)
+			})
 			var pID int64
 			var supplierEmail string
 			if tc.prepare != nil {
@@ -2059,7 +2091,11 @@ func TestCreateSuppAdmin(t *testing.T) {
 	for _, tc := range testcases {
 		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
-			TruncateAll(t)
+			t.Cleanup(func() {
+				t.Cleanup(func() {
+					TruncateAll(t)
+				})
+			})
 			if tc.prepare != nil {
 				tc.prepare()
 			}
@@ -2142,7 +2178,12 @@ func TestGetSuppAdmin(t *testing.T) {
 	for _, tc := range testcases {
 		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
-			TruncateAll(t)
+
+			t.Cleanup(func() {
+				t.Cleanup(func() {
+					TruncateAll(t)
+				})
+			})
 			if tc.prepare != nil {
 				tc.prepare()
 			}
@@ -2236,7 +2277,12 @@ func TestGetSuppAdminByID(t *testing.T) {
 	for _, tc := range testcases {
 		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
-			TruncateAll(t)
+
+			t.Cleanup(func() {
+				t.Cleanup(func() {
+					TruncateAll(t)
+				})
+			})
 			var uid int64
 			if tc.prepare != nil {
 				uid = tc.prepare()
@@ -2340,7 +2386,11 @@ func TestDeleteSuppAdmin(t *testing.T) {
 	for _, tc := range testcases {
 		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
-			TruncateAll(t)
+			t.Cleanup(func() {
+				t.Cleanup(func() {
+					TruncateAll(t)
+				})
+			})
 			var uid int64
 			if tc.prepare != nil {
 				uid = tc.prepare()
