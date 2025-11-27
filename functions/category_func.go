@@ -188,15 +188,15 @@ func UpdateCategory(c *gin.Context) {
 	}
 
 	var catInput struct {
-		CategoryName        *string `json:"category_name"`
-		CategoryDescription *string `json:"category_description"`
+		CategoryName        string `json:"category_name,omitempty"`
+		CategoryDescription string `json:"category_description,omitempty"`
 	}
 	if err := c.BindJSON(&catInput); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid payload"})
 		c.Abort()
 		return
 	}
-	if catInput.CategoryName == nil && catInput.CategoryDescription == nil {
+	if catInput.CategoryName == "" && catInput.CategoryDescription == "" {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "no fields provided to update"})
 		c.Abort()
 		return
@@ -227,11 +227,29 @@ func UpdateCategory(c *gin.Context) {
 	newName := exists.CategoryName
 	newDesp := exists.CategoryDescription
 
-	if catInput.CategoryName != nil {
-		newName = strings.TrimSpace(*catInput.CategoryName)
+	if catInput.CategoryName != "" {
+		newName = strings.TrimSpace(catInput.CategoryName)
 	}
-	if catInput.CategoryDescription != nil {
-		newDesp = strings.TrimSpace(*catInput.CategoryDescription)
+	if catInput.CategoryDescription != "" {
+		newDesp = strings.TrimSpace(catInput.CategoryDescription)
+	}
+
+	hasChange := false
+	if catInput.CategoryName != "" {
+		if normalizeString(strings.TrimSpace(catInput.CategoryName)) != normalizeString(exists.CategoryName) {
+			hasChange = true
+		}
+	}
+	if catInput.CategoryDescription != "" {
+		if normalizeString(strings.TrimSpace(catInput.CategoryDescription)) != normalizeString(exists.CategoryDescription) {
+			hasChange = true
+		}
+	}
+
+	if !hasChange {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "no changes provided"})
+		c.Abort()
+		return
 	}
 
 	if err := utils.CategoryValidate(newName, newDesp); err != nil {

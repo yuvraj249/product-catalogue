@@ -32,12 +32,35 @@ func NullStringPtr(p *string) interface{} {
 	}
 	return v
 }
+func ptrStringOrEmpty(s *string) string {
+	if s == nil {
+		return ""
+	}
+	return *s
+}
 
 func NullPtr[Type any](p *Type) interface{} {
 	if p == nil {
 		return nil
 	}
 	return *p
+}
+func ptrEqual[Type comparable](a, b *Type) bool {
+	if a == nil && b == nil {
+		return true
+	}
+	if a == nil || b == nil {
+		return false
+	}
+	return *a == *b
+}
+func normalizeString(s string) string {
+	parts := strings.Fields(s)
+	if len(parts) == 0 {
+		return ""
+	}
+	joined := strings.Join(parts, " ")
+	return strings.ToLower(joined)
 }
 
 func CtxTimeout(c *gin.Context) (context.Context, context.CancelFunc) {
@@ -54,7 +77,7 @@ func CreateProduct(c *gin.Context) {
 	supplierValue := c.GetInt("supplier_id")
 	var in struct {
 		ProductName        string   `json:"product_name"`
-		ProductDescription *string  `json:"product_description"`
+		ProductDescription string   `json:"product_description,omitempty"`
 		ProductCost        float64  `json:"product_cost"`
 		ProductCategoryID  int      `json:"product_category_id"`
 		DiscountType       *string  `json:"discount_type"`
@@ -72,8 +95,8 @@ func CreateProduct(c *gin.Context) {
 		return
 	}
 	product.ProductName = strings.TrimSpace(in.ProductName)
-	if in.ProductDescription != nil {
-		product.ProductDescription = strings.TrimSpace(*in.ProductDescription)
+	if in.ProductDescription != "" {
+		product.ProductDescription = strings.TrimSpace(in.ProductDescription)
 	} else {
 		product.ProductDescription = ""
 	}
@@ -339,8 +362,8 @@ func UpdateProduct(c *gin.Context) {
 
 	supplierValue := c.GetInt("supplier_id")
 	var product struct {
-		ProductName        *string  `json:"product_name"`
-		ProductDescription *string  `json:"product_description"`
+		ProductName        string   `json:"product_name,omitempty"`
+		ProductDescription string   `json:"product_description,omitempty"`
 		ProductCost        *float64 `json:"product_cost"`
 		ProductCategoryID  *int     `json:"product_category_id"`
 		ProductSupplierID  *int     `json:"product_supplier_id"`
@@ -357,7 +380,7 @@ func UpdateProduct(c *gin.Context) {
 		c.JSON(http.StatusForbidden, gin.H{"error": "cannot change product supplier"})
 		return
 	}
-	if product.ProductName == nil && product.ProductDescription == nil && product.ProductCost == nil && product.ProductCategoryID == nil && product.ProductSupplierID == nil && product.DiscountType == nil && product.DiscountValue == nil {
+	if product.ProductName == "" && product.ProductDescription == "" && product.ProductCost == nil && product.ProductCategoryID == nil && product.ProductSupplierID == nil && product.DiscountType == nil && product.DiscountValue == nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "no fields provided for update"})
 		c.Abort()
 		return
@@ -426,12 +449,12 @@ func UpdateProduct(c *gin.Context) {
 	newDiscType := exist.DiscountType
 	newDiscVal := exist.DiscountValue
 
-	if product.ProductName != nil {
-		trimmed := strings.TrimSpace(*product.ProductName)
+	if product.ProductName != "" {
+		trimmed := strings.TrimSpace(product.ProductName)
 		newName = trimmed
 	}
-	if product.ProductDescription != nil {
-		trimmed := strings.TrimSpace(*product.ProductDescription)
+	if product.ProductDescription != "" {
+		trimmed := strings.TrimSpace(product.ProductDescription)
 		newDesc = trimmed
 	}
 	if product.ProductCost != nil {
@@ -446,6 +469,46 @@ func UpdateProduct(c *gin.Context) {
 	}
 	if product.DiscountValue != nil {
 		newDiscVal = product.DiscountValue
+	}
+	hasChange := false
+	if product.ProductName != "" {
+		if normalizeString(strings.TrimSpace(product.ProductName)) != normalizeString(exist.ProductName) {
+			hasChange = true
+		}
+	}
+	if product.ProductDescription != "" {
+		if normalizeString(strings.TrimSpace(product.ProductDescription)) != normalizeString(exist.ProductDescription) {
+			hasChange = true
+		}
+	}
+
+	if product.ProductCost != nil {
+		if *product.ProductCost != exist.ProductCost {
+			hasChange = true
+		}
+	}
+
+	if product.ProductCategoryID != nil {
+		if !ptrEqual(product.ProductCategoryID, exist.ProductCategoryID) {
+			hasChange = true
+		}
+	}
+
+	if product.DiscountType != nil {
+		if normalizeString(strings.TrimSpace(*product.DiscountType)) != normalizeString(ptrStringOrEmpty(exist.DiscountType)) {
+			hasChange = true
+		}
+	}
+	if product.DiscountValue != nil {
+		if !ptrEqual(product.DiscountValue, exist.DiscountValue) {
+			hasChange = true
+		}
+	}
+
+	if !hasChange {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "no changes provided"})
+		c.Abort()
+		return
 	}
 
 	if err := utils.ProductValidate(newName, newDesc, newCost, newCat, exist.ProductSupplierID, newDiscType, newDiscVal); err != nil {

@@ -13,6 +13,9 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+func normalizeEmail(s string) string {
+	return strings.ToLower(strings.TrimSpace(s))
+}
 func SupplierExists(ctx context.Context, supplierID int) (bool, error) {
 	var exist bool
 	err := config.DB.QueryRowContext(ctx, "select exists(select 1 from suppliers where supplier_id=?)", supplierID).Scan(&exist)
@@ -258,10 +261,10 @@ func UpdateSupplier(c *gin.Context) {
 		return
 	}
 	var supplierInput struct {
-		Name        *string `json:"name"`
-		ContactInfo *string `json:"contact_info"`
-		Email       *string `json:"email"`
-		Company     *string `json:"company"`
+		Name        string `json:"name,omitempty"`
+		ContactInfo string `json:"contact_info,omitempty"`
+		Email       string `json:"email,omitempty"`
+		Company     string `json:"company,omitempty"`
 	}
 
 	if err := c.BindJSON(&supplierInput); err != nil {
@@ -269,7 +272,7 @@ func UpdateSupplier(c *gin.Context) {
 		c.Abort()
 		return
 	}
-	if supplierInput.Name == nil && supplierInput.ContactInfo == nil && supplierInput.Email == nil && supplierInput.Company == nil {
+	if supplierInput.Name == "" && supplierInput.ContactInfo == "" && supplierInput.Email == "" && supplierInput.Company == "" {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "no fields provided to update"})
 		c.Abort()
 		return
@@ -302,40 +305,67 @@ func UpdateSupplier(c *gin.Context) {
 	newEmail := exists.Email
 	newCompany := exists.Company
 
-	if supplierInput.Name != nil {
-		newName = strings.TrimSpace(*supplierInput.Name)
+	if supplierInput.Name != "" {
+		newName = strings.TrimSpace(supplierInput.Name)
 	}
-	if supplierInput.ContactInfo != nil {
-		newContact = strings.TrimSpace(*supplierInput.ContactInfo)
+	if supplierInput.ContactInfo != "" {
+		newContact = strings.TrimSpace(supplierInput.ContactInfo)
 	}
-	if supplierInput.Email != nil {
-		newEmail = strings.TrimSpace(*supplierInput.Email)
+	if supplierInput.Email != "" {
+		newEmail = strings.TrimSpace(supplierInput.Email)
 	}
-	if supplierInput.Company != nil {
-		newCompany = strings.TrimSpace(*supplierInput.Company)
+	if supplierInput.Company != "" {
+		newCompany = strings.TrimSpace(supplierInput.Company)
+	}
+
+	nameChanged := false
+	contactChanged := false
+	emailChanged := false
+	companyChanged := false
+
+	if supplierInput.Name != "" {
+		if normalizeString(newName) != normalizeString(exists.Name) {
+			nameChanged = true
+		}
+	}
+	if supplierInput.ContactInfo != "" {
+		if normalizeString(newContact) != normalizeString(exists.ContactInfo) {
+			contactChanged = true
+		}
+	}
+	if supplierInput.Email != "" {
+		if normalizeEmail(newEmail) != normalizeEmail(exists.Email) {
+			emailChanged = true
+		}
+	}
+	if supplierInput.Company != "" {
+		if normalizeString(newCompany) != normalizeString(exists.Company) {
+			companyChanged = true
+		}
+	}
+	if !(nameChanged || contactChanged || emailChanged || companyChanged) {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "no changes provided"})
+		c.Abort()
+		return
 	}
 	if err := utils.SupplierValidate(newName, newContact, newEmail, newCompany); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		c.Abort()
 		return
 	}
-	if supplierInput.Email != nil && !strings.EqualFold(exists.Email, newEmail) {
+	if emailChanged {
 		var count int
-		query := "select count(*) from suppliers where lower(email)= ? and supplier_id <> ?"
-		err := config.DB.QueryRowContext(ctx, query, strings.ToLower(newEmail), id).Scan(&count)
-
-		if err != nil {
+		query := "select count(*) from suppliers where lower(email) = ? and supplier_id <> ?"
+		if err := config.DB.QueryRowContext(ctx, query, normalizeEmail(newEmail), id).Scan(&count); err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "db error while checking email"})
 			c.Abort()
 			return
 		}
-
 		if count > 0 {
 			c.JSON(http.StatusBadRequest, gin.H{"error": "email already used by another supplier"})
 			c.Abort()
 			return
 		}
-
 	}
 
 	var nameArg interface{} = nil
@@ -343,17 +373,16 @@ func UpdateSupplier(c *gin.Context) {
 	var emailArg interface{} = nil
 	var companyArg interface{} = nil
 
-	if supplierInput.Name != nil {
+	if nameChanged {
 		nameArg = newName
-
 	}
-	if supplierInput.ContactInfo != nil {
+	if contactChanged {
 		contactArg = newContact
 	}
-	if supplierInput.Email != nil {
+	if emailChanged {
 		emailArg = newEmail
 	}
-	if supplierInput.Company != nil {
+	if companyChanged {
 		companyArg = newCompany
 	}
 

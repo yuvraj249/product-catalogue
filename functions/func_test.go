@@ -488,7 +488,6 @@ func TestUpdateCategory(t *testing.T) {
 		prepare      func() int64
 		body         string
 		expectedCode int
-		verify       func(id int64) error
 	}{
 		{
 			name:  "no fields",
@@ -531,16 +530,28 @@ func TestUpdateCategory(t *testing.T) {
 			},
 			body:         `{"category_name":"Hardware"}`,
 			expectedCode: http.StatusOK,
-			verify: func(id int64) error {
-				var name string
-				if err := config.DB.QueryRow("select category_name from categories where category_id=?", id).Scan(&name); err != nil {
-					return err
-				}
-				if name != "Hardware" {
-					return fmt.Errorf("expected name Hardware got %s", name)
-				}
-				return nil
+		},
+		{
+			name:  "duplicate category_name",
+			token: adminToken,
+			prepare: func() int64 {
+				res, _ := config.DB.Exec("insert into categories(category_name, category_description) values(?,?)", "Category", "Hardware")
+				id, _ := res.LastInsertId()
+				return id
 			},
+			body:         `{"category_name":"Category"}`,
+			expectedCode: http.StatusBadRequest,
+		},
+		{
+			name:  "duplicate category_description",
+			token: adminToken,
+			prepare: func() int64 {
+				res, _ := config.DB.Exec("insert into categories(category_name, category_description) values(?,?)", "Category", "Hardware")
+				id, _ := res.LastInsertId()
+				return id
+			},
+			body:         `{"category_description":"Hardware"}`,
+			expectedCode: http.StatusBadRequest,
 		},
 	}
 
@@ -564,12 +575,7 @@ func TestUpdateCategory(t *testing.T) {
 			r.ServeHTTP(w, req)
 
 			if w.Code != tc.expectedCode {
-				t.Fatalf("[%s] expected %d got %d body=%s", tc.name, tc.expectedCode, w.Code, w.Body.String())
-			}
-			if tc.verify != nil {
-				if err := tc.verify(id); err != nil {
-					t.Fatalf("verification failed: %v", err)
-				}
+				t.Fatalf("%sexpected %d got %d body=%s", tc.name, tc.expectedCode, w.Code, w.Body.String())
 			}
 		})
 	}
@@ -767,7 +773,6 @@ func TestUpdateSupplier(t *testing.T) {
 		prepare      func() int64
 		body         string
 		expectedCode int
-		verify       func(id int64) error
 	}{
 		{
 			name:  "no fields",
@@ -810,16 +815,50 @@ func TestUpdateSupplier(t *testing.T) {
 			},
 			body:         `{"name":"Testerrrr", "contact_info":"989898989", "email":"tester@gmail.com", "company":"Apple"}`,
 			expectedCode: http.StatusOK,
-			verify: func(id int64) error {
-				var name string
-				if err := config.DB.QueryRow("select name from suppliers where supplier_id=?", id).Scan(&name); err != nil {
-					return err
-				}
-				if name != "Tester4" {
-					return fmt.Errorf("expected name Hardware got %s", name)
-				}
-				return nil
+		},
+		{
+			name:  "duplicate name",
+			token: adminToken,
+			prepare: func() int64 {
+				res, _ := config.DB.Exec("insert into suppliers(name,contact_info,email,company) values(?,?,?,?)", "Tester", "99999999", "tester@gmail.com", "Apple")
+				id, _ := res.LastInsertId()
+				return id
 			},
+			body:         `{"name":"Tester"}`,
+			expectedCode: http.StatusBadRequest,
+		},
+		{
+			name:  "duplicate contact_info",
+			token: adminToken,
+			prepare: func() int64 {
+				res, _ := config.DB.Exec("insert into suppliers(name,contact_info,email,company) values(?,?,?,?)", "Tester", "99999999", "tester@gmail.com", "Apple")
+				id, _ := res.LastInsertId()
+				return id
+			},
+			body:         `{"contact_info":"99999999"}`,
+			expectedCode: http.StatusBadRequest,
+		},
+		{
+			name:  "duplicate email",
+			token: adminToken,
+			prepare: func() int64 {
+				res, _ := config.DB.Exec("insert into suppliers(name,contact_info,email,company) values(?,?,?,?)", "Tester", "99999999", "tester@gmail.com", "Apple")
+				id, _ := res.LastInsertId()
+				return id
+			},
+			body:         `{"email":"tester@gmail.com"}`,
+			expectedCode: http.StatusBadRequest,
+		},
+		{
+			name:  "duplicate company",
+			token: adminToken,
+			prepare: func() int64 {
+				res, _ := config.DB.Exec("insert into suppliers(name,contact_info,email,company) values(?,?,?,?)", "Tester", "99999999", "tester@gmail.com", "Apple")
+				id, _ := res.LastInsertId()
+				return id
+			},
+			body:         `{"company":"Apple"}`,
+			expectedCode: http.StatusBadRequest,
 		},
 	}
 	for _, tc := range testcases {
@@ -1746,6 +1785,131 @@ func TestUpdateProduct(t *testing.T) {
 			expectedCode: http.StatusOK,
 			expectBody:   "product updated",
 		},
+		{
+			name: "duplicate product_name",
+			prepare: func() (int64, string) {
+				resS, err := config.DB.Exec("insert into suppliers(name,contact_info,email,company) values(?,?,?,?)", "GoodOwner", "111", "goodowner@test.com", "Gco")
+				if err != nil {
+					t.Fatalf("prepare supplier failed: %v", err)
+				}
+				sid, _ := resS.LastInsertId()
+				rc, err := config.DB.Exec("insert into categories(category_name,category_description) values(?,?)", "CatGood", "dajjajs")
+				if err != nil {
+					t.Fatalf("prepare category failed: %v", err)
+				}
+				cid, _ := rc.LastInsertId()
+				prod, err := config.DB.Exec("insert into products(product_name,product_description,product_cost,product_category_id,product_supplier_id) values(?,?,?,?,?)", "GoodProd", "dajjajs", 20.0, cid, sid)
+				if err != nil {
+					t.Fatalf("prepare product failed: %v", err)
+				}
+				pid, _ := prod.LastInsertId()
+				hash, _ := utils.HashPwd(supPass)
+				_, _ = config.DB.Exec("insert into users(name,email,password_hash,role,supplier_id) values(?,?,?,?,?)", "GoodSupUser", "goodsup@test.com", hash, "supplier_admin", sid)
+				return pid, "goodsup@test.com"
+			},
+			body:         `{"product_name":"GoodProd"}`,
+			expectedCode: http.StatusBadRequest,
+		},
+		{
+			name: "duplicate product_description",
+			prepare: func() (int64, string) {
+				resS, err := config.DB.Exec("insert into suppliers(name,contact_info,email,company) values(?,?,?,?)", "GoodOwner", "111", "goodowner@test.com", "Gco")
+				if err != nil {
+					t.Fatalf("prepare supplier failed: %v", err)
+				}
+				sid, _ := resS.LastInsertId()
+				rc, err := config.DB.Exec("insert into categories(category_name,category_description) values(?,?)", "CatGood", "dajjajs")
+				if err != nil {
+					t.Fatalf("prepare category failed: %v", err)
+				}
+				cid, _ := rc.LastInsertId()
+				prod, err := config.DB.Exec("insert into products(product_name,product_description,product_cost,product_category_id,product_supplier_id) values(?,?,?,?,?)", "GoodProd", "dajjajs", 20.0, cid, sid)
+				if err != nil {
+					t.Fatalf("prepare product failed: %v", err)
+				}
+				pid, _ := prod.LastInsertId()
+				hash, _ := utils.HashPwd(supPass)
+				_, _ = config.DB.Exec("insert into users(name,email,password_hash,role,supplier_id) values(?,?,?,?,?)", "GoodSupUser", "goodsup@test.com", hash, "supplier_admin", sid)
+				return pid, "goodsup@test.com"
+			},
+			body:         `{"product_description":"dajjajs"}`,
+			expectedCode: http.StatusBadRequest,
+		},
+		{
+			name: "duplicate product_cost",
+			prepare: func() (int64, string) {
+				resS, err := config.DB.Exec("insert into suppliers(name,contact_info,email,company) values(?,?,?,?)", "GoodOwner", "111", "goodowner@test.com", "Gco")
+				if err != nil {
+					t.Fatalf("prepare supplier failed: %v", err)
+				}
+				sid, _ := resS.LastInsertId()
+				rc, err := config.DB.Exec("insert into categories(category_name,category_description) values(?,?)", "CatGood", "dajjajs")
+				if err != nil {
+					t.Fatalf("prepare category failed: %v", err)
+				}
+				cid, _ := rc.LastInsertId()
+				prod, err := config.DB.Exec("insert into products(product_name,product_description,product_cost,product_category_id,product_supplier_id) values(?,?,?,?,?)", "GoodProd", "dajjajs", 20.0, cid, sid)
+				if err != nil {
+					t.Fatalf("prepare product failed: %v", err)
+				}
+				pid, _ := prod.LastInsertId()
+				hash, _ := utils.HashPwd(supPass)
+				_, _ = config.DB.Exec("insert into users(name,email,password_hash,role,supplier_id) values(?,?,?,?,?)", "GoodSupUser", "goodsup@test.com", hash, "supplier_admin", sid)
+				return pid, "goodsup@test.com"
+			},
+			body:         `{"product_cost": 20.0}`,
+			expectedCode: http.StatusBadRequest,
+		},
+		{
+			name: "duplicate product_category_id",
+			prepare: func() (int64, string) {
+				resS, err := config.DB.Exec("insert into suppliers(name,contact_info,email,company) values(?,?,?,?)", "GoodOwner", "111", "goodowner@test.com", "Gco")
+				if err != nil {
+					t.Fatalf("prepare supplier failed: %v", err)
+				}
+				sid, _ := resS.LastInsertId()
+				rc, err := config.DB.Exec("insert into categories(category_name,category_description) values(?,?)", "CatGood", "dajjajs")
+				if err != nil {
+					t.Fatalf("prepare category failed: %v", err)
+				}
+				cid, _ := rc.LastInsertId()
+				prod, err := config.DB.Exec("insert into products(product_name,product_description,product_cost,product_category_id,product_supplier_id) values(?,?,?,?,?)", "GoodProd", "dajjajs", 20.0, cid, sid)
+				if err != nil {
+					t.Fatalf("prepare product failed: %v", err)
+				}
+				pid, _ := prod.LastInsertId()
+				hash, _ := utils.HashPwd(supPass)
+				_, _ = config.DB.Exec("insert into users(name,email,password_hash,role,supplier_id) values(?,?,?,?,?)", "GoodSupUser", "goodsup@test.com", hash, "supplier_admin", sid)
+				return pid, "goodsup@test.com"
+			},
+			body:         `{"product_category_id":1}`,
+			expectedCode: http.StatusBadRequest,
+		},
+		{
+			name: "duplicate discount_type and discount_value",
+			prepare: func() (int64, string) {
+				resS, err := config.DB.Exec("insert into suppliers(name,contact_info,email,company) values(?,?,?,?)", "GoodOwner", "111", "goodowner@test.com", "Gco")
+				if err != nil {
+					t.Fatalf("prepare supplier failed: %v", err)
+				}
+				sid, _ := resS.LastInsertId()
+				rc, err := config.DB.Exec("insert into categories(category_name,category_description) values(?,?)", "CatGood", "dajjajs")
+				if err != nil {
+					t.Fatalf("prepare category failed: %v", err)
+				}
+				cid, _ := rc.LastInsertId()
+				prod, err := config.DB.Exec("insert into products(product_name,product_description,product_cost,product_category_id,product_supplier_id, discount_type, discount_value) values(?,?,?,?,?,?,?)", "GoodProd", "dajjajs", 20.0, cid, sid, "percent", 50)
+				if err != nil {
+					t.Fatalf("prepare product failed: %v", err)
+				}
+				pid, _ := prod.LastInsertId()
+				hash, _ := utils.HashPwd(supPass)
+				_, _ = config.DB.Exec("insert into users(name,email,password_hash,role,supplier_id) values(?,?,?,?,?)", "GoodSupUser", "goodsup@test.com", hash, "supplier_admin", sid)
+				return pid, "goodsup@test.com"
+			},
+			body:         `{"discount_type":"percent","discount_value":50}`,
+			expectedCode: http.StatusBadRequest,
+		},
 	}
 
 	for _, tc := range testcases {
@@ -2608,6 +2772,23 @@ func TestCreateStockMov(t *testing.T) {
 			body:         `{"product_id":1,"quantity":5,"movement_type":"OUT","reason":"selling"}`,
 			expectedCode: http.StatusCreated,
 		},
+		{
+			name: "insert FK error (performed_by missing)",
+			prepare: func() {
+				resS, _ := config.DB.Exec("insert into suppliers(name,email,company) values(?,?,?)", "FKSup", "fksup@test", "FKCo")
+				sid, _ := resS.LastInsertId()
+				rc, _ := config.DB.Exec("insert into categories(category_name,category_description) values(?,?)", "FKCat", "fkdesc")
+				cid, _ := rc.LastInsertId()
+				pr, _ := config.DB.Exec("insert into products(product_name,product_description,product_cost,product_category_id,product_supplier_id) values(?,?,?,?,?)", "FKProd", "fkprod", 10, cid, sid)
+				_, _ = pr.LastInsertId()
+				hash, _ := utils.HashPwd(supPass)
+				resU, _ := config.DB.Exec("insert into users(name,email,password_hash,role,supplier_id) values(?,?,?,?,?)", "FKUser", supEmail, hash, "supplier_admin", sid)
+				_, _ = resU.LastInsertId()
+
+			},
+			body:         `{"product_id":1,"quantity":50,"movement_type":"IN"}`,
+			expectedCode: http.StatusInternalServerError,
+		},
 	}
 	for _, tc := range testcases {
 		tc := tc
@@ -2630,6 +2811,13 @@ func TestCreateStockMov(t *testing.T) {
 				if supToken != "" {
 					req.Header.Set("Authorization", "Bearer "+supToken)
 				}
+			case "insert FK error (performed_by missing)":
+				supToken := LoginAndGetToken(t, supEmail, supPass)
+				if supToken != "" {
+					req.Header.Set("Authorization", "Bearer "+supToken)
+				}
+				_, _ = config.DB.Exec("delete from users where email = ?", supEmail)
+
 			default:
 				req.Header.Set("Authorization", "Bearer "+adminToken)
 			}
@@ -2723,11 +2911,23 @@ func TestGetStockMov(t *testing.T) {
 			expectedCode: http.StatusOK,
 		},
 		{
+			name: "system_admin no movements returns empty list",
+			prepare: func() {
+				resS, _ := config.DB.Exec("insert into suppliers(name,email,company) values(?,?,?)", "HUhusup", "nmsup@test", "NmCo")
+				sid, _ := resS.LastInsertId()
+				rc, _ := config.DB.Exec("insert into categories(category_name,category_description) values(?,?)", "NmCat", "nm")
+				cid, _ := rc.LastInsertId()
+				_, _ = config.DB.Exec("insert into products(product_name,product_description,product_cost,product_category_id,product_supplier_id) values(?,?,?,?,?)", "NmProd", "nmd", 10, cid, sid)
+			},
+			query:        "",
+			expectedCode: http.StatusOK,
+		},
+		{
 			name: "supplier_admin sees company movements",
 			prepare: func() {
-				res1, _ := config.DB.Exec("insert into suppliers(name,email,company) values(?,?,?)", "SupC1", "supc1@test", "SameCo")
+				res1, _ := config.DB.Exec("insert into suppliers(name,email,company) values(?,?,?)", "SupC1", "supc1@test.com", "SameCo")
 				s1, _ := res1.LastInsertId()
-				res2, _ := config.DB.Exec("insert into suppliers(name,email,company) values(?,?,?)", "SupC2", "supc2@test", "SameCo")
+				res2, _ := config.DB.Exec("insert into suppliers(name,email,company) values(?,?,?)", "SupC2", "supc2@test.com", "SameCo")
 				s2, _ := res2.LastInsertId()
 				rc, _ := config.DB.Exec("insert into categories(category_name,category_description) values(?,?)", "Ccat", "desc")
 				cid, _ := rc.LastInsertId()
@@ -2749,7 +2949,7 @@ func TestGetStockMov(t *testing.T) {
 		{
 			name: "supplier_admin filter by product_id",
 			prepare: func() {
-				res1, _ := config.DB.Exec("insert into suppliers(name,email,company) values(?,?,?)", "SupC1", "supc1@test", "SameCo")
+				res1, _ := config.DB.Exec("insert into suppliers(name,email,company) values(?,?,?)", "SupC1", "supc1@test.com", "SameCo")
 				s1, _ := res1.LastInsertId()
 				rc, _ := config.DB.Exec("insert into categories(category_name,category_description) values(?,?)", "Ccat", "desc")
 				cid, _ := rc.LastInsertId()
@@ -2757,7 +2957,7 @@ func TestGetStockMov(t *testing.T) {
 					"Pssind", "dsdudun", 10, cid, s1)
 				pid1, _ := pr1.LastInsertId()
 				_, _ = config.DB.Exec("insert into stock_movements(product_id,quantity,movement_type,performed_by) values(?,?,?,?)", pid1, 7, "IN", 1)
-				res2, _ := config.DB.Exec("insert into suppliers(name,email,company) values(?,?,?)", "SupC2", "supc2@test", "SameCo")
+				res2, _ := config.DB.Exec("insert into suppliers(name,email,company) values(?,?,?)", "SupC2", "supc2@test.com", "SameCo")
 				s2, _ := res2.LastInsertId()
 				pr2, _ := config.DB.Exec("insert into products(product_name,product_description,product_cost,product_category_id,product_supplier_id) values(?,?,?,?,?)",
 					"Psidjsidj", "dicnicn", 20, cid, s2)
@@ -2767,6 +2967,19 @@ func TestGetStockMov(t *testing.T) {
 				_, _ = config.DB.Exec("insert into users(name,email,password_hash,role,supplier_id) values(?,?,?,?,?)",
 					"coadmin", supEmail, hash, "supplier_admin", s1)
 
+			},
+			query:        "",
+			expectedCode: http.StatusOK,
+		},
+		{
+			name: "supplier_admin no movements returns empty list",
+			prepare: func() {
+
+				res, _ := config.DB.Exec("insert into suppliers(name,email,company) values(?,?,?)", "fakeSup", "fake@test.com", "fakeCo")
+				sid, _ := res.LastInsertId()
+				hash, _ := utils.HashPwd(supPass)
+				_, _ = config.DB.Exec("insert into users(name,email,password_hash,role,supplier_id) values(?,?,?,?,?)",
+					"fakeAdmin", supEmail, hash, "supplier_admin", sid)
 			},
 			query:        "",
 			expectedCode: http.StatusOK,
@@ -2805,7 +3018,7 @@ func TestGetStockMov(t *testing.T) {
 			switch tc.name {
 			case "unauthorized (no token)":
 				req.Header.Set("Authorization", "Bearer "+"")
-			case "system_admin sees all movements", "system_admin filters by product_id", "invalid product_id param":
+			case "system_admin sees all movements", "system_admin filters by product_id", "invalid product_id param", "system_admin no movements returns empty list":
 				req.Header.Set("Authorization", "Bearer "+adminToken)
 			default:
 				supToken := LoginAndGetToken(t, supEmail, supPass)
@@ -2862,6 +3075,19 @@ func TestDashboard(t *testing.T) {
 				pid, _ := pr.LastInsertId()
 				_, _ = config.DB.Exec("insert into stock_movements(product_id,quantity,movement_type,performed_by) values(?,?,?,?)", pid, 5, "IN", 1)
 				_, _ = config.DB.Exec("insert into stock_movements(product_id,quantity,movement_type,performed_by) values(?,?,?,?)", pid, 100, "OUT", 1)
+			},
+			expectedCode: http.StatusOK,
+		},
+		{
+			name: "system_admin no low stock products (all above threshold)",
+			prepare: func() {
+				resS, _ := config.DB.Exec("insert into suppliers(name,email,company) values(?,?,?)", "HighSup", "highsup@test.com", "HighCo")
+				sid, _ := resS.LastInsertId()
+				rc, _ := config.DB.Exec("insert into categories(category_name,category_description) values(?,?)", "HighCat", "desc")
+				cid, _ := rc.LastInsertId()
+				pr, _ := config.DB.Exec("insert into products(product_name,product_description,product_cost,product_category_id,product_supplier_id) values(?,?,?,?,?)", "HighProd", "desc", 10, cid, sid)
+				pid, _ := pr.LastInsertId()
+				_, _ = config.DB.Exec("insert into stock_movements(product_id,quantity,movement_type,performed_by) values(?,?,?,?)", pid, 100, "IN", 1)
 			},
 			expectedCode: http.StatusOK,
 		},
