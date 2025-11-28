@@ -82,10 +82,10 @@ func ProductValidate(
 	name string,
 	description string,
 	cost float64,
-	categoryID *int,
-	supplierID *int,
-	discountType *string,
-	discountValue *float64,
+	categoryID int,
+	supplierID int,
+	discountType string,
+	discountValue float64,
 ) error {
 	name = strings.TrimSpace(name)
 	if name == "" {
@@ -124,31 +124,35 @@ func ProductValidate(
 		return fmt.Errorf("description too long ")
 	}
 
-	if categoryID != nil && *categoryID <= 0 {
+	if categoryID <= 0 {
 		return fmt.Errorf("invalid category id ")
 	}
 
-	if supplierID != nil && *supplierID <= 0 {
+	if supplierID <= 0 {
 		return fmt.Errorf("invalid supplier id")
 	}
+	if discountValue != 0 && discountType == "" {
+		return fmt.Errorf("discountType required if discountValue is provided")
+	}
 
-	if discountType != nil {
-		disc := strings.ToLower(strings.TrimSpace(*discountType))
+	if discountType != "" {
+		disc := strings.ToLower(strings.TrimSpace(discountType))
 		if disc != "flat" && disc != "percent" {
 			return fmt.Errorf("discountType must be flat or percent")
 		}
-		if discountValue == nil {
+		if discountValue == 0 {
 			return fmt.Errorf("discountValue required if discountType selected")
 		}
-		if *discountValue < 0 {
+		if discountValue < 0 {
 			return fmt.Errorf("discountValue must be >= 0")
 		}
-		if disc == "percent" && *discountValue > 100 {
+		if disc == "percent" && discountValue > 100 {
 			return fmt.Errorf("discountValue must be >= 100")
 		}
-		if disc == "flat" && *discountValue > float64(cost) {
+		if disc == "flat" && discountValue > float64(cost) {
 			return fmt.Errorf("discountValue cannot exceed product value")
 		}
+
 	}
 
 	return nil

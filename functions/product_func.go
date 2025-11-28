@@ -32,12 +32,6 @@ func NullStringPtr(p *string) interface{} {
 	}
 	return v
 }
-func ptrStringOrEmpty(s *string) string {
-	if s == nil {
-		return ""
-	}
-	return *s
-}
 
 func NullPtr[Type any](p *Type) interface{} {
 	if p == nil {
@@ -45,14 +39,24 @@ func NullPtr[Type any](p *Type) interface{} {
 	}
 	return *p
 }
-func ptrEqual[Type comparable](a, b *Type) bool {
-	if a == nil && b == nil {
+func NullIntVal(i int) interface{} {
+	if i == 0 {
+		return nil
+	}
+	return i
+}
+func NullFloatVal(i float64) interface{} {
+	if i == 0 {
+		return nil
+	}
+	return i
+}
+
+func intEqual(a, b int) bool {
+	if a == 0 || b == 0 {
 		return true
 	}
-	if a == nil || b == nil {
-		return false
-	}
-	return *a == *b
+	return a == b
 }
 func normalizeString(s string) string {
 	parts := strings.Fields(s)
@@ -76,12 +80,12 @@ func CreateProduct(c *gin.Context) {
 	}
 	supplierValue := c.GetInt("supplier_id")
 	var in struct {
-		ProductName        string   `json:"product_name"`
-		ProductDescription string   `json:"product_description,omitempty"`
-		ProductCost        float64  `json:"product_cost"`
-		ProductCategoryID  int      `json:"product_category_id"`
-		DiscountType       *string  `json:"discount_type"`
-		DiscountValue      *float64 `json:"discount_value"`
+		ProductName        string  `json:"product_name"`
+		ProductDescription string  `json:"product_description"`
+		ProductCost        float64 `json:"product_cost"`
+		ProductCategoryID  int     `json:"product_category_id"`
+		DiscountType       string  `json:"discount_type"`
+		DiscountValue      float64 `json:"discount_value"`
 	}
 	if err := c.BindJSON(&in); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid payload"})
@@ -106,9 +110,8 @@ func CreateProduct(c *gin.Context) {
 		return
 	}
 	product.ProductCost = in.ProductCost
-	catg := in.ProductCategoryID
-	product.ProductCategoryID = &catg
-	product.ProductSupplierID = &supplierValue
+	product.ProductCategoryID = in.ProductCategoryID
+	product.ProductSupplierID = supplierValue
 	product.DiscountType = in.DiscountType
 	product.DiscountValue = in.DiscountValue
 
@@ -120,8 +123,8 @@ func CreateProduct(c *gin.Context) {
 
 	ctx, cancel := CtxTimeout(c)
 	defer cancel()
-	if product.ProductCategoryID != nil {
-		ok, err := utils.CategoryExists(*product.ProductCategoryID)
+	if product.ProductCategoryID > 0 {
+		ok, err := utils.CategoryExists(product.ProductCategoryID)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "db error while checking category"})
 			c.Abort()
@@ -135,7 +138,7 @@ func CreateProduct(c *gin.Context) {
 
 	}
 	query := "insert into products(product_name,product_description,product_cost,product_category_id, product_supplier_id,discount_type,discount_value) values(?,?,?,?,?,?,?)"
-	result, err := config.DB.ExecContext(ctx, query, product.ProductName, NullStringVal(product.ProductDescription), product.ProductCost, NullPtr(product.ProductCategoryID), NullPtr(product.ProductSupplierID), NullStringPtr(product.DiscountType), NullPtr(product.DiscountValue))
+	result, err := config.DB.ExecContext(ctx, query, product.ProductName, NullStringVal(product.ProductDescription), product.ProductCost, NullIntVal(product.ProductCategoryID), NullIntVal(product.ProductSupplierID), NullStringVal(product.DiscountType), NullFloatVal(product.DiscountValue))
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Could not create product"})
 		c.Abort()
@@ -221,27 +224,27 @@ func GetProduct(c *gin.Context) {
 		}
 		if catgID.Valid {
 			temp := int(catgID.Int64)
-			p.ProductCategoryID = &temp
+			p.ProductCategoryID = temp
 		} else {
-			p.ProductCategoryID = nil
+			p.ProductCategoryID = 0
 		}
 		if suppId.Valid {
 			temp := int(suppId.Int64)
-			p.ProductSupplierID = &temp
+			p.ProductSupplierID = temp
 		} else {
-			p.ProductSupplierID = nil
+			p.ProductSupplierID = 0
 		}
 		if discType.Valid {
 			temp := discType.String
-			p.DiscountType = &temp
+			p.DiscountType = temp
 		} else {
-			p.DiscountType = nil
+			p.DiscountType = ""
 		}
 		if discValue.Valid {
 			temp := float64(discValue.Float64)
-			p.DiscountValue = &temp
+			p.DiscountValue = temp
 		} else {
-			p.DiscountValue = nil
+			p.DiscountValue = 0
 		}
 
 		products = append(products, p)
@@ -312,31 +315,31 @@ func GetProductByID(c *gin.Context) {
 	}
 	if catgID.Valid {
 		temp := int(catgID.Int64)
-		p.ProductCategoryID = &temp
+		p.ProductCategoryID = temp
 
 	} else {
-		p.ProductCategoryID = nil
+		p.ProductCategoryID = 0
 	}
 
 	if suppId.Valid {
 		temp := int(suppId.Int64)
-		p.ProductSupplierID = &temp
+		p.ProductSupplierID = temp
 
 	} else {
-		p.ProductSupplierID = nil
+		p.ProductSupplierID = 0
 	}
 
 	if discType.Valid {
 		temp := discType.String
-		p.DiscountType = &temp
+		p.DiscountType = temp
 	} else {
-		p.DiscountType = nil
+		p.DiscountType = ""
 	}
 	if discValue.Valid {
 		temp := float64(discValue.Float64)
-		p.DiscountValue = &temp
+		p.DiscountValue = temp
 	} else {
-		p.DiscountValue = nil
+		p.DiscountValue = 0
 	}
 
 	c.JSON(http.StatusOK, gin.H{"product": p})
@@ -362,13 +365,13 @@ func UpdateProduct(c *gin.Context) {
 
 	supplierValue := c.GetInt("supplier_id")
 	var product struct {
-		ProductName        string   `json:"product_name,omitempty"`
-		ProductDescription string   `json:"product_description,omitempty"`
-		ProductCost        *float64 `json:"product_cost"`
-		ProductCategoryID  *int     `json:"product_category_id"`
-		ProductSupplierID  *int     `json:"product_supplier_id"`
-		DiscountType       *string  `json:"discount_type"`
-		DiscountValue      *float64 `json:"discount_value"`
+		ProductName        string  `json:"product_name,omitempty"`
+		ProductDescription string  `json:"product_description,omitempty"`
+		ProductCost        float64 `json:"product_cost"`
+		ProductCategoryID  int     `json:"product_category_id"`
+		ProductSupplierID  int     `json:"product_supplier_id"`
+		DiscountType       string  `json:"discount_type"`
+		DiscountValue      float64 `json:"discount_value"`
 	}
 	err = c.BindJSON(&product)
 	if err != nil {
@@ -376,11 +379,11 @@ func UpdateProduct(c *gin.Context) {
 		c.Abort()
 		return
 	}
-	if product.ProductSupplierID != nil {
+	if product.ProductSupplierID > 0 {
 		c.JSON(http.StatusForbidden, gin.H{"error": "cannot change product supplier"})
 		return
 	}
-	if product.ProductName == "" && product.ProductDescription == "" && product.ProductCost == nil && product.ProductCategoryID == nil && product.ProductSupplierID == nil && product.DiscountType == nil && product.DiscountValue == nil {
+	if product.ProductName == "" && product.ProductDescription == "" && product.ProductCost <= 0 && product.ProductCategoryID <= 0 && product.ProductSupplierID <= 0 && product.DiscountType == "" && product.DiscountValue == 0 {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "no fields provided for update"})
 		c.Abort()
 		return
@@ -415,29 +418,29 @@ func UpdateProduct(c *gin.Context) {
 	}
 	if catgID.Valid {
 		tmp := int(catgID.Int64)
-		exist.ProductCategoryID = &tmp
+		exist.ProductCategoryID = tmp
 	} else {
-		exist.ProductCategoryID = nil
+		exist.ProductCategoryID = 0
 	}
 	if supppID.Valid {
 		tmp := int(supppID.Int64)
-		exist.ProductSupplierID = &tmp
+		exist.ProductSupplierID = tmp
 	} else {
-		exist.ProductSupplierID = nil
+		exist.ProductSupplierID = 0
 	}
 	if discType.Valid {
 		tmp := discType.String
-		exist.DiscountType = &tmp
+		exist.DiscountType = tmp
 	} else {
-		exist.DiscountType = nil
+		exist.DiscountType = ""
 	}
 	if discValue.Valid {
 		tmp := float64(discValue.Float64)
-		exist.DiscountValue = &tmp
+		exist.DiscountValue = tmp
 	} else {
-		exist.DiscountValue = nil
+		exist.DiscountValue = 0
 	}
-	if exist.ProductSupplierID == nil || *exist.ProductSupplierID != supplierValue {
+	if exist.ProductSupplierID == 0 || exist.ProductSupplierID != supplierValue {
 		c.JSON(http.StatusForbidden, gin.H{"error": "you can only update your own products"})
 		return
 	}
@@ -457,17 +460,17 @@ func UpdateProduct(c *gin.Context) {
 		trimmed := strings.TrimSpace(product.ProductDescription)
 		newDesc = trimmed
 	}
-	if product.ProductCost != nil {
-		newCost = *product.ProductCost
+	if product.ProductCost > 0 {
+		newCost = product.ProductCost
 	}
-	if product.ProductCategoryID != nil {
+	if product.ProductCategoryID > 0 {
 		newCat = product.ProductCategoryID
 	}
-	if product.DiscountType != nil {
-		trimmed := strings.TrimSpace(*product.DiscountType)
-		newDiscType = &trimmed
+	if product.DiscountType != "" {
+		trimmed := strings.TrimSpace(product.DiscountType)
+		newDiscType = trimmed
 	}
-	if product.DiscountValue != nil {
+	if product.DiscountValue != 0 {
 		newDiscVal = product.DiscountValue
 	}
 	hasChange := false
@@ -482,25 +485,25 @@ func UpdateProduct(c *gin.Context) {
 		}
 	}
 
-	if product.ProductCost != nil {
-		if *product.ProductCost != exist.ProductCost {
+	if product.ProductCost > 0 {
+		if product.ProductCost != exist.ProductCost {
 			hasChange = true
 		}
 	}
 
-	if product.ProductCategoryID != nil {
-		if !ptrEqual(product.ProductCategoryID, exist.ProductCategoryID) {
+	if product.ProductCategoryID > 0 {
+		if !intEqual(product.ProductCategoryID, exist.ProductCategoryID) {
 			hasChange = true
 		}
 	}
 
-	if product.DiscountType != nil {
-		if normalizeString(strings.TrimSpace(*product.DiscountType)) != normalizeString(ptrStringOrEmpty(exist.DiscountType)) {
+	if product.DiscountType != "" {
+		if normalizeString(strings.TrimSpace(product.DiscountType)) != normalizeString(exist.DiscountType) {
 			hasChange = true
 		}
 	}
-	if product.DiscountValue != nil {
-		if !ptrEqual(product.DiscountValue, exist.DiscountValue) {
+	if product.DiscountValue != 0 {
+		if product.DiscountValue != exist.DiscountValue {
 			hasChange = true
 		}
 	}
@@ -511,14 +514,17 @@ func UpdateProduct(c *gin.Context) {
 		return
 	}
 
-	if err := utils.ProductValidate(newName, newDesc, newCost, newCat, exist.ProductSupplierID, newDiscType, newDiscVal); err != nil {
+	discTypeStr := newDiscType
+	discValFloat := newDiscVal
+
+	if err := utils.ProductValidate(newName, newDesc, newCost, newCat, exist.ProductSupplierID, discTypeStr, discValFloat); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		c.Abort()
 		return
 	}
 
-	if newCat != nil {
-		ok, err := utils.CategoryExists(*newCat)
+	if newCat > 0 {
+		ok, err := utils.CategoryExists(newCat)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "db error while checking category"})
 			c.Abort()
@@ -531,7 +537,7 @@ func UpdateProduct(c *gin.Context) {
 		}
 	}
 
-	_, err = config.DB.ExecContext(ctx, "update products set product_name = ifnull(?, product_name), product_description = ifnull(?, product_description), product_cost = ifnull(?, product_cost), product_category_id = ifnull(?, product_category_id), discount_type = ifnull(?, discount_type), discount_value = ifnull(?, discount_value) where product_id = ?", NullStringPtr(&newName), NullStringPtr(&newDesc), newCost, NullPtr(newCat), NullStringPtr(newDiscType), NullPtr(newDiscVal), id)
+	_, err = config.DB.ExecContext(ctx, "update products set product_name = ifnull(?, product_name), product_description = ifnull(?, product_description), product_cost = ifnull(?, product_cost), product_category_id = ifnull(?, product_category_id), discount_type = ifnull(?, discount_type), discount_value = ifnull(?, discount_value) where product_id = ?", NullStringVal(newName), NullStringVal(newDesc), newCost, NullIntVal(newCat), NullStringVal(newDiscType), NullFloatVal(newDiscVal), id)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "error while updating product"})
 		c.Abort()
@@ -559,27 +565,27 @@ func UpdateProduct(c *gin.Context) {
 	}
 	if catID2.Valid {
 		tmp := int(catID2.Int64)
-		updated.ProductCategoryID = &tmp
+		updated.ProductCategoryID = tmp
 	} else {
-		updated.ProductCategoryID = nil
+		updated.ProductCategoryID = 0
 	}
 	if suppID2.Valid {
 		tmp := int(suppID2.Int64)
-		updated.ProductSupplierID = &tmp
+		updated.ProductSupplierID = tmp
 	} else {
-		updated.ProductSupplierID = nil
+		updated.ProductSupplierID = 0
 	}
 	if discT.Valid {
 		tmp := discT.String
-		updated.DiscountType = &tmp
+		updated.DiscountType = tmp
 	} else {
-		updated.DiscountType = nil
+		updated.DiscountType = ""
 	}
 	if discV.Valid {
 		tmp := float64(discV.Float64)
-		updated.DiscountValue = &tmp
+		updated.DiscountValue = tmp
 	} else {
-		updated.DiscountValue = nil
+		updated.DiscountValue = 0
 	}
 
 	c.JSON(http.StatusOK, gin.H{"message": "product updated", "product": updated})
