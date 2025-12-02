@@ -10,8 +10,7 @@ import (
 	"os"
 	"path/filepath"
 	"product-catalogue/config"
-	"product-catalogue/functions"
-	"product-catalogue/middleware"
+	"product-catalogue/routes"
 	"product-catalogue/utils"
 	"strings"
 	"testing"
@@ -67,8 +66,7 @@ func SeedAdmin(t *testing.T, email, pass string) {
 func LoginAndGetToken(t *testing.T, email, pass string) string {
 	t.Helper()
 
-	r := gin.New()
-	r.POST("/auth/login", functions.Login)
+	r := routes.SetupRouter()
 
 	body := fmt.Sprintf(`{"email":"%s", "password":"%s"}`, email, pass)
 	req := httptest.NewRequest(http.MethodPost, "/auth/login", strings.NewReader(body))
@@ -168,8 +166,7 @@ func TestLogin(t *testing.T) {
 	for _, tc := range testcases {
 		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
-			r := gin.New()
-			r.POST("/auth/login", functions.Login)
+			r := routes.SetupRouter()
 			request, err := http.NewRequest(http.MethodPost, "/auth/login", strings.NewReader(tc.reqBody))
 			if err != nil {
 				t.Fatalf("Error %v while making new request", err)
@@ -191,9 +188,7 @@ func TestCreateCategory(t *testing.T) {
 	adminEmail, adminPass := "admin_td@test.com", "Admin@123"
 	SeedAdmin(t, adminEmail, adminPass)
 	adminToken := LoginAndGetToken(t, adminEmail, adminPass)
-	r := gin.New()
-	r.Use(middleware.AuthMiddleware())
-	r.POST("/categories", functions.CreateCategory)
+	r := routes.SetupRouter()
 
 	cases := []struct {
 		name         string
@@ -236,6 +231,7 @@ func TestCreateCategory(t *testing.T) {
 			_, _ = config.DB.Exec("insert into users(name,email,password_hash,role) values(?,?,?,?)",
 				"SupUser", "sup_td@test.com", "$2a$10$CCw/Xx/.lW1BCcc0MYIH5.xh2QJq7pBqMrWeE.WPxgRI4F8Af12s2", "supplier_admin")
 			supToken := LoginAndGetToken(t, "sup_td@test.com", "Yuvraj@2411")
+
 			req := httptest.NewRequest(http.MethodPost, "/categories", strings.NewReader(tc.body))
 
 			switch tc.name {
@@ -289,9 +285,7 @@ func TestGetCategory(t *testing.T) {
 		"Sup2User", "sup2d@test.com", "$2a$10$CCw/Xx/.lW1BCcc0MYIH5.xh2QJq7pBqMrWeE.WPxgRI4F8Af12s2", "supplier_admin")
 	supplierToken := LoginAndGetToken(t, "sup2d@test.com", "Yuvraj@2411")
 
-	r := gin.New()
-	r.Use(middleware.AuthMiddleware())
-	r.GET("/categories", functions.GetCategory)
+	r := routes.SetupRouter()
 
 	cases := []struct {
 		name         string
@@ -362,9 +356,7 @@ func TestGetCategoryByID(t *testing.T) {
 	_, _ = config.DB.Exec("insert into users(name,email,password_hash,role) values(?,?,?,?)",
 		"Sup3User", "sup3d@test.com", "$2a$10$CCw/Xx/.lW1BCcc0MYIH5.xh2QJq7pBqMrWeE.WPxgRI4F8Af12s2", "supplier_admin")
 	supplierToken := LoginAndGetToken(t, "sup3d@test.com", "Yuvraj@2411")
-	r := gin.New()
-	r.Use(middleware.AuthMiddleware())
-	r.GET("/categories/:id", functions.GetCategoryByID)
+	r := routes.SetupRouter()
 
 	cases := []struct {
 		name         string
@@ -478,9 +470,7 @@ func TestUpdateCategory(t *testing.T) {
 		"Sup3User", "sup3d@test.com", "$2a$10$CCw/Xx/.lW1BCcc0MYIH5.xh2QJq7pBqMrWeE.WPxgRI4F8Af12s2", "supplier_admin")
 	supplierToken := LoginAndGetToken(t, "sup3d@test.com", "Yuvraj@2411")
 
-	r := gin.New()
-	r.Use(middleware.AuthMiddleware())
-	r.PUT("/categories/:id", functions.UpdateCategory)
+	r := routes.SetupRouter()
 
 	cases := []struct {
 		name         string
@@ -592,9 +582,7 @@ func TestDeleteCategory(t *testing.T) {
 		"SupDelUser", "sup_del@test.com", "$2a$10$CCw/Xx/.lW1BCcc0MYIH5.xh2QJq7pBqMrWeE.WPxgRI4F8Af12s2", "supplier_admin")
 	supToken := LoginAndGetToken(t, "sup_del@test.com", "Yuvraj@2411")
 
-	r := gin.New()
-	r.Use(middleware.AuthMiddleware())
-	r.DELETE("/categories/:id", functions.DeleteCategory)
+	r := routes.SetupRouter()
 
 	cases := []struct {
 		name         string
@@ -675,9 +663,7 @@ func TestCreateSupplier(t *testing.T) {
 		"SupDelUser", "sup_del@test.com", "$2a$10$CCw/Xx/.lW1BCcc0MYIH5.xh2QJq7pBqMrWeE.WPxgRI4F8Af12s2", "supplier_admin")
 	supToken := LoginAndGetToken(t, "sup_del@test.com", "Yuvraj@2411")
 
-	r := gin.New()
-	r.Use(middleware.AuthMiddleware())
-	r.POST("/suppliers", functions.CreateSupplier)
+	r := routes.SetupRouter()
 
 	cases := []struct {
 		name         string
@@ -764,9 +750,7 @@ func TestUpdateSupplier(t *testing.T) {
 	_, _ = config.DB.Exec("insert into users(name,email,password_hash,role) values(?,?,?,?)",
 		"SupDelUser", "sup_del@test.com", "$2a$10$CCw/Xx/.lW1BCcc0MYIH5.xh2QJq7pBqMrWeE.WPxgRI4F8Af12s2", "supplier_admin")
 	supToken := LoginAndGetToken(t, "sup_del@test.com", "Yuvraj@2411")
-	r := gin.New()
-	r.Use(middleware.AuthMiddleware())
-	r.PUT("/suppliers/:id", functions.UpdateSupplier)
+	r := routes.SetupRouter()
 	testcases := []struct {
 		name         string
 		token        string
@@ -897,10 +881,7 @@ func TestDeleteSupplier(t *testing.T) {
 	_, _ = config.DB.Exec("insert into users(name,email,password_hash,role) values(?,?,?,?)",
 		"SupDelUser", "sup_del@test.com", "$2a$10$CCw/Xx/.lW1BCcc0MYIH5.xh2QJq7pBqMrWeE.WPxgRI4F8Af12s2", "supplier_admin")
 	supToken := LoginAndGetToken(t, "sup_del@test.com", "Yuvraj@2411")
-	r := gin.New()
-	r.Use(middleware.AuthMiddleware())
-	r.DELETE("/suppliers/:id", functions.DeleteSupplier)
-
+	r := routes.SetupRouter()
 	testcases := []struct {
 		name         string
 		token        string
@@ -977,9 +958,7 @@ func TestGetSupplier(t *testing.T) {
 	adminEmail, adminPass := "admin_getid@test.com", "Admin@123"
 	SeedAdmin(t, adminEmail, adminPass)
 	adminToken := LoginAndGetToken(t, adminEmail, adminPass)
-	r := gin.New()
-	r.Use(middleware.AuthMiddleware())
-	r.GET("/suppliers", functions.GetSupplier)
+	r := routes.SetupRouter()
 
 	testcases := []struct {
 		name         string
@@ -1072,9 +1051,7 @@ func TestGetSupplierByID(t *testing.T) {
 	adminEmail, adminPass := "admin_getbyid@test.com", "Admin@123"
 	SeedAdmin(t, adminEmail, adminPass)
 	adminToken := LoginAndGetToken(t, adminEmail, adminPass)
-	r := gin.New()
-	r.Use(middleware.AuthMiddleware())
-	r.GET("/suppliers/:id", functions.GetSupplierByID)
+	r := routes.SetupRouter()
 
 	testcases := []struct {
 		name         string
@@ -1216,10 +1193,7 @@ func TestGetSupplierByID(t *testing.T) {
 func TestCreateProduct(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 	adminEmail, adminPass := "admin_prod_create@test.com", "Admin@123"
-	r := gin.New()
-	r.Use(middleware.AuthMiddleware())
-	r.POST("/products", functions.CreateProduct)
-
+	r := routes.SetupRouter()
 	testcases := []struct {
 		name         string
 		prepare      func() (supplierToken string, catID int)
@@ -1353,10 +1327,7 @@ func TestCreateProduct(t *testing.T) {
 func TestGetProducts(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 	adminEmail, adminPass := "admin_prod_gets@test.com", "Admin@123"
-	r := gin.New()
-	r.Use(middleware.AuthMiddleware())
-	r.GET("/products", functions.GetProduct)
-
+	r := routes.SetupRouter()
 	testcases := []struct {
 		name         string
 		prepare      func()
@@ -1466,9 +1437,7 @@ func TestGetProductByID(t *testing.T) {
 	SeedAdmin(t, adminEmail, adminPass)
 	adminToken := LoginAndGetToken(t, adminEmail, adminPass)
 
-	r := gin.New()
-	r.Use(middleware.AuthMiddleware())
-	r.GET("/products/:id", functions.GetProductByID)
+	r := routes.SetupRouter()
 	testcases := []struct {
 		name         string
 		prepare      func() int64
@@ -1625,9 +1594,7 @@ func TestUpdateProduct(t *testing.T) {
 	adminToken := LoginAndGetToken(t, adminEmail, adminPass)
 	const supPass = "Supplier@123"
 
-	r := gin.New()
-	r.Use(middleware.AuthMiddleware())
-	r.PUT("/products/:id", functions.UpdateProduct)
+	r := routes.SetupRouter()
 	testcases := []struct {
 		name         string
 		prepare      func() (int64, string)
@@ -1649,7 +1616,7 @@ func TestUpdateProduct(t *testing.T) {
 				return pid, "supupd@test.com"
 			},
 			body:         `{"product_name":"Xdfifn"}`,
-			expectedCode: http.StatusBadRequest,
+			expectedCode: http.StatusForbidden,
 		},
 		{
 			name: "unauthorized (no token)",
@@ -1978,9 +1945,7 @@ func TestDeleteProduct(t *testing.T) {
 	SeedAdmin(t, adminEmail, adminPass)
 	adminToken := LoginAndGetToken(t, adminEmail, adminPass)
 	const supPass = "Supplier@123"
-	r := gin.New()
-	r.Use(middleware.AuthMiddleware())
-	r.DELETE("/products/:id", functions.DeleteProduct)
+	r := routes.SetupRouter()
 	testcases := []struct {
 		name         string
 		prepare      func() (int64, string)
@@ -2000,7 +1965,7 @@ func TestDeleteProduct(t *testing.T) {
 				_, _ = config.DB.Exec("insert into users(name,email,password_hash,role,supplier_id) values(?,?,?,?,?)", "InvSupUser", "invsupuser@test.com", hash, "supplier_admin", sid)
 				return 0, "invsupuser@test.com"
 			},
-			expectedCode: http.StatusBadRequest,
+			expectedCode: http.StatusForbidden,
 		},
 		{
 			name: "unauthorized (no token)",
@@ -2155,9 +2120,7 @@ func TestCreateSuppAdmin(t *testing.T) {
 	SeedAdmin(t, adminEmail, adminPass)
 	adminToken := LoginAndGetToken(t, adminEmail, adminPass)
 	const supPass = "Supplier@123"
-	r := gin.New()
-	r.Use(middleware.AuthMiddleware())
-	r.POST("/users/supplier-admin", functions.CreateSuppAdmin)
+	r := routes.SetupRouter()
 	testcases := []struct {
 		name         string
 		prepare      func() int64
@@ -2308,9 +2271,7 @@ func TestGetSuppAdmin(t *testing.T) {
 	SeedAdmin(t, adminEmail, adminPass)
 	adminToken := LoginAndGetToken(t, adminEmail, adminPass)
 	const supPass = "Supplier@123"
-	r := gin.New()
-	r.Use(middleware.AuthMiddleware())
-	r.GET("/users/supplier-admin", functions.GetsuppAdmin)
+	r := routes.SetupRouter()
 	testcases := []struct {
 		name         string
 		prepare      func()
@@ -2390,9 +2351,7 @@ func TestGetSuppAdminByID(t *testing.T) {
 	SeedAdmin(t, adminEmail, adminPass)
 	adminToken := LoginAndGetToken(t, adminEmail, adminPass)
 	const supPass = "Supplier@123"
-	r := gin.New()
-	r.Use(middleware.AuthMiddleware())
-	r.GET("/users/supplier-admin/:id", functions.GetsuppAdminByID)
+	r := routes.SetupRouter()
 	testcases := []struct {
 		name         string
 		prepare      func() int64
@@ -2499,9 +2458,7 @@ func TestDeleteSuppAdmin(t *testing.T) {
 	SeedAdmin(t, adminEmail, adminPass)
 	adminToken := LoginAndGetToken(t, adminEmail, adminPass)
 	const supPass = "Supplier@123"
-	r := gin.New()
-	r.Use(middleware.AuthMiddleware())
-	r.DELETE("/users/supplier-admin/:id", functions.DeleteSuppAdmin)
+	r := routes.SetupRouter()
 	testcases := []struct {
 		name         string
 		prepare      func() int64
@@ -2610,9 +2567,7 @@ func TestCreateStockMov(t *testing.T) {
 	adminToken := LoginAndGetToken(t, adminEmail, adminPass)
 	const supPass = "Supplier@123"
 	const supEmail = "Supplier@testing.com"
-	r := gin.New()
-	r.Use(middleware.AuthMiddleware())
-	r.POST("/stock_movements", functions.CreateStockMovement)
+	r := routes.SetupRouter()
 	testcases := []struct {
 		name         string
 		prepare      func()
@@ -2840,9 +2795,7 @@ func TestGetStockMov(t *testing.T) {
 	adminToken := LoginAndGetToken(t, adminEmail, adminPass)
 	const supPass = "Supplier@123"
 	const supEmail = "Supplier@testing.com"
-	r := gin.New()
-	r.Use(middleware.AuthMiddleware())
-	r.GET("/stock_movements", functions.GetStockMovements)
+	r := routes.SetupRouter()
 	testcases := []struct {
 		name         string
 		prepare      func()
@@ -3042,9 +2995,7 @@ func TestDashboard(t *testing.T) {
 	adminToken := LoginAndGetToken(t, adminEmail, adminPass)
 	const supPass = "Supplier@123"
 	const supEmail = "Supplier@testing.com"
-	r := gin.New()
-	r.Use(middleware.AuthMiddleware())
-	r.GET("/dashboard", functions.GetDashboard)
+	r := routes.SetupRouter()
 	testcases := []struct {
 		name         string
 		prepare      func()
