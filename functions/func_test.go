@@ -186,6 +186,7 @@ func TestLogin(t *testing.T) {
 func TestCreateCategory(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 	adminEmail, adminPass := "admin_td@test.com", "Admin@123"
+	const supPass = "Sup@2411"
 	SeedAdmin(t, adminEmail, adminPass)
 	adminToken := LoginAndGetToken(t, adminEmail, adminPass)
 	r := routes.SetupRouter()
@@ -228,9 +229,10 @@ func TestCreateCategory(t *testing.T) {
 			t.Cleanup(func() {
 				TruncateAll(t)
 			})
+			hash, _ := utils.HashPwd(supPass)
 			_, _ = config.DB.Exec("insert into users(name,email,password_hash,role) values(?,?,?,?)",
-				"SupUser", "sup_td@test.com", "$2a$10$CCw/Xx/.lW1BCcc0MYIH5.xh2QJq7pBqMrWeE.WPxgRI4F8Af12s2", "supplier_admin")
-			supToken := LoginAndGetToken(t, "sup_td@test.com", "Yuvraj@2411")
+				"SupUser", "sup_td@test.com", hash, "supplier_admin")
+			supToken := LoginAndGetToken(t, "sup_td@test.com", supPass)
 
 			req := httptest.NewRequest(http.MethodPost, "/categories", strings.NewReader(tc.body))
 
@@ -276,14 +278,16 @@ func TestCreateCategory(t *testing.T) {
 
 func TestGetCategory(t *testing.T) {
 	gin.SetMode(gin.TestMode)
+	const supPass = "Admin@2411"
 
 	adminEmail, adminPass := "admin_get@test.com", "Admin@123"
 	SeedAdmin(t, adminEmail, adminPass)
 	adminToken := LoginAndGetToken(t, adminEmail, adminPass)
 	_, _ = config.DB.Exec("insert into suppliers(name,email,company) values(?,?,?)", "Sup2", "sup2d@test.com", "Comp")
+	hash, _ := utils.HashPwd(supPass)
 	_, _ = config.DB.Exec("insert into users(name,email,password_hash,role) values(?,?,?,?)",
-		"Sup2User", "sup2d@test.com", "$2a$10$CCw/Xx/.lW1BCcc0MYIH5.xh2QJq7pBqMrWeE.WPxgRI4F8Af12s2", "supplier_admin")
-	supplierToken := LoginAndGetToken(t, "sup2d@test.com", "Yuvraj@2411")
+		"Sup2User", "sup2d@test.com", hash, "supplier_admin")
+	supplierToken := LoginAndGetToken(t, "sup2d@test.com", supPass)
 
 	r := routes.SetupRouter()
 
@@ -348,14 +352,16 @@ func TestGetCategory(t *testing.T) {
 
 func TestGetCategoryByID(t *testing.T) {
 	gin.SetMode(gin.TestMode)
+	const supPass = "Sup@2411"
 
 	adminEmail, adminPass := "admin_getid@test.com", "Admin@123"
 	SeedAdmin(t, adminEmail, adminPass)
 	adminToken := LoginAndGetToken(t, adminEmail, adminPass)
 	_, _ = config.DB.Exec("insert into suppliers(name,email,company) values(?,?,?)", "Sup3", "sup3d@test.com", "Comp")
+	hash, _ := utils.HashPwd(supPass)
 	_, _ = config.DB.Exec("insert into users(name,email,password_hash,role) values(?,?,?,?)",
-		"Sup3User", "sup3d@test.com", "$2a$10$CCw/Xx/.lW1BCcc0MYIH5.xh2QJq7pBqMrWeE.WPxgRI4F8Af12s2", "supplier_admin")
-	supplierToken := LoginAndGetToken(t, "sup3d@test.com", "Yuvraj@2411")
+		"Sup3User", "sup3d@test.com", hash, "supplier_admin")
+	supplierToken := LoginAndGetToken(t, "sup3d@test.com", supPass)
 	r := routes.SetupRouter()
 
 	cases := []struct {
@@ -463,12 +469,14 @@ func TestGetCategoryByID(t *testing.T) {
 func TestUpdateCategory(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 	adminEmail, adminPass := "admin_update@test.com", "Admin@123"
+	const supPass = "Sup@2411"
 	SeedAdmin(t, adminEmail, adminPass)
 	adminToken := LoginAndGetToken(t, adminEmail, adminPass)
 	_, _ = config.DB.Exec("insert into suppliers(name,email,company) values(?,?,?)", "Sup3", "sup3d@test.com", "Comp")
+	hash, _ := utils.HashPwd(supPass)
 	_, _ = config.DB.Exec("insert into users(name,email,password_hash,role) values(?,?,?,?)",
-		"Sup3User", "sup3d@test.com", "$2a$10$CCw/Xx/.lW1BCcc0MYIH5.xh2QJq7pBqMrWeE.WPxgRI4F8Af12s2", "supplier_admin")
-	supplierToken := LoginAndGetToken(t, "sup3d@test.com", "Yuvraj@2411")
+		"Sup3User", "sup3d@test.com", hash, "supplier_admin")
+	supplierToken := LoginAndGetToken(t, "sup3d@test.com", supPass)
 
 	r := routes.SetupRouter()
 
@@ -573,14 +581,16 @@ func TestUpdateCategory(t *testing.T) {
 
 func TestDeleteCategory(t *testing.T) {
 	gin.SetMode(gin.TestMode)
+	const supPass = "Sup@2411"
 	adminEmail, adminPass := "admin_delete@test.com", "Admin@123"
 	SeedAdmin(t, adminEmail, adminPass)
 	adminToken := LoginAndGetToken(t, adminEmail, adminPass)
 
 	_, _ = config.DB.Exec("insert into suppliers(name,email,company) values(?,?,?)", "SupDel", "sup_del@test.com", "C")
+	hash, _ := utils.HashPwd(supPass)
 	_, _ = config.DB.Exec("insert into users(name,email,password_hash,role) values(?,?,?,?)",
-		"SupDelUser", "sup_del@test.com", "$2a$10$CCw/Xx/.lW1BCcc0MYIH5.xh2QJq7pBqMrWeE.WPxgRI4F8Af12s2", "supplier_admin")
-	supToken := LoginAndGetToken(t, "sup_del@test.com", "Yuvraj@2411")
+		"SupDelUser", "sup_del@test.com", hash, "supplier_admin")
+	supToken := LoginAndGetToken(t, "sup_del@test.com", supPass)
 
 	r := routes.SetupRouter()
 
@@ -656,12 +666,14 @@ func TestDeleteCategory(t *testing.T) {
 func TestCreateSupplier(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 	adminEmail, adminPass := "admin_create_sup@test.com", "Admin@123"
+	const supPass = "Sup@2411"
 	SeedAdmin(t, adminEmail, adminPass)
 	adminToken := LoginAndGetToken(t, adminEmail, adminPass)
 	_, _ = config.DB.Exec("insert into suppliers(name,email,company) values(?,?,?)", "SupDel", "sup_del@test.com", "C")
+	hash, _ := utils.HashPwd(supPass)
 	_, _ = config.DB.Exec("insert into users(name,email,password_hash,role) values(?,?,?,?)",
-		"SupDelUser", "sup_del@test.com", "$2a$10$CCw/Xx/.lW1BCcc0MYIH5.xh2QJq7pBqMrWeE.WPxgRI4F8Af12s2", "supplier_admin")
-	supToken := LoginAndGetToken(t, "sup_del@test.com", "Yuvraj@2411")
+		"SupDelUser", "sup_del@test.com", hash, "supplier_admin")
+	supToken := LoginAndGetToken(t, "sup_del@test.com", supPass)
 
 	r := routes.SetupRouter()
 
@@ -744,12 +756,14 @@ func TestCreateSupplier(t *testing.T) {
 func TestUpdateSupplier(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 	adminEmail, adminPass := "admin_delete@test.com", "Admin@123"
+	const supPass = "Sup@2411"
 	SeedAdmin(t, adminEmail, adminPass)
 	adminToken := LoginAndGetToken(t, adminEmail, adminPass)
 	_, _ = config.DB.Exec("insert into suppliers(name,email,company) values(?,?,?)", "SupDel", "sup_del@test.com", "C")
+	hash, _ := utils.HashPwd(supPass)
 	_, _ = config.DB.Exec("insert into users(name,email,password_hash,role) values(?,?,?,?)",
-		"SupDelUser", "sup_del@test.com", "$2a$10$CCw/Xx/.lW1BCcc0MYIH5.xh2QJq7pBqMrWeE.WPxgRI4F8Af12s2", "supplier_admin")
-	supToken := LoginAndGetToken(t, "sup_del@test.com", "Yuvraj@2411")
+		"SupDelUser", "sup_del@test.com", hash, "supplier_admin")
+	supToken := LoginAndGetToken(t, "sup_del@test.com", supPass)
 	r := routes.SetupRouter()
 	testcases := []struct {
 		name         string
@@ -874,13 +888,15 @@ func TestUpdateSupplier(t *testing.T) {
 
 func TestDeleteSupplier(t *testing.T) {
 	gin.SetMode(gin.TestMode)
+	const supPass = "Sup@2411"
 	adminEmail, adminPass := "admin_create_sup@test.com", "Admin@123"
 	SeedAdmin(t, adminEmail, adminPass)
 	adminToken := LoginAndGetToken(t, adminEmail, adminPass)
 	_, _ = config.DB.Exec("insert into suppliers(name,email,company) values(?,?,?)", "SupDel", "sup_del@test.com", "C")
+	hash, _ := utils.HashPwd(supPass)
 	_, _ = config.DB.Exec("insert into users(name,email,password_hash,role) values(?,?,?,?)",
-		"SupDelUser", "sup_del@test.com", "$2a$10$CCw/Xx/.lW1BCcc0MYIH5.xh2QJq7pBqMrWeE.WPxgRI4F8Af12s2", "supplier_admin")
-	supToken := LoginAndGetToken(t, "sup_del@test.com", "Yuvraj@2411")
+		"SupDelUser", "sup_del@test.com", hash, "supplier_admin")
+	supToken := LoginAndGetToken(t, "sup_del@test.com", supPass)
 	r := routes.SetupRouter()
 	testcases := []struct {
 		name         string
