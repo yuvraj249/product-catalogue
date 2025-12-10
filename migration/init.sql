@@ -1,5 +1,3 @@
--- create database if not exists product_catalogue;
--- use product_catalogue;
 
 create table if not exists suppliers(
     supplier_id int auto_increment primary key,
