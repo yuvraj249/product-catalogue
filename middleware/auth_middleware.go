@@ -1,0 +1,84 @@
+package middleware
+
+import (
+	"net/http"
+	"os"
+	"strings"
+
+	"github.com/gin-gonic/gin"
+	"github.com/golang-jwt/jwt/v5"
+)
+
+func AuthMiddleware() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		var token_string string
+		authHeader := c.GetHeader("Authorization")
+		if authHeader == "" {
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "Token missing in header"})
+			c.Abort()
+			return
+		}
+		if !strings.HasPrefix(authHeader, "Bearer ") {
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid authorization format"})
+			c.Abort()
+			return
+		}
+		token_string = strings.TrimSpace(strings.TrimPrefix(authHeader, "Bearer "))
+
+		secret_k := os.Getenv("JWT_SECRET_KEY")
+		if secret_k == "" {
+			c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": "jwt not configured"})
+			return
+		}
+		token, err := jwt.Parse(token_string, func(token *jwt.Token) (interface{}, error) {
+			if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+				return nil, jwt.ErrTokenUnverifiable
+			}
+			return []byte(secret_k), nil
+		})
+		if err != nil || !token.Valid {
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid or expired token"})
+			c.Abort()
+			return
+		}
+
+		claims, ok := token.Claims.(jwt.MapClaims)
+		if !ok {
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid token claims!!"})
+			c.Abort()
+			return
+		}
+		c.Set("token", token)
+		c.Set("claims", claims)
+		c.Set("auth_source", "header")
+		roleValue, ok := claims["role"]
+		if !ok {
+			c.JSON(http.StatusForbidden, gin.H{"error": "role missing in token!!"})
+			c.Abort()
+			return
+		}
+		role, ok := roleValue.(string)
+		if !ok || role == "" {
+			c.JSON(http.StatusForbidden, gin.H{"error": "Invalid or empty role in token!!"})
+			c.Abort()
+			return
+		}
+		c.Set("role", role)
+		if role == "supplier_admin" {
+			if supplierVal, ok := claims["supplier_id"]; ok {
+				c.Set("supplier_id", int(supplierVal.(float64)))
+			}
+		}
+
+		userVal, ok := claims["user_id"]
+		if !ok {
+			c.JSON(http.StatusForbidden, gin.H{"error": "user_id missing in token!!"})
+			c.Abort()
+			return
+		}
+		c.Set("user_id", int(userVal.(float64)))
+
+		c.Next()
+
+	}
+}
