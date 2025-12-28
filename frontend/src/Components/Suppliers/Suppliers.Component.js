@@ -219,13 +219,18 @@ const Suppliers = () => {
   });
 
   const menuItems = [
-    { icon: dashboardIcon, label: 'Dashboard' },
-    { icon: packageIcon, label: 'Products' },
-    { icon: folderIcon, label: 'Categories' },
-    { icon: truckIcon, label: 'Suppliers' },
-    { icon: trendingIcon, label: 'Stock Movements' },
-    { icon: usersIcon, label: 'Users' },
+    { icon: dashboardIcon, label: 'Dashboard', path: '/dashboard' },
+    { icon: packageIcon, label: 'Products', path: '/products' },
+    { icon: folderIcon, label: 'Categories', path: '/categories'},
+    { icon: truckIcon, label: 'Suppliers', path: '/suppliers' },
+    { icon: trendingIcon, label: 'Stock Movements', path: '/stock-movements' },
+    { icon: usersIcon, label: 'Users', path: '/users' },
   ];
+
+  const handleMenuClick = (item) => {
+    setActiveItem(item.label);
+    navigate(item.path);
+  }
 
   const logout = () => {
     navigate('/');
@@ -243,7 +248,7 @@ const Suppliers = () => {
             <NavItem
               key={item.label}
               $active={activeItem === item.label}
-              onClick={() => setActiveItem(item.label)}
+              onClick={() => handleMenuClick(item)}
             >
               <Icon src={item.icon} alt={item.label} />
               <span>{item.label}</span>
