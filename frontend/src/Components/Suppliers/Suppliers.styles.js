@@ -11,7 +11,7 @@ export const Layout = styled.div`
 `;
 
 export const Sidebar = styled.aside`
-  width: ${({ $isOpen }) => $isOpen ? '260px' : '0'};
+  width: ${({ $isOpen }) => ($isOpen ? '260px' : '0')};
   background: #ffffff;
   border-right: 1px solid rgba(42,123,155,0.20);
   position: fixed;
@@ -36,7 +36,7 @@ export const SidebarHeader = styled.div`
 
 export const Main = styled.main`
   flex: 1;
-  margin-left: ${({ $sidebarOpen }) => $sidebarOpen ? '260px' : '0'};
+  margin-left: ${({ $sidebarOpen }) => ($sidebarOpen ? '260px' : '0')};
   transition: margin-left 0.25s ease;
 
   @media (max-width: 768px) {
@@ -126,47 +126,84 @@ export const AddButton = styled.button`
   }
 `;
 
-export const Grid = styled.div`
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-  gap: 24px;
-`;
-
-export const Card = styled.div`
+export const SearchWrap = styled.div`
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 16px;
   background: #ffffff;
   border: 1px solid rgba(42,123,155,0.25);
-  border-radius: 12px;
-  padding: 24px;
-  transition: all 0.25s ease;
+  border-radius: 8px;
+  max-width: 450px;
+  width: 100%;
+  transition: all 0.15s ease;
 
-  &:hover {
-    border-color: rgba(42,123,155,0.4);
-    box-shadow: 0 4px 12px rgba(42,123,155,0.12);
-    transform: translateY(-2px);
+  &:focus-within {
+    border-color: #2A7B9B;
+    box-shadow: 0 0 0 3px rgba(42,123,155,0.15);
   }
 `;
 
-export const CardHeader = styled.div`
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  margin-bottom: 16px;
+export const SearchIpt = styled.input`
+  border: none;
+  flex: 1;
+  background: transparent;
+  outline: none;
+  color: #1f2d36;
+  font-size: 14px;
+
+  &::placeholder {
+    color: #4f6b72;
+  }
 `;
 
-export const SupplierName = styled.h3`
-  font-size: 18px;
+export const TableWrapper = styled.div`
+  background: #ffffff;
+  border: 1px solid rgba(42,123,155,0.25);
+  border-radius: 12px;
+  overflow: hidden;
+`;
+
+export const Table = styled.table`
+  width: 100%;
+  border-collapse: collapse;
+
+  tbody tr {
+    transition: background 0.15s ease;
+
+    &:hover {
+      background: rgba(42,123,155,0.05);
+    }
+  }
+`;
+
+export const Th = styled.th`
+  padding: 16px;
+  background: #f3f8fb;
+  color: #4f6b72;
+  border-bottom: 2px solid rgba(42,123,155,0.25);
+  text-align: ${({ align }) => align || 'left'};
+  font-size: 14px;
   font-weight: 600;
+`;
+
+export const Td = styled.td`
+  padding: 16px;
   color: #1f2d36;
-  margin: 0;
+  border-bottom: 1px solid rgba(42,123,155,0.18);
+  text-align: ${({ align }) => align || 'left'};
+  font-size: 14px;
 `;
 
 export const ActionButtons = styled.div`
   display: flex;
-  gap: 4px;
+  gap: 8px;
+  justify-content: center;
 `;
 
 export const IconButton = styled.button`
-  padding: 6px;
+  padding: 8px;
   border-radius: 4px;
   background: rgba(42,123,155,0.12);
   border: none;
@@ -176,7 +213,9 @@ export const IconButton = styled.button`
   align-items: center;
   transition: all 0.15s ease;
 
-  ${({ $danger }) => $danger && `
+  ${({ $danger }) =>
+    $danger &&
+    `
     background: rgba(199,88,88,0.12);
     color: #c75858;
   `}
@@ -184,23 +223,6 @@ export const IconButton = styled.button`
   &:hover {
     opacity: 0.9;
   }
-`;
-
-export const InfoRow = styled.div`
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin-bottom: 6px;
-  color: #4f6b72;
-  font-size: 14px;
-
-  &:last-child {
-    margin-bottom: 0;
-  }
-`;
-
-export const InfoText = styled.span`
-  color: #4f6b72;
 `;
 
 export const Modal = styled.div`
@@ -331,36 +353,4 @@ export const SubmitButton = styled.button`
 export const Icon = styled.img`
   width: 20px;
   height: 20px;
-`;
-
-export const SearchWrap = styled.div`
-  flex: 1;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 10px 16px;
-  background: #ffffff;
-  border: 1px solid rgba(42,123,155,0.25);
-  border-radius: 8px;
-  max-width: 450px;
-  width: 100%;
-  transition: all 0.15s ease;
-
-  &:focus-within {
-    border-color: #2A7B9B;
-    box-shadow: 0 0 0 3px rgba(42,123,155,0.15);
-  }
-`;
-
-export const SearchIpt = styled.input`
-  border: none;
-  flex: 1;
-  background: transparent;
-  outline: none;
-  color: #1f2d36;
-  font-size: 14px;
-
-  &::placeholder {
-    color: #4f6b72;
-  }
 `;
