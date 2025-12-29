@@ -89,14 +89,14 @@ export const ContentArea = styled.div`
 `;
 
 export const PageHeader = styled.div`
-  display: flex;
-  justify-content: space-between;
+  display: grid;
+  grid-template-columns: 0.9fr minmax(350px, 500px) 1.1fr;
   align-items: center;
   margin-bottom: 32px;
-  gap: 16px;
 
   @media (max-width: 768px) {
-    flex-wrap: wrap;
+    grid-template-columns: 1fr;
+    row-gap: 16px;
   }
 `;
 
@@ -110,6 +110,7 @@ export const Title = styled.h1`
 export const AddButton = styled.button`
   display: flex;
   align-items: center;
+  margin-left: auto ;
   gap: 8px;
   padding: 12px 24px;
   background: linear-gradient(135deg, #2A7B9B, #57C785);
@@ -130,12 +131,14 @@ export const SearchWrap = styled.div`
   flex: 1;
   display: flex;
   align-items: center;
+  justify-self: center;
+  margin: 0 auto ;
   gap: 8px;
   padding: 10px 16px;
   background: #ffffff;
   border: 1px solid rgba(42,123,155,0.25);
   border-radius: 8px;
-  max-width: 450px;
+  max-width: 500px;
   width: 100%;
   transition: all 0.15s ease;
 
@@ -353,4 +356,42 @@ export const SubmitButton = styled.button`
 export const Icon = styled.img`
   width: 20px;
   height: 20px;
+`;
+
+
+export const ToastContainer = styled.div`
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  z-index: 2000;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+`;
+
+
+export const Toast = styled.div`
+  background: #ffffff;
+  padding: 12px 18px;
+  border-radius: 2px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+  font-weight: 600;
+  min-width: 260px;
+  min-height: 28px;
+  color: #1f2d36;
+  border-left: 6px solid
+    ${({ $type }) => ($type === 'success' ? '#2ecc71' : '#e74c3c')};
+
+  animation: slideIn 0.3s ease forwards;
+
+  @keyframes slideIn {
+    from {
+      opacity: 0;
+      transform: translateX(60px);
+    }
+    to {
+      opacity: 1;
+      transform: translateX(0);
+    }
+  }
 `;

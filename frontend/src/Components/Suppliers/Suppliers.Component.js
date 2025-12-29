@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
+import { ToastContainer, Toast } from './Suppliers.styles';
 import {
   useReactTable,
   getCoreRowModel,
@@ -79,6 +80,16 @@ const Suppliers = () => {
 
   const [globalFilter, setGlobalFilter] = useState('');
 
+  const [toast, setToast] = useState({ message: '', type: '' })
+
+  const showToast = (message, type = 'success') => {
+  setToast({ message, type });
+
+  setTimeout(() => {
+    setToast({ message: '', type: '' });
+  }, 3000);
+}
+
   const navigate = useNavigate()
   const user = getUserInfo()
 
@@ -108,6 +119,7 @@ const Suppliers = () => {
         email,
         company,
       })
+      showToast('Supplier created successfully', 'success')
       setShowModal(false)
       fetchSuppliers()
       setName('')
@@ -116,7 +128,7 @@ const Suppliers = () => {
       setContact('')
     } catch (err) {
       console.error('Create supplier error:', err)
-      alert(err.response?.data?.error || 'Failed to create supplier')
+      showToast('Failed to create supplier', 'error');
     }
   }
 
@@ -138,22 +150,23 @@ const Suppliers = () => {
         company,
         contact_info: contact,
       });
+      showToast('Supplier updated successfully', 'success');
       setShowModal(false)
       setUpdatingId(null)
       fetchSuppliers()
     } catch (err) {
       console.error('Update supplier error:', err)
-      alert(err.response?.data?.error || 'Failed to update supplier')
+      showToast('Failed to update supplier', 'error');
     }
   }
 
   const deleteSupplier = useCallback(async (id) => {
-  if (!window.confirm('Are you sure you want to delete this supplier?')) return
   try {
     await api.delete(`suppliers/${id}`)
+    showToast('Supplier deleted successfully', 'success');
     fetchSuppliers()
   } catch (err) {
-    alert(err.response?.data?.error || 'Failed to delete supplier')
+    showToast('Failed to delete supplier', 'error');
   }
 }, [fetchSuppliers])
 
@@ -194,7 +207,7 @@ const Suppliers = () => {
               <Icon src={editIcon} alt="edit" />
             </IconButton>
             {user?.role === 'system_admin' && (
-              <IconButton $danger onClick={() => deleteSupplier(row.original.supplier_id)}>
+              <IconButton $danger onClick={() => deleteSupplier(row.original.supplier_id) }>
                 <Icon src={trashIcon} alt="delete" />
               </IconButton>
             )}
@@ -218,14 +231,22 @@ const Suppliers = () => {
     getSortedRowModel: getSortedRowModel(),
   });
 
-  const menuItems = [
+  const menuItems = user?.role === 'system_admin'
+   ?[
     { icon: dashboardIcon, label: 'Dashboard', path: '/dashboard' },
     { icon: packageIcon, label: 'Products', path: '/products' },
     { icon: folderIcon, label: 'Categories', path: '/categories'},
     { icon: truckIcon, label: 'Suppliers', path: '/suppliers' },
     { icon: trendingIcon, label: 'Stock Movements', path: '/stock-movements' },
     { icon: usersIcon, label: 'Users', path: '/users' },
-  ];
+  ]
+  : [
+    { icon: dashboardIcon, label: 'Dashboard', path: '/dashboard' },
+    { icon: packageIcon, label: 'Products', path: '/products' },
+    { icon: folderIcon, label: 'Categories', path: '/categories' },
+    { icon: truckIcon, label: 'Suppliers', path: '/suppliers' },
+    { icon: trendingIcon, label: 'Stock Movements', path: '/stock-movements' },
+  ]
 
   const handleMenuClick = (item) => {
     setActiveItem(item.label);
@@ -424,6 +445,16 @@ const Suppliers = () => {
           </ModalContent>
         </Modal>
       )}
+      <ToastContainer>
+        {
+            toast.message && (
+                <Toast $type={toast.type}>
+                    {toast.message}
+                </Toast>
+            )
+        }
+      </ToastContainer>
+
     </Layout>
   )
 }
