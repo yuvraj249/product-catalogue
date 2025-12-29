@@ -38,8 +38,6 @@ export const Header = styled.div`
   margin-bottom: 12px;
 `
 
-
-
 export const LogoBox = styled.div`
   width: 64px;
   height: 64px;

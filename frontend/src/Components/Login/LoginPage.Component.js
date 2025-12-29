@@ -55,7 +55,7 @@ export const LoginPage = () => {
          <FormGroup>
          <label>Password</label>
         <PasswordWrapper>
-          <Input placeholder='password' type={showPassword ? "text" : "password"} value={password} onChange={e => setPassword(e.target.value)} />
+          <Input placeholder='password' type={!showPassword ? "text" : "password"} value={password} onChange={e => setPassword(e.target.value)} />
           <IconButton type='button' onClick={() => setShowPassword(!showPassword)}>
             <img src={showPassword ? eyeOff : eye} alt='toggle password' width={18} />
           </IconButton>
