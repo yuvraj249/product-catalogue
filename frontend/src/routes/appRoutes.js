@@ -1,17 +1,24 @@
-import { Routes, Route } from "react-router-dom";
+import { Routes, Route} from "react-router-dom";
 import { LoginPage } from "../Components/Login/LoginPage.Component";
 import Dashboard from "../Components/Dashboard/Dashboard.Component";
 import { ProtectedRoute } from "./protectedRoutes";
-import Products from "../Components/Products/Products.Component";
 import Suppliers from "../Components/Suppliers/Suppliers.Component";
+import Categories from "../Components/Categories/Categories.Component";
+import AdminComponent from "../Components/AdminComp/Admin.Component";
 
-export default function AppRoutes() {
+
+const AppRoutes = () => {
   return (
     <Routes>
       <Route path="/" element={<LoginPage />} />
-      <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
-      <Route path="/products" element={<ProtectedRoute><Products /></ProtectedRoute>} />
-      <Route path="/suppliers" element={<ProtectedRoute><Suppliers /></ProtectedRoute> } />
+      <Route path="/admin" element={<AdminComponent />} >
+        <Route path="dashboard" element={<ProtectedRoute><Dashboard/></ProtectedRoute>} />
+        <Route path="suppliers" element={<ProtectedRoute><Suppliers /></ProtectedRoute> } />
+        <Route path="categories" element={<ProtectedRoute><Categories /></ProtectedRoute>} />
+      </Route>
     </Routes>
   );
 }
+
+export default AppRoutes
+
