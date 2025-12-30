@@ -10,29 +10,6 @@ export const Layout = styled.div`
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 `;
 
-export const Sidebar = styled.aside`
-  width: ${({ $isOpen }) => ($isOpen ? '260px' : '0')};
-  background: #ffffff;
-  border-right: 1px solid rgba(42,123,155,0.20);
-  position: fixed;
-  top: 0;
-  bottom: 0;
-  left: 0;
-  overflow: hidden;
-  transition: width 0.25s ease;
-  z-index: 1000;
-`;
-
-export const SidebarHeader = styled.div`
-  padding: 24px;
-  font-weight: 700;
-  font-size: 18px;
-  color: #2A7B9B;
-  border-bottom: 1px solid rgba(42,123,155,0.20);
-  display: flex;
-  align-items: center;
-  gap: 8px;
-`;
 
 export const Main = styled.main`
   flex: 1;
@@ -44,47 +21,22 @@ export const Main = styled.main`
   }
 `;
 
-export const TopBar = styled.div`
-  height: 64px;
-  background: #ffffff;
-  border-bottom: 1px solid rgba(42,123,155,0.20);
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 0 24px;
-`;
-
-export const MenuButton = styled.button`
-  background: none;
-  border: none;
-  color: #2A7B9B;
-  padding: 8px;
-  border-radius: 6px;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-
-  &:hover {
-    background: rgba(42,123,155,0.12);
-  }
-`;
-
-export const UserRole = styled.div`
-  background: rgba(42,123,155,0.15);
-  color: #2A7B9B;
-  padding: 6px 12px;
-  font-size: 14px;
-  font-weight: 500;
-  border-radius: 8px;
-`;
-
 export const ContentArea = styled.div`
-  padding: 32px;
+  padding: 80px 30px 30px;
   max-width: 1400px;
   margin: 0 auto;
 
+  background: linear-gradient(
+    180deg,
+    rgba(230, 242, 249, 0.6) 0%,
+    rgba(243, 248, 251, 0.9) 100%
+  ); 
+
+  min-height: calc(100vh - 120px);
+
   @media (max-width: 768px) {
     padding: 24px;
+    border-radius: 12px;
   }
 `;
 
@@ -236,7 +188,7 @@ export const Modal = styled.div`
   align-items: center;
   justify-content: center;
   padding: 24px;
-  z-index: 1000;
+  z-index: 3000;
 `;
 
 export const ModalContent = styled.div`
