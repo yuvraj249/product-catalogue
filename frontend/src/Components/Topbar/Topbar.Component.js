@@ -4,6 +4,8 @@ import { getUserInfo } from "../../utils/auth";
 
 const TopbarMenu = ({ sidebarOpen, setSidebarOpen }) => {
   const user = getUserInfo();
+  const displayName = user?.name
+  console.log(getUserInfo())
 
   return (
     <TopBar $sidebarOpen={sidebarOpen}>
@@ -12,7 +14,7 @@ const TopbarMenu = ({ sidebarOpen, setSidebarOpen }) => {
       </MenuButton>
 
       <UserRole>
-        {user?.role || "User"}
+         Hey! {displayName}
       </UserRole>
     </TopBar>
   );

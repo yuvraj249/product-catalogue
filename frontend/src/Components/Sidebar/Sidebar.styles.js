@@ -153,10 +153,18 @@ export const MenuButton = styled.button`
 export const UserRole = styled.div`
   background: rgba(42,123,155,0.15);
   color: #2A7B9B;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   padding: 6px 12px;
-  font-size: 14px;
+  height: 29px;
+  font-size: 16px;
   font-weight: 500;
   border-radius: 8px;
+  cursor: pointer;
+  &:hover {
+    background: rgba(2, 26, 35, 0.1);
+  }
 `;
 
 export const Icon = styled.img`
