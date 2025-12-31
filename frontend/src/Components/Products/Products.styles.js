@@ -214,6 +214,10 @@ export const ToastContainer = styled.div`
   position: fixed;
   top: 20px;
   right: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  z-index: 5000;
 `;
 
 export const Toast = styled.div`

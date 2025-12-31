@@ -347,7 +347,6 @@ const Products = () => {
           </ModalContent>
         </Modal>
       )}
-
       <ToastContainer>
         {toast.message && <Toast $type={toast.type}>{toast.message}</Toast>}
       </ToastContainer>
