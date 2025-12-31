@@ -3,10 +3,10 @@ import React, { useState } from 'react';
 import {useNavigate} from 'react-router-dom';
 import { Page, Card, LogoBox, Title, Subtitle,Input, PasswordWrapper, IconButton, SubmitButton , Form, FormGroup, Header} from './LoginPage.Styles';
  
-import eye from './assets/eye-open.svg'
-import eyeOff from './assets/eye-closed.svg'
-import box from './assets/logo.svg'
-import arrow from './assets/arrow.svg'
+import eye from '../../Images/eye-open.svg'
+import eyeOff from '../../Images/eye-closed.svg'
+import box from '../../Images/logo.svg'
+import arrow from '../../Images/arrow.svg'
 import api from '../../Api/axios'
 import { setToken } from '../../utils/auth'
 
@@ -28,7 +28,7 @@ export const LoginPage = () => {
       });
       console.log("LOGIN RESPONSE:", data);
       setToken(data.token);  
-      navigate("/admin/dashboard");
+      navigate("/admin/categories");
     } catch (err) {
       console.error("LOGIN ERROR:", err);
       alert(err.response?.data?.error || "Invalid email or password");

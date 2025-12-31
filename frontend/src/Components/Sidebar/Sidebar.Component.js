@@ -1,11 +1,11 @@
 import { Sidebar, SidebarHeader, Nav, NavItem, LogoutWrapper,Icon, LogoutButton } from "./Sidebar.styles"
-import packageIcon from '../Dashboard/assets1/package.svg'
-import dashboardIcon from '../Dashboard/assets1/layout-dashboard.svg'
-import folderIcon from '../Dashboard/assets1/folder-tree.svg'
-import usersIcon from '../Dashboard/assets1/users.svg'
-import truckIcon from '../Dashboard/assets1/truck.svg'
-import trendingIcon from '../Dashboard/assets1/trending-up.svg'
-import logoutIcon from '../Dashboard/assets1/log-out.svg'
+import packageIcon from '../../Images/package.svg'
+import dashboardIcon from '../../Images/layout-dashboard.svg'
+import folderIcon from '../../Images/folder-tree.svg'
+import usersIcon from '../../Images/users.svg'
+import truckIcon from '../../Images/truck.svg'
+import trendingIcon from '../../Images/trending-up.svg'
+import logoutIcon from '../../Images/log-out.svg'
 import { useNavigate, useLocation } from "react-router-dom"
 import { getUserInfo } from "../../utils/auth"
 

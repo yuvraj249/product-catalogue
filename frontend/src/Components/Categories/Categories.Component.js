@@ -27,14 +27,15 @@ import {
     Td,
     ActionButtons,
     IconButton,
+    Toast,
+    ToastContainer
 } from './Categories.styles'
 
-import plusIcon from '../Products/assets2/plus.svg'
-import editIcon from '../Products/assets2/edit.svg'
-import trashIcon from '../Products/assets2/trash.svg'
-import xIcon from '../Products/assets2/cross.svg'
-import searchIcon from '../Products/assets2/search.svg'
-import { Toast, ToastContainer } from '../Suppliers/Suppliers.styles'
+import plusIcon from '../../Images/plus.svg'
+import editIcon from '../../Images/edit.svg'
+import trashIcon from '../../Images/trash.svg'
+import xIcon from '../../Images/cross.svg'
+import searchIcon from '../../Images/search.svg'
 
 const Categories = () => {
     

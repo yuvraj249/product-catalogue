@@ -297,3 +297,40 @@ export const Icon = styled.img`
   width: 20px;
   height: 20px;
 `;
+
+export const ToastContainer = styled.div`
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  z-index: 2000;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+`;
+
+
+export const Toast = styled.div`
+  background: #ffffff;
+  padding: 12px 18px;
+  border-radius: 2px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+  font-weight: 600;
+  min-width: 260px;
+  min-height: 28px;
+  color: #1f2d36;
+  border-left: 6px solid
+    ${({ $type }) => ($type === 'success' ? '#2ecc71' : '#e74c3c')};
+
+  animation: slideIn 0.3s ease forwards;
+
+  @keyframes slideIn {
+    from {
+      opacity: 0;
+      transform: translateX(60px);
+    }
+    to {
+      opacity: 1;
+      transform: translateX(0);
+    }
+  }
+`;

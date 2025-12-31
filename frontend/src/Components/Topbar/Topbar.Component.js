@@ -1,5 +1,5 @@
 import { TopBar, MenuButton, UserRole, Icon } from "../Sidebar/Sidebar.styles";
-import menuIcon from '../Dashboard/assets1/menu.svg';
+import menuIcon from '../../Images/menu.svg';
 import { getUserInfo } from "../../utils/auth";
 
 const TopbarMenu = ({ sidebarOpen, setSidebarOpen }) => {
