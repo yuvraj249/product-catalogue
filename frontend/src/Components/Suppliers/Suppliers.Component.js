@@ -210,7 +210,6 @@ const Suppliers = () => {
     getFilteredRowModel: getFilteredRowModel(),
     getSortedRowModel: getSortedRowModel(),
   });
-
   return (
         <>
           <PageHeader>
@@ -293,7 +292,6 @@ const Suppliers = () => {
               </Table>
             </TableWrapper>
           )}
-
       {showModal && (
         <Modal onClick={() => setShowModal(false)}>
           <ModalContent onClick={(e) => e.stopPropagation()}>

@@ -1,45 +1,5 @@
 import styled from 'styled-components';
 
-export const Layout = styled.div`
-  display: flex;
-  min-height: 100vh;
-  background:
-    radial-gradient(circle at 20% 20%, rgba(42,123,155,0.10), transparent 40%),
-    radial-gradient(circle at 80% 80%, rgba(87,199,133,0.10), transparent 40%),
-    #f3f8fb;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-`;
-
-
-export const Main = styled.main`
-  flex: 1;
-  margin-left: ${({ $sidebarOpen }) => ($sidebarOpen ? '260px' : '0')};
-  transition: margin-left 0.25s ease;
-
-  @media (max-width: 768px) {
-    margin-left: 0;
-  }
-`;
-
-export const ContentArea = styled.div`
-  padding: 80px 30px 30px;
-  max-width: 1400px;
-  margin: 0 auto;
-
-  background: linear-gradient(
-    180deg,
-    rgba(230, 242, 249, 0.6) 0%,
-    rgba(243, 248, 251, 0.9) 100%
-  ); 
-
-  min-height: calc(100vh - 120px);
-
-  @media (max-width: 768px) {
-    padding: 24px;
-    border-radius: 12px;
-  }
-`;
-
 export const PageHeader = styled.div`
   display: grid;
   grid-template-columns: 0.9fr minmax(350px, 500px) 1.1fr;
