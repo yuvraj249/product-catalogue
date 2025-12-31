@@ -1,15 +1,6 @@
 import styled from 'styled-components';
 
 
-export const UserRole = styled.div`
-  background: rgba(42,123,155,0.15);
-  color: #2A7B9B;
-  padding: 6px 12px;
-  font-size: 14px;
-  font-weight: 500;
-  border-radius: 8px;
-`;
-
 export const PageHeader = styled.div`
   display: grid;
   grid-template-columns: 0.9fr minmax(350px, 500px) 1.1fr;
