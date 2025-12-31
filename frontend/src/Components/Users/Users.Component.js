@@ -2,15 +2,7 @@ import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { useReactTable,getCoreRowModel, getFilteredRowModel, getSortedRowModel,flexRender } from '@tanstack/react-table';
 import api from '../../Api/axios';
 import { getUserInfo } from '../../utils/auth';
-import { 
-Layout,
-Sidebar,
-SidebarHeader,
-Main, 
-TopBar,
-MenuButton,
-UserRole, 
-ContentArea,
+import {  
 PageHeader,
 Title,
 AddButton,
@@ -43,31 +35,16 @@ Toast
 
  } from '../Users/Users.styles';
 
-import { useNavigate } from 'react-router-dom';
-
-
-import packageIcon from '../Dashboard/assets1/package.svg'
-import menuIcon from '../Dashboard/assets1/menu.svg'
 import plusIcon from '../Products/assets2/plus.svg'
 import trashIcon from '../Products/assets2/trash.svg'
 import xIcon from '../Products/assets2/cross.svg'
-import folderIcon from '../Dashboard/assets1/folder-tree.svg'
-import dashboardIcon from '../Dashboard/assets1/layout-dashboard.svg'
-import usersIcon from '../Dashboard/assets1/users.svg'
-import truckIcon from '../Dashboard/assets1/truck.svg'
-import trendingIcon from '../Dashboard/assets1/trending-up.svg'
-import logoutIcon from '../Dashboard/assets1/log-out.svg'
 import searchIcon from '../Products/assets2/search.svg'
 import eyeIcon from '../Login/assets/eye-open.svg'
 import eyeOffIcon from '../Login/assets/eye-closed.svg'
 
-import { Nav, NavItem, LogoutWrapper, LogoutButton } from '../Dashboard/Dashboard.styles';
 
 const Users = () => {
-  const [sidebarOpen, setSidebarOpen] = useState(true)
   const [showModal, setShowModal] = useState(false)
-  const [activeItem, setActiveItem] = useState('Users')
-
   const [users, setUsers] = useState([])
   const [suppliers, setSuppliers] = useState([])
   const [loading, setLoading] = useState(true)
@@ -89,8 +66,6 @@ const Users = () => {
   }, 3000)
 };
 
-
-  const navigate = useNavigate()
   const user = getUserInfo()
 
   const fetchUsers = useCallback(async () => {
@@ -170,10 +145,10 @@ const Users = () => {
     setShowPassword(false)
   }
 
-  const getSupplierName = (supplierId) => {
+  const getSupplierName = useCallback((supplierId) => {
     const supplier = suppliers.find(s => s.supplier_id === supplierId)
     return supplier ? supplier.company : '-';
-  }
+  },[suppliers])
 
   const columns = useMemo(
     () => [
@@ -229,7 +204,7 @@ const Users = () => {
         size: 100,
       },
     ],
-    [user, deleteUser, suppliers, getSupplierName]
+    [user, deleteUser, getSupplierName]
   )
 
   const table = useReactTable({
@@ -244,24 +219,6 @@ const Users = () => {
     getSortedRowModel: getSortedRowModel(),
   })
 
-  const menuItems = [
-    { icon: dashboardIcon, label: 'Dashboard', path: '/dashboard' },
-    { icon: packageIcon, label: 'Products', path: '/products' },
-    { icon: folderIcon, label: 'Categories', path: '/categories' },
-    { icon: truckIcon, label: 'Suppliers', path: '/suppliers' },
-    { icon: trendingIcon, label: 'Stock Movements', path: '/stock-movements' },
-    { icon: usersIcon, label: 'Users', path: '/users' },
-  ]
-
-  const handleMenuClick = (item) => {
-    setActiveItem(item.label)
-    navigate(item.path)
-  }
-
-  const logout = () => {
-    navigate('/')
-  }
-
   if (user?.role !== 'system_admin') {
     return (
       <div style={{ padding: '20px', textAlign: 'center' }}>
@@ -272,37 +229,7 @@ const Users = () => {
   }
 
   return (
-    <Layout>
-        <Sidebar $isOpen={sidebarOpen}>
-            <SidebarHeader>
-                <Icon src={packageIcon} alt="logo" />
-                Product Catalogue
-            </SidebarHeader>
-            <Nav>
-                {menuItems.map((item) => (
-                    <NavItem key={item.label} $active={activeItem === item.label} onClick={() => handleMenuClick(item)}>
-                        <Icon src={item.icon} alt={item.label} />
-                        <span>{item.label}</span>
-                    </NavItem>
-                ))}
-            </Nav>
-            <LogoutWrapper>    
-                    <LogoutButton>
-                        <Icon src={logoutIcon} alt="logout" />
-                        <span onClick={logout}>Logout</span>
-                    </LogoutButton>
-            </LogoutWrapper>
-        </Sidebar>
-
-        <Main $sidebarOpen={sidebarOpen} >
-            <TopBar>
-                <MenuButton onClick={() => setSidebarOpen(!sidebarOpen)}>
-                    <Icon src={menuIcon} alt="menu" />
-                </MenuButton>
-            <UserRole>{user?.role || 'User'}</UserRole>
-            </TopBar>
-
-            <ContentArea>
+      <>
           <PageHeader>
             <Title>Users</Title>
             <SearchWrap>
@@ -377,9 +304,6 @@ const Users = () => {
               </Table>
             </TableWrapper>
           )}
-        </ContentArea>
-        </Main>
-
         {showModal && (
         <Modal onClick={() => setShowModal(false)}>
           <ModalContent onClick={(e) => e.stopPropagation()}>
@@ -488,8 +412,7 @@ const Users = () => {
             )
         }
       </ToastContainer>
-    
-    </Layout>
+  </>
   )
 
 }

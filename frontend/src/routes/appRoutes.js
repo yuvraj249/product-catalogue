@@ -6,6 +6,7 @@ import Suppliers from "../Components/Suppliers/Suppliers.Component";
 import Categories from "../Components/Categories/Categories.Component";
 import AdminComponent from "../Components/AdminComp/Admin.Component";
 import Products from "../Components/Products/Products.Component";
+import Users from "../Components/Users/Users.Component";
 
 
 const AppRoutes = () => {
@@ -17,6 +18,7 @@ const AppRoutes = () => {
         <Route path="suppliers" element={<ProtectedRoute><Suppliers /></ProtectedRoute> } />
         <Route path="categories" element={<ProtectedRoute><Categories /></ProtectedRoute>} />
         <Route path="products"  element={<ProtectedRoute><Products /></ProtectedRoute>}/>
+        <Route path="users" element={<ProtectedRoute><Users /></ProtectedRoute>}/>
       </Route>
     </Routes>
   );
