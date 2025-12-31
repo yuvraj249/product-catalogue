@@ -11,14 +11,6 @@ import api from '../../Api/axios';
 import { useCallback } from 'react';
 import { getUserInfo } from '../../utils/auth';
 import {
-  Layout,
-  Sidebar,
-  SidebarHeader,
-  Main,
-  TopBar,
-  MenuButton,
-  UserRole,
-  ContentArea,
   PageHeader,
   Title,
   AddButton,
@@ -44,28 +36,17 @@ import {
   ActionButtons,
   IconButton,
 } from './Suppliers.styles';
-import { useNavigate } from 'react-router-dom';
 
-import packageIcon from '../Dashboard/assets1/package.svg'
-import menuIcon from '../Dashboard/assets1/menu.svg'
+
+
 import plusIcon from '../Products/assets2/plus.svg'
 import editIcon from '../Products/assets2/edit.svg'
 import trashIcon from '../Products/assets2/trash.svg'
 import xIcon from '../Products/assets2/cross.svg'
-import folderIcon from '../Dashboard/assets1/folder-tree.svg'
-import dashboardIcon from '../Dashboard/assets1/layout-dashboard.svg'
-import usersIcon from '../Dashboard/assets1/users.svg'
-import truckIcon from '../Dashboard/assets1/truck.svg'
-import trendingIcon from '../Dashboard/assets1/trending-up.svg'
-import logoutIcon from '../Dashboard/assets1/log-out.svg'
 import searchIcon from '../Products/assets2/search.svg'
 
-import { Nav, NavItem, LogoutWrapper, LogoutButton } from '../Dashboard/Dashboard.styles'
-
 const Suppliers = () => {
-  const [sidebarOpen, setSidebarOpen] = useState(true)
   const [showModal, setShowModal] = useState(false)
-  const [activeItem, setActiveItem] = useState('Suppliers')
 
   const [suppliers, setSuppliers] = useState([])
   const [loading, setLoading] = useState(true)
@@ -90,7 +71,6 @@ const Suppliers = () => {
   }, 3000);
 }
 
-  const navigate = useNavigate()
   const user = getUserInfo()
 
   const fetchSuppliers = useCallback(async () => {
@@ -230,69 +210,8 @@ const Suppliers = () => {
     getFilteredRowModel: getFilteredRowModel(),
     getSortedRowModel: getSortedRowModel(),
   });
-
-  const menuItems = user?.role === 'system_admin'
-   ?[
-    { icon: dashboardIcon, label: 'Dashboard', path: '/dashboard' },
-    { icon: packageIcon, label: 'Products', path: '/products' },
-    { icon: folderIcon, label: 'Categories', path: '/categories'},
-    { icon: truckIcon, label: 'Suppliers', path: '/suppliers' },
-    { icon: trendingIcon, label: 'Stock Movements', path: '/stock-movements' },
-    { icon: usersIcon, label: 'Users', path: '/users' },
-  ]
-  : [
-    { icon: dashboardIcon, label: 'Dashboard', path: '/dashboard' },
-    { icon: packageIcon, label: 'Products', path: '/products' },
-    { icon: folderIcon, label: 'Categories', path: '/categories' },
-    { icon: truckIcon, label: 'Suppliers', path: '/suppliers' },
-    { icon: trendingIcon, label: 'Stock Movements', path: '/stock-movements' },
-  ]
-
-  const handleMenuClick = (item) => {
-    setActiveItem(item.label);
-    navigate(item.path);
-  }
-
-  const logout = () => {
-    navigate('/');
-  };
-
   return (
-    <Layout>
-      <Sidebar $isOpen={sidebarOpen}>
-        <SidebarHeader>
-          <Icon src={packageIcon} alt="logo" />
-          Product Catalogue
-        </SidebarHeader>
-        <Nav>
-          {menuItems.map((item) => (
-            <NavItem
-              key={item.label}
-              $active={activeItem === item.label}
-              onClick={() => handleMenuClick(item)}
-            >
-              <Icon src={item.icon} alt={item.label} />
-              <span>{item.label}</span>
-            </NavItem>
-          ))}
-        </Nav>
-        <LogoutWrapper>
-          <LogoutButton>
-            <Icon src={logoutIcon} alt="logout" />
-            <span onClick={logout}>Logout</span>
-          </LogoutButton>
-        </LogoutWrapper>
-      </Sidebar>
-
-      <Main $sidebarOpen={sidebarOpen}>
-        <TopBar>
-          <MenuButton onClick={() => setSidebarOpen(!sidebarOpen)}>
-            <Icon src={menuIcon} alt="menu" />
-          </MenuButton>
-          <UserRole>{user?.role || 'User'}</UserRole>
-        </TopBar>
-
-        <ContentArea>
+        <>
           <PageHeader>
             <Title>Suppliers</Title>
             <SearchWrap>
@@ -373,9 +292,6 @@ const Suppliers = () => {
               </Table>
             </TableWrapper>
           )}
-        </ContentArea>
-      </Main>
-
       {showModal && (
         <Modal onClick={() => setShowModal(false)}>
           <ModalContent onClick={(e) => e.stopPropagation()}>
@@ -454,8 +370,8 @@ const Suppliers = () => {
             )
         }
       </ToastContainer>
+  </>
 
-    </Layout>
   )
 }
 
