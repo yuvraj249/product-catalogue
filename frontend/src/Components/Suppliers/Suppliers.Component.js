@@ -183,9 +183,11 @@ const Suppliers = () => {
         header: 'Actions',
         cell: ({ row }) => (
           <ActionButtons>
-            <IconButton onClick={() => startUpdating(row.original)}>
-              <Icon src={editIcon} alt="edit" />
-            </IconButton>
+            {user?.role === 'system_admin' && (
+              <IconButton onClick={() => startUpdating(row.original)}>
+                <Icon src={editIcon} alt="edit" />
+              </IconButton>
+            )}
             {user?.role === 'system_admin' && (
               <IconButton $danger onClick={() => deleteSupplier(row.original.supplier_id) }>
                 <Icon src={trashIcon} alt="delete" />
