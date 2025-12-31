@@ -134,27 +134,44 @@ export const Modal = styled.div`
 `;
 
 export const ModalContent = styled.div`
-  background: white;
+  background: #ffffff;
   width: 100%;
   max-width: 600px;
   border-radius: 14px;
   overflow: hidden;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+  border: 1px solid rgba(42,123,155,0.25);
 `;
 
 export const ModalHeader = styled.div`
   padding: 20px 24px;
   border-bottom: 1px solid rgba(42, 123, 155, 0.25);
+  background: rgba(42,123,155,0.08);
   display: flex;
   justify-content: space-between;
+  align-items: center;
 `;
 
 export const ModalTitle = styled.h2`
   margin: 0;
+  font-size: 18px;
+  font-weight: 700;
+  color: #1f2d36;
 `;
 
 export const CloseButton = styled.button`
   border: none;
   background: transparent;
+  color: #2A7B9B;
+  cursor: pointer;
+  padding: 6px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+
+  &:hover {
+    background: rgba(42,123,155,0.12);
+  }
 `;
 
 export const Form = styled.form`
@@ -177,18 +194,61 @@ export const Input = styled.input`
   padding: 10px 14px;
   border-radius: 8px;
   border: 1px solid rgba(42, 123, 155, 0.3);
+  background: #f3f8fb;
+  font-size: 14px;
+  outline: none;
+  color: #1f2d36;
+  transition: all 0.15s ease;
+
+  &:focus {
+    border-color: #2A7B9B;
+    box-shadow: 0 0 0 3px rgba(42,123,155,0.15);
+    background: #ffffff;
+  }
+
+  &::placeholder {
+    color: #4f6b72;
+  }
 `;
 
 export const Select = styled.select`
   padding: 10px 14px;
   border-radius: 8px;
   border: 1px solid rgba(42, 123, 155, 0.3);
+  background: #f3f8fb;
+  font-size: 14px;
+  outline: none;
+  color: #1f2d36;
+  transition: all 0.15s ease;
+
+  &:focus {
+    border-color: #2A7B9B;
+    box-shadow: 0 0 0 3px rgba(42,123,155,0.15);
+    background: #ffffff;
+  }
 `;
 
 export const Textarea = styled.textarea`
   padding: 10px 14px;
   border-radius: 8px;
   border: 1px solid rgba(42, 123, 155, 0.3);
+  background: #f3f8fb;
+  font-size: 14px;
+  outline: none;
+  color: #1f2d36;
+  resize: vertical;
+  transition: all 0.15s ease;
+
+  &:focus {
+    border-color: #2A7B9B;
+    box-shadow: 0 0 0 3px rgba(42,123,155,0.15);
+    background: #ffffff;
+  }
+
+  &::placeholder {
+    color: #4f6b72;
+  }
+  
 `;
 
 export const ModalActions = styled.div`
@@ -199,10 +259,38 @@ export const ModalActions = styled.div`
 
 export const CancelButton = styled.button`
   padding: 10px 24px;
+  background: transparent;
+  color: #4f6b72;
+  border: 1px solid rgba(42,123,155,0.30);
+  border-radius: 8px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s ease;
+
+  &:hover {
+    background: rgba(42,123,155,0.10);
+  }
 `;
 
 export const SubmitButton = styled.button`
   padding: 10px 24px;
+  background: linear-gradient(135deg, #2A7B9B, #57C785);
+  color: white;
+  border-radius: 8px;
+  border: none;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+
+  &:hover {
+    box-shadow: 0 6px 16px rgba(42,123,155,0.25);
+    transform: translateY(-1px);
+  }
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
 `;
 
 export const Icon = styled.img`

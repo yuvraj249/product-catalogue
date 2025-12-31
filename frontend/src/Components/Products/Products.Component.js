@@ -58,13 +58,24 @@ const Products = () => {
   const [categoryId, setCategoryId] = useState("");
   const [discountType, setDiscountType] = useState("");
   const [discountValue, setDiscountValue] = useState("");
-
+  const [categories, setCategories] = useState([]);
   const [toast, setToast] = useState({ message: "", type: "" });
 
   const showToast = (message, type = "success") => {
     setToast({ message, type });
     setTimeout(() => setToast({ message: "", type: "" }), 3000);
   };
+
+  const fetchCategoriesList = useCallback(async () => {
+  try {
+    const res = await api.get("/categories");
+    setCategories(res?.data?.categories || []);
+  } catch (err) {
+    console.error("Failed to fetch categories", err);
+    showToast("Failed to load categories", "error");
+  }
+}, []);
+
 
   const fetchProducts = useCallback(async () => {
     try {
@@ -82,6 +93,7 @@ const Products = () => {
   useEffect(() => {
     fetchProducts();
   }, [fetchProducts]);
+
 
   const createProduct = async (e) => {
     e.preventDefault();
@@ -105,6 +117,7 @@ const Products = () => {
       setCategoryId("");
       setDiscountType("");
       setDiscountValue("");
+      fetchCategoriesList();
 
       fetchProducts();
     } catch (err) {
@@ -124,6 +137,7 @@ const Products = () => {
     setCategoryId(p.product_category_id || "");
     setDiscountType(p.discount_type || "");
     setDiscountValue(p.discount_value || "");
+    fetchCategoriesList();
     setShowModal(true);
   };
 
@@ -195,6 +209,7 @@ const Products = () => {
               setCategoryId("");
               setDiscountType("");
               setDiscountValue("");
+              fetchCategoriesList();
               setShowModal(true);
             }}
           >
@@ -214,7 +229,7 @@ const Products = () => {
                 <Th>ID</Th>
                 <Th>Name</Th>
                 <Th>Description</Th>
-                <Th align="right">Cost</Th>
+                <Th>Cost</Th>
                 <Th align="center">Actions</Th>
               </tr>
             </thead>
@@ -226,7 +241,7 @@ const Products = () => {
                     <Td>#{p.product_id}</Td>
                     <Td>{p.product_name}</Td>
                     <Td>{p.product_description || "-"}</Td>
-                    <Td align="right">{p.product_cost}</Td>
+                    <Td >{p.product_cost}</Td>
                     <Td align="center">
                       <ActionButtons>
                         {user?.role === "supplier_admin" && (
@@ -294,13 +309,15 @@ const Products = () => {
               </FormGroup>
 
               <FormGroup>
-                <Label>Category ID *</Label>
-                <Input
-                  type="number"
-                  value={categoryId}
-                  onChange={(e) => setCategoryId(e.target.value)}
-                  required
-                />
+                <Label>Category *</Label>
+                <Select value={categoryId} onChange={(e) => setCategoryId(e.target.value)} required>
+                   <option value="">Select Category</option>
+                   {categories.map((c) => (
+                    <option key={c.category_id} value={c.category_id}>
+                      {c.category_name}
+                    </option>
+                   ))}
+                </Select>
               </FormGroup>
 
               <FormGroup>
