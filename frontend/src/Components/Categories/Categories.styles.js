@@ -10,17 +10,15 @@ export const UserRole = styled.div`
   border-radius: 8px;
 `;
 
-
-
 export const PageHeader = styled.div`
-  display: flex;
-  justify-content: space-between;
+  display: grid;
+  grid-template-columns: 0.9fr minmax(350px, 500px) 1.1fr;
   align-items: center;
   margin-bottom: 32px;
-  gap: 16px;
 
   @media (max-width: 768px) {
-    flex-wrap: wrap;
+    grid-template-columns: 1fr;
+    row-gap: 16px;
   }
 `;
 
@@ -35,18 +33,18 @@ export const Title = styled.h1`
 export const AddButton = styled.button`
   display: flex;
   align-items: center;
+  margin-left: auto;
   gap: 8px;
   padding: 12px 24px;
-  background: linear-gradient(135deg, #2A7B9B, #57C785);
+  background: linear-gradient(135deg, #2a7b9b, #57c785);
   border: none;
   color: white;
   font-weight: 600;
   border-radius: 8px;
   cursor: pointer;
-  transition: all 0.2s ease;
 
   &:hover {
-    box-shadow: 0 6px 16px rgba(42,123,155,0.25);
+    box-shadow: 0 6px 16px rgba(42, 123, 155, 0.25);
     transform: translateY(-1px);
   }
 `;
