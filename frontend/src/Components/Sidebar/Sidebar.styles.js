@@ -1,5 +1,36 @@
 import styled from "styled-components";
 
+export const Main = styled.main`
+  min-height: 100vh;
+  background:
+    radial-gradient(circle at 20% 20%, rgba(42,123,155,0.10), transparent 40%),
+    radial-gradient(circle at 80% 80%, rgba(87,199,133,0.10), transparent 40%),
+    #f3f8fb;
+
+  margin-left: ${({ $sidebarOpen }) => ($sidebarOpen ? '260px' : '0')};
+  transition: margin-left 0.25s ease;
+
+  @media (max-width: 768px) {
+    margin-left: 0;
+  }
+`;
+
+export const ContentArea = styled.div`
+  padding-top: 88px;
+  padding-left: 32px;
+  padding-right: 32px;
+  padding-bottom: 32px;
+
+  max-width: 1400px;
+  margin: 0 auto;
+
+  @media (max-width: 768px) {
+    padding-left: 20px;
+    padding-right: 20px;
+  }
+`;
+
+
 export const Sidebar = styled.aside`
   width: ${({ $isOpen }) => ($isOpen ? '260px' : '0')};
   background: #ffffff;

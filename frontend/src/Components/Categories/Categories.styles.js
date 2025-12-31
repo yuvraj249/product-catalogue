@@ -1,73 +1,5 @@
 import styled from 'styled-components';
 
-export const Layout = styled.div`
-  display: flex;
-  min-height: 100vh;
-  background:
-    radial-gradient(circle at 20% 20%, rgba(42,123,155,0.10), transparent 40%),
-    radial-gradient(circle at 80% 80%, rgba(87,199,133,0.10), transparent 40%),
-    #f3f8fb;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-`;
-
-export const Sidebar = styled.aside`
-  width: ${({ $isOpen }) => ($isOpen ? '260px' : '0')};
-  background: #ffffff;
-  border-right: 1px solid rgba(42,123,155,0.20);
-  position: fixed;
-  top: 0;
-  bottom: 0;
-  left: 0;
-  overflow: hidden;
-  transition: width 0.25s ease;
-  z-index: 1000;
-`;
-
-export const SidebarHeader = styled.div`
-  padding: 24px;
-  font-weight: 700;
-  font-size: 18px;
-  color: #2A7B9B;
-  border-bottom: 1px solid rgba(42,123,155,0.20);
-  display: flex;
-  align-items: center;
-  gap: 8px;
-`;
-
-export const Main = styled.main`
-  flex: 1;
-  margin-left: ${({ $sidebarOpen }) => ($sidebarOpen ? '260px' : '0')};
-  transition: margin-left 0.25s ease;
-
-  @media (max-width: 768px) {
-    margin-left: 0;
-  }
-`;
-
-export const TopBar = styled.div`
-  height: 64px;
-  background: #ffffff;
-  border-bottom: 1px solid rgba(42,123,155,0.20);
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 0 24px;
-`;
-
-export const MenuButton = styled.button`
-  background: none;
-  border: none;
-  color: #2A7B9B;
-  padding: 8px;
-  border-radius: 6px;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-
-  &:hover {
-    background: rgba(42,123,155,0.12);
-  }
-`;
 
 export const UserRole = styled.div`
   background: rgba(42,123,155,0.15);
@@ -78,15 +10,7 @@ export const UserRole = styled.div`
   border-radius: 8px;
 `;
 
-export const ContentArea = styled.div`
-  padding: 32px;
-  max-width: 1400px;
-  margin: 0 auto;
 
-  @media (max-width: 768px) {
-    padding: 24px;
-  }
-`;
 
 export const PageHeader = styled.div`
   display: flex;
@@ -240,7 +164,7 @@ export const Modal = styled.div`
   align-items: center;
   justify-content: center;
   padding: 24px;
-  z-index: 1000;
+  z-index: 2000;
 `;
 
 export const ModalContent = styled.div`

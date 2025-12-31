@@ -28,7 +28,7 @@ export const LoginPage = () => {
       });
       console.log("LOGIN RESPONSE:", data);
       setToken(data.token);  
-      navigate("/dashboard");
+      navigate("/admin/dashboard");
     } catch (err) {
       console.error("LOGIN ERROR:", err);
       alert(err.response?.data?.error || "Invalid email or password");

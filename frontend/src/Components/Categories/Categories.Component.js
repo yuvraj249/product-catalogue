@@ -110,7 +110,7 @@ const Categories = () => {
     try{
         await api.put(`/categories/${updatingId}`,{
         category_name:categoryName,
-        catetoryDesp:catetoryDesp
+        category_description:catetoryDesp
     })
     setShowModal(false)
     setUpdatingId(null)
@@ -193,7 +193,7 @@ const Categories = () => {
                               type='text'
                               placeholder='Search Categories'
                               value={globalFilter ?? ''}
-                              onClick={(e) => setGlobalFilter(e.target.value)}
+                              onChange={(e) => setGlobalFilter(e.target.value)}
                              />
                         </SearchWrap>
                         {
