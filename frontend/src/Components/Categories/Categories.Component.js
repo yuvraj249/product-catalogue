@@ -44,8 +44,7 @@ const Categories = () => {
     const [categories , setCategories] = useState([])
     const [loading, setLoading] = useState(true)
 
-    const [categoryName, setCategoryName] = useState('')
-    const [catetoryDesp, setCatgDesp] = useState('')
+    const [categoryObj, setCategoryObj] = useState({name: '', description: ''})
 
     const [updatingId, setUpdatingId] = useState(null)
     const isUpdating = updatingId !== null
@@ -84,14 +83,13 @@ const Categories = () => {
     e.preventDefault()
     try{
            await api.post('/categories',{
-           category_name: categoryName,
-           category_description: catetoryDesp 
+           category_name: categoryObj.name,
+           category_description: categoryObj.description 
         })
         showToast('Category created successfully', 'success')
         setShowModal(false)
         fetchCategories()
-        setCategoryName('')
-        setCatgDesp('')    
+        setCategoryObj({name: '',description: ''})    
     } catch(err){
         console.error('Error while creating category:', err)
         showToast('Failed to create category', 'error')
@@ -101,8 +99,7 @@ const Categories = () => {
    
    const startUpdating = useCallback((category) => {
      setUpdatingId(category.category_id)
-     setCategoryName(category.category_name || '')
-     setCatgDesp(category.category_description || '')
+     setCategoryObj({name: category.category_name || '', description: category.category_description || ''})
      setShowModal(true)
    }, [])
 
@@ -110,8 +107,8 @@ const Categories = () => {
     e.preventDefault()
     try{
         await api.put(`/categories/${updatingId}`,{
-        category_name:categoryName,
-        category_description:catetoryDesp
+        category_name: categoryObj.name,
+        category_description:categoryObj.description
     })
     setShowModal(false)
     setUpdatingId(null)
@@ -204,8 +201,7 @@ const Categories = () => {
                                 <AddButton 
                                 onClick={() => {
                                     setUpdatingId(null)
-                                    setCategoryName('')
-                                    setCatgDesp('')
+                                    setCategoryObj({name: '', description: ''})
                                     setShowModal(true)
                                  }}
                                 >
@@ -282,8 +278,8 @@ const Categories = () => {
                                 <Input
                                   type='text'
                                   placeholder='Enter Category name'
-                                  value={categoryName}
-                                  onChange={(e) => setCategoryName(e.target.value)}
+                                  value={categoryObj.name}
+                                  onChange={(e) => setCategoryObj(prev => ({...prev,name: e.target.value}))}
                                   required     
                                 />
                             </FormGroup>
@@ -293,8 +289,8 @@ const Categories = () => {
                                 <Input 
                                   type='text'
                                   placeholder='Enter Category description'
-                                  value={catetoryDesp}
-                                  onChange={(e) => setCatgDesp(e.target.value)}
+                                  value={categoryObj.description}
+                                  onChange={(e) => setCategoryObj(prev => ({...prev,description: e.target.value}))}
                                 />
                             </FormGroup>
 
