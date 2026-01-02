@@ -13,7 +13,6 @@ export const PageHeader = styled.div`
   }
 `;
 
-
 export const Title = styled.h1`
   font-size: 32px;
   color: #1f2d36;
@@ -72,44 +71,6 @@ export const SearchIpt = styled.input`
   }
 `;
 
-export const TableWrapper = styled.div`
-  background: #ffffff;
-  border: 1px solid rgba(42,123,155,0.25);
-  border-radius: 12px;
-  overflow: hidden;
-`;
-
-export const Table = styled.table`
-  width: 100%;
-  border-collapse: collapse;
-
-  tbody tr {
-    transition: background 0.15s ease;
-
-    &:hover {
-      background: rgba(42,123,155,0.05);
-    }
-  }
-`;
-
-export const Th = styled.th`
-  padding: 16px;
-  background: #f3f8fb;
-  color: #4f6b72;
-  border-bottom: 2px solid rgba(42,123,155,0.25);
-  text-align: ${({ align }) => align || 'left'};
-  font-size: 14px;
-  font-weight: 600;
-`;
-
-export const Td = styled.td`
-  padding: 16px;
-  color: #1f2d36;
-  border-bottom: 1px solid rgba(42,123,155,0.18);
-  text-align: ${({ align }) => align || 'left'};
-  font-size: 14px;
-`;
-
 export const CategoryDescription = styled.div`
   color: #4f6b72;
   line-height: 1.5;
@@ -145,28 +106,9 @@ export const IconButton = styled.button`
   }
 `;
 
-export const Modal = styled.div`
-  position: fixed;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.45);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 24px;
-  z-index: 2000;
-`;
-
-export const ModalContent = styled.div`
-  background: #ffffff;
-  width: 100%;
-  max-width: 500px;
-  border-radius: 14px;
-  overflow: hidden;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
-`;
 
 export const ModalHeader = styled.div`
-  padding: 20px 24px;
+  padding: 22px 28px;
   border-bottom: 1px solid rgba(42,123,155,0.25);
   display: flex;
   justify-content: space-between;
@@ -175,7 +117,7 @@ export const ModalHeader = styled.div`
 
 export const ModalTitle = styled.h2`
   margin: 0;
-  font-size: 18px;
+  font-size: 20px;
   font-weight: 700;
   color: #1f2d36;
 `;
@@ -197,27 +139,29 @@ export const CloseButton = styled.button`
 
 export const Form = styled.form`
   padding: 24px;
+  max-height: 70vh;
+  overflow-y: auto;
 `;
 
 export const FormGroup = styled.div`
   display: flex;
   flex-direction: column;
-  gap: 6px;
-  margin-bottom: 16px;
+  gap: 8px;
+  margin-bottom: 20px;
 `;
 
 export const Label = styled.label`
-  font-size: 14px;
+  font-size: 16px;
   font-weight: 600;
   color: #1f2d36;
 `;
 
 export const Input = styled.input`
-  padding: 10px 14px;
-  border-radius: 8px;
+  padding: 14px 16px;
+  border-radius: 12px;
   border: 1px solid rgba(42,123,155,0.30);
   background: #f3f8fb;
-  font-size: 14px;
+  font-size: 16px;
   outline: none;
   color: #1f2d36;
   transition: all 0.15s ease;
@@ -234,16 +178,21 @@ export const Input = styled.input`
 `;
 
 export const Textarea = styled.textarea`
-  padding: 10px 14px;
-  border-radius: 8px;
+  padding: 14px 17px;
+  border-radius: 12px;
   border: 1px solid rgba(42,123,155,0.30);
   background: #f3f8fb;
-  font-size: 14px;
+  font-size: 15px;
   outline: none;
   color: #1f2d36;
   font-family: inherit;
   resize: vertical;
   transition: all 0.15s ease;
+  overflow-y: auto;
+
+  &::-webkit-scrollbar {
+    width: 0;
+  }
 
   &:focus {
     border-color: #2A7B9B;
@@ -264,12 +213,13 @@ export const ModalActions = styled.div`
 `;
 
 export const CancelButton = styled.button`
-  padding: 10px 24px;
+  padding: 12px 26px;
   background: transparent;
   color: #4f6b72;
   border: 1px solid rgba(42,123,155,0.30);
-  border-radius: 8px;
-  font-weight: 500;
+  border-radius: 10px;
+  font-weight: 600;
+  font-size: 15px;
   cursor: pointer;
   transition: all 0.15s ease;
 
@@ -279,12 +229,13 @@ export const CancelButton = styled.button`
 `;
 
 export const SubmitButton = styled.button`
-  padding: 10px 24px;
+  padding: 12px 26px;
   background: linear-gradient(135deg, #2A7B9B, #57C785);
   color: white;
-  border-radius: 8px;
+  border-radius: 10px;
   border: none;
   font-weight: 600;
+  font-size: 15px;
   cursor: pointer;
   transition: all 0.2s ease;
 
@@ -298,39 +249,6 @@ export const Icon = styled.img`
   height: 20px;
 `;
 
-export const ToastContainer = styled.div`
-  position: fixed;
-  top: 20px;
-  right: 20px;
-  z-index: 2000;
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-`;
 
 
-export const Toast = styled.div`
-  background: #ffffff;
-  padding: 12px 18px;
-  border-radius: 2px;
-  box-shadow: 0 10px 30px rgba(0,0,0,0.15);
-  font-weight: 600;
-  min-width: 260px;
-  min-height: 28px;
-  color: #1f2d36;
-  border-left: 6px solid
-    ${({ $type }) => ($type === 'success' ? '#2ecc71' : '#e74c3c')};
 
-  animation: slideIn 0.3s ease forwards;
-
-  @keyframes slideIn {
-    from {
-      opacity: 0;
-      transform: translateX(60px);
-    }
-    to {
-      opacity: 1;
-      transform: translateX(0);
-    }
-  }
-`;

@@ -12,8 +12,6 @@ export const Page = styled.div`
     radial-gradient(circle at 70% 70%, rgba(87, 199, 133, 0.18), transparent 45%),
     linear-gradient(135deg, #f3f8fb, #eef6f2);
 `
-
-
 export const Card = styled.div`
   width: 100%;
   max-width: 420px;

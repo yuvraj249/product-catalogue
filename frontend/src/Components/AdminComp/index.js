@@ -1,8 +1,8 @@
 import { useState } from "react";
 import { Outlet } from "react-router-dom";
-import SidebarMenu from "../Sidebar/Sidebar.Component";
-import TopbarMenu from "../Topbar/Topbar.Component";
-import { Main, ContentArea } from "../Sidebar/Sidebar.styles";
+import SidebarMenu from "../Sidebar";
+import TopbarMenu from "../Topbar";
+import { Main, ContentArea } from "../Sidebar/Styles";
 const AdminComponent = () => {
   const [sidebarOpen, setSidebarOpen] = useState(true);
 

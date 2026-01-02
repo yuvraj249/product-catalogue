@@ -1,4 +1,4 @@
-import { Sidebar, SidebarHeader, Nav, NavItem, LogoutWrapper,Icon, LogoutButton } from "./Sidebar.styles"
+import { Sidebar, SidebarHeader, Nav, NavItem, LogoutWrapper,Icon, LogoutButton } from "./Styles"
 import packageIcon from '../../Images/package.svg'
 import dashboardIcon from '../../Images/layout-dashboard.svg'
 import folderIcon from '../../Images/folder-tree.svg'
@@ -7,15 +7,12 @@ import truckIcon from '../../Images/truck.svg'
 import trendingIcon from '../../Images/trending-up.svg'
 import logoutIcon from '../../Images/log-out.svg'
 import { useNavigate, useLocation } from "react-router-dom"
-import { getUserInfo } from "../../utils/auth"
+import { getUserInfo, handleLogout } from "../../utils/auth"
 
 
-const SidebarMenu = ({ sidebarOpen}) => {
-  const navigate = useNavigate()
-  const user = getUserInfo()
-  const location = useLocation()
+const user = getUserInfo()
 
-  const menuItems = user?.role === 'system_admin'
+const menuItems = user?.role === 'system_admin'
     ? [
         { icon: dashboardIcon, label: 'Dashboard', path: '/admin/dashboard' },
         { icon: packageIcon, label: 'Products', path: '/admin/products' },
@@ -32,12 +29,14 @@ const SidebarMenu = ({ sidebarOpen}) => {
         { icon: trendingIcon, label: 'Stock Movements', path: '/admin/stock-movements' },
       ]
 
+
+const SidebarMenu = ({ sidebarOpen}) => {
+  const navigate = useNavigate()
+  const location = useLocation()
   const handleMenuClick = (item) => {
     navigate(item.path)
   }
-
-  const logout = () => navigate('/')
-  
+ 
   return (
     <Sidebar $isOpen={sidebarOpen}>
       <SidebarHeader>
@@ -59,7 +58,7 @@ const SidebarMenu = ({ sidebarOpen}) => {
       </Nav>
 
       <LogoutWrapper>
-        <LogoutButton onClick={logout}>
+        <LogoutButton onClick={handleLogout}>
           <Icon src={logoutIcon} alt="logout" />
           <span>Logout</span>
         </LogoutButton>

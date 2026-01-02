@@ -1,10 +1,10 @@
-import { TopBar, MenuButton, UserRole, Icon } from "../Sidebar/Sidebar.styles";
+import { TopBar, MenuButton, UserRole, Icon } from "../Sidebar/Styles";
 import menuIcon from '../../Images/menu.svg';
 import { getUserInfo } from "../../utils/auth";
 
 const TopbarMenu = ({ sidebarOpen, setSidebarOpen }) => {
   const user = getUserInfo();
-  const displayName = user?.name
+  const displayName = user.name
   console.log(getUserInfo())
 
   return (

@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
 import {useNavigate} from 'react-router-dom';
-import { Page, Card, LogoBox, Title, Subtitle,Input, PasswordWrapper, IconButton, SubmitButton , Form, FormGroup, Header} from './LoginPage.Styles';
+import { Page, Card, LogoBox, Title, Subtitle,Input, PasswordWrapper, IconButton, SubmitButton , Form, FormGroup, Header} from './Styles';
  
 import eye from '../../Images/eye-open.svg'
 import eyeOff from '../../Images/eye-closed.svg'
@@ -9,6 +9,7 @@ import box from '../../Images/logo.svg'
 import arrow from '../../Images/arrow.svg'
 import api from '../../Api/axios'
 import { setToken } from '../../utils/auth'
+import { toast, ToastContainer } from 'react-toastify';
 
 export const LoginPage = () => {
   const navigate = useNavigate()
@@ -27,11 +28,17 @@ export const LoginPage = () => {
         password,
       });
       console.log("LOGIN RESPONSE:", data);
-      setToken(data.token);  
+      setToken(data.token);
+      toast.success("Login successful")  
       navigate("/admin/categories");
     } catch (err) {
       console.error("LOGIN ERROR:", err);
-      alert(err.response?.data?.error || "Invalid email or password");
+      const msg = err.response.data.error || "";
+      if (msg === "Invalid credentials") {
+        toast.error("Incorrect email or password");
+      } else {
+        toast.error("Login failed");
+      }
     } finally {
       setLoading(false);
     }
@@ -69,6 +76,7 @@ export const LoginPage = () => {
       
         </Form>
       </Card>
+      <ToastContainer position="top-right" autoClose={3000} />
     </Page>
   );
 }
