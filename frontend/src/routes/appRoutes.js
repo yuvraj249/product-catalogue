@@ -1,8 +1,8 @@
 import { Routes, Route} from "react-router-dom";
-import { LoginPage } from "../Components/Login/LoginPage.Component";
+import { LoginPage } from "../Components/Login";
 import { ProtectedRoute } from "./protectedRoutes";
-import Categories from "../Components/Categories/Categories.Component";
-import AdminComponent from "../Components/AdminComp/Admin.Component";
+import Categories from "../Components/Categories";
+import AdminComponent from "../Components/AdminComp";
 
 
 const AppRoutes = () => {
