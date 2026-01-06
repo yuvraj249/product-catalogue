@@ -10,40 +10,30 @@ import {
     SearchIpt,
     IconButton,
     ActionButtons,
-    CancelButton,
-    Form, 
-    FormGroup, 
-    Input, 
-    Label,
-    CloseButton,
-    ModalActions, 
-    ModalHeader, 
-    ModalTitle, 
-    SubmitButton, 
-    Textarea
 } from './Styles'
 import {toast,ToastContainer} from 'react-toastify'
-import ModalBox from '../ModalBox'
 import plusIcon from '../../Images/plus.svg'
 import searchIcon from '../../Images/search.svg'
 import editIcon from '../../Images/edit.svg'
 import trashIcon from '../../Images/trash.svg'
-import xIcon from '../../Images/cross.svg'
-import Datatable from '../DataTable/index'
+import Datatable from '../DataTable';
+import AddorEditModal from './AddorEditModal'
+import { useLocation } from 'react-router-dom'
 
 
 const Categories = () => { 
    const user = getUserInfo();
    const [loading, setLoading] = useState(true)
-   const [modalOpen, setModalOpen] = useState(false)
    const [globalFilter, setGlobalFilter] = useState("")
+   const [modalOpen, setModalOpen] = useState(false)
    const [state, setState] = useState({
     data: [],
     updatingId: null,
     form: { name: "", description: "" },
-  })
+  });
+  
 
-   const fetchCategories = useCallback(async () => {
+const fetchCategories = useCallback(async () => {
     try{
        setLoading(true)
         const res = await api.get("/categories")
@@ -62,55 +52,64 @@ const Categories = () => {
 
 
 
-   const createCategory = async () => {
-    try{
-        await api.post('/categories',{
-            category_name: state.form.name,
-            category_description: state.form.description
-        })
-        toast.success("Category created successfully")
-        setModalOpen(false)
-        setState((prev) => ({
-            ...prev,
-            updatingId: null,
-            form: { name: "", description: "" }
-        }))
-        fetchCategories()
-    }catch (err){
-        const msg = err.response.data.error || ""
-        toast.error(msg || "Failed to create or edit category")
+const location = useLocation()
+useEffect(() => {
+    const getFromBrowser = new URLSearchParams(window.location.search)
+    const id = getFromBrowser.get("id")
+    const name = getFromBrowser.get("name")
+    const description = getFromBrowser.get("description")
 
+    const value = id || name || description || ""
+    if (value){
+        setGlobalFilter(value)
     }
-   }
+}, [location.search])
 
+useEffect(() => {
+  const handler = setTimeout(async () => {
+    const search = globalFilter.trim()
 
-    const updateCategory = async () => {
-     try {
-        await api.put(`/categories/${state.updatingId}`, {
-        category_name: state.form.name,
-        category_description: state.form.description
-    });
+    switch (true) {
+        case search === "":
+            fetchCategories()
+            return
 
-    toast.success("Category updated successfully");
+        case /^\d+$/.test(search):
 
-    setModalOpen(false);
+            try {
+                const res = await api.get(`/categories/${search}`)
+                setState(prev => ({
+                ...prev,
+                data: [res.data.category]
+            }))
+          } catch {
+                setState(prev => ({ ...prev, data: [] }))
+        }
+        return
 
-    setState(prev => ({
-      ...prev,
-      updatingId: null,
-      form: { name: "", description: "" }
-    }));
+        default:
+            try {
+                const res = await api.get("/categories", {
+                params: { name: search, description: search }
+            })
 
-    fetchCategories();
-    } catch (err) {
-        const msg = err.response.data.error || "";
-        toast.error(msg || "Failed to update category");
+                setState(prev => ({
+                    ...prev,
+                    data: res.data.categories || []
+               }))
+              } catch (err) {
+                    console.log(err.response?.data || err.message)
+                    toast.error("Failed to search categories")
+        }
     }
-   }
+  }, 350)
+
+  return () => clearTimeout(handler)
+}, [globalFilter, fetchCategories])
 
 
 
-   const deleteCategory = async (id) => {
+const deleteCategory = async (id) => {
     try{
         await api.delete(`/categories/${id}`)
         toast.success('Category deleted successfully')
@@ -121,10 +120,31 @@ const Categories = () => {
    }
 
 
-   const handleSubmit = () => {
-    state.updatingId ? updateCategory() : createCategory();
+  const onClickEdit = (row) => {
+    setState((prev) => ({
+        ...prev,
+        updatingId: row.original.category_id,
+        form: {
+            name: row.original.category_name,
+            description: row.original.category_description,
+        },
+    }));
+    setModalOpen(true)
   }
 
+  const onClickAddCatg = () => {
+        setState((prev) => ({
+            ...prev,
+            updatingId: null,
+            form: { name: "", description: "" },
+      }))
+        setModalOpen(true)
+  }
+
+  const onModalClose = () => {
+        setModalOpen(false)
+        setState(prev => ({...prev, updatingId: null}))
+   }
 
    const columns = 
     [
@@ -147,16 +167,7 @@ const Categories = () => {
            cell: ({row} ) => 
             user.role === "system_admin" && (
                 <ActionButtons>
-                <IconButton onClick={() => {setState((prev) => ({
-                    ...prev,
-                    updatingId: row.original.category_id,
-                    form: {
-                        name: row.original.category_name,
-                        description: row.original.category_description,
-                    },
-                }));
-                setModalOpen(true) 
-                }}><Icon src={editIcon} alt="edit" /></IconButton>
+                <IconButton onClick={() => onClickEdit(row) }><Icon src={editIcon} alt="edit" /></IconButton>
                 <IconButton onClick={() => deleteCategory(row.original.category_id)}>
                     <Icon src={trashIcon} alt="delete" />
                 </IconButton>
@@ -164,6 +175,8 @@ const Categories = () => {
             ) 
         },
     ]
+
+
    return (
             <>
                 <PageHeader>
@@ -179,78 +192,30 @@ const Categories = () => {
                         {
                             user.role === 'system_admin' && (
                                 <AddButton 
-                                onClick={() => {
-                                    setState((prev) => ({
-                                        ...prev,
-                                        modalOpen: true,
-                                        updatingId: null,
-                                        form: { name: "", description: "" },
-                                    }))
-                                    setModalOpen(true)
-                                 }}
-                                >
+                                onClick={onClickAddCatg}>
                                     <Icon src={plusIcon} alt="add" /> 
                                     Add Category 
-                                   </AddButton>
+                                </AddButton>
                             )
                         }
                 </PageHeader>
+                {loading ? (
+                    <p style={{ padding: "20px" }}>Loading categories…</p>
+                ) : (
                 <Datatable 
                 data={state.data}
                 columns={columns}
                 globalFilter={globalFilter}
                 setGlobalFilter={setGlobalFilter}          
-                /> 
-                <ModalBox
-                open={modalOpen}
-                onClose={() => {
-                    setModalOpen(false)
-                    setState(prev => ({ ...prev, updatingId: null }))
-                } }
-                >
-                    <ModalHeader>
-                        <ModalTitle>
-                            {state.updatingId ? "Edit Category" : "Add Category"}
-                        </ModalTitle>
-                        <CloseButton
-                        onClick={() => {
-                            setModalOpen(false)
-                            setState(prev => ({ ...prev, updatingId: null }))
-                            }}>
-                            <Icon src={xIcon} alt="close" />
-                        </CloseButton>
-                    </ModalHeader>
-                <Form onSubmit={(e) => {e.preventDefault(); handleSubmit()}}>
-                    <FormGroup>
-                        <Label>Name *</Label>
-                        <Input value={state.form.name}  onChange={(e) => setState((prev) => ({
-                            ...prev,
-                            form: { ...prev.form, name: e.target.value }
-                        }))} required/>
-                    </FormGroup>
-                    <FormGroup>
-                        <Label>Description *</Label>
-                        <Textarea value={state.form.description} onChange={(e) => setState((prev)=> ({
-                            ...prev,
-                            form: { ...prev.form, description: e.target.value }
-                        }))}/>
-                    </FormGroup>
-                    <ModalActions>
-                        <CancelButton
-                        onClick={() => {
-                            setModalOpen(false)
-                            setState(prev => ({ ...prev, updatingId: null }))
-                            }}>
-                            Cancel
-                        </CancelButton>
-                        <SubmitButton>
-                            {state.updatingId ? "Update" : "Create"}
-                        </SubmitButton>
-                    </ModalActions>
-                </Form>
-        </ModalBox>
-                    
-        <ToastContainer position="top-right" autoClose={3000} />        
+                />
+                )}
+         <AddorEditModal
+            open={modalOpen}
+            onClose={onModalClose}
+            updatingId={state.updatingId}
+            refetch={fetchCategories}
+        />                    
+        <ToastContainer position="top-right" autoClose={3000}/>        
     </>
    )}
 

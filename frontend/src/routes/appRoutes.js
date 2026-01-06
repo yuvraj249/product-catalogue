@@ -1,7 +1,7 @@
 import { Routes, Route} from "react-router-dom";
 import { LoginPage } from "../Components/Login";
 import { ProtectedRoute } from "./protectedRoutes";
-import Categories from "../Components/Categories";
+import Categories from "../Components/Categories/index";
 import AdminComponent from "../Components/AdminComp";
 
 
