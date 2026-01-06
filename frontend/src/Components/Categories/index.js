@@ -1,4 +1,4 @@
-import React, {useState, useEffect, useCallback} from 'react'
+import React, {useState, useEffect, useCallback, useMemo} from 'react'
 import api from '../../Api/axios'
 import { getUserInfo } from '../../utils/auth'
 import {
@@ -109,7 +109,7 @@ useEffect(() => {
 
 
 
-const deleteCategory = async (id) => {
+const deleteCategory = useCallback(async (id) => {
     try{
         await api.delete(`/categories/${id}`)
         toast.success('Category deleted successfully')
@@ -117,10 +117,10 @@ const deleteCategory = async (id) => {
     }catch{
        toast.error('Failed to delete category') 
     }
-   }
+   },[fetchCategories])
 
 
-  const onClickEdit = (row) => {
+  const onClickEdit = useCallback((row) => {
     setState((prev) => ({
         ...prev,
         updatingId: row.original.category_id,
@@ -130,7 +130,7 @@ const deleteCategory = async (id) => {
         },
     }));
     setModalOpen(true)
-  }
+  },[])
 
   const onClickAddCatg = () => {
         setState((prev) => ({
@@ -146,7 +146,7 @@ const deleteCategory = async (id) => {
         setState(prev => ({...prev, updatingId: null}))
    }
 
-   const columns = 
+   const columns = useMemo(() => 
     [
         {
             accessorKey: 'category_id',
@@ -174,7 +174,7 @@ const deleteCategory = async (id) => {
                 </ActionButtons>
             ) 
         },
-    ]
+    ], [user.role, onClickEdit, deleteCategory])
 
 
    return (

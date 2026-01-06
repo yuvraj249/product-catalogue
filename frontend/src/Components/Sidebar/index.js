@@ -10,27 +10,26 @@ import { useNavigate, useLocation } from "react-router-dom"
 import { getUserInfo, handleLogout } from "../../utils/auth"
 
 
-const user = getUserInfo()
+const fetchMenuItems = (role) => {
+  const baseItems = [
+    { icon: dashboardIcon, label: 'Dashboard', path: '/admin/dashboard' },
+    { icon: packageIcon, label: 'Products', path: '/admin/products' },
+    { icon: folderIcon, label: 'Categories', path: '/admin/categories' },
+    { icon: truckIcon, label: 'Suppliers', path: '/admin/suppliers' },
+    { icon: trendingIcon, label: 'Stock Movements', path: '/admin/stock-movements' }
+  ]
 
-const menuItems = user?.role === 'system_admin'
-    ? [
-        { icon: dashboardIcon, label: 'Dashboard', path: '/admin/dashboard' },
-        { icon: packageIcon, label: 'Products', path: '/admin/products' },
-        { icon: folderIcon, label: 'Categories', path: '/admin/categories'},
-        { icon: truckIcon, label: 'Suppliers', path: '/admin/suppliers' },
-        { icon: trendingIcon, label: 'Stock Movements', path: '/admin/stock-movements' },
-        { icon: usersIcon, label: 'Users', path: '/admin/users' },
-      ]
-    : [
-        { icon: dashboardIcon, label: 'Dashboard', path: '/admin/dashboard' },
-        { icon: packageIcon, label: 'Products', path: '/admin/products' },
-        { icon: folderIcon, label: 'Categories', path: '/admin/categories' },
-        { icon: truckIcon, label: 'Suppliers', path: '/admin/suppliers' },
-        { icon: trendingIcon, label: 'Stock Movements', path: '/admin/stock-movements' },
-      ]
+  const userItem = { icon: usersIcon, label: 'Users', path: '/admin/users' }
 
+  if (role === 'system_admin') {
+    return [...baseItems, userItem]
+  }
+
+  return baseItems
+}
 
 const SidebarMenu = ({ sidebarOpen}) => {
+  const user = getUserInfo()
   const navigate = useNavigate()
   const location = useLocation()
   const handleMenuClick = (item) => {
@@ -45,7 +44,7 @@ const SidebarMenu = ({ sidebarOpen}) => {
       </SidebarHeader>
 
       <Nav>
-        {menuItems.map((item) => (
+        {fetchMenuItems(user?.role).map((item) => (
           <NavItem
             key={item.label}
             $active={location.pathname === item.path}
