@@ -232,3 +232,133 @@ func DeleteSuppAdmin(c *gin.Context) {
 
 	c.JSON(http.StatusOK, gin.H{"message": "user deleted successfully"})
 }
+
+func UpdateSuppAdmin(c *gin.Context) {
+	role := c.GetString("role")
+	if role != "system_admin" {
+		c.JSON(http.StatusForbidden, gin.H{"error": "only system_admin can delete users"})
+		c.Abort()
+		return
+	}
+
+	u_id := c.Param("id")
+	uid, err := strconv.Atoi(u_id)
+	if err != nil || uid <= 0 {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid user id"})
+		c.Abort()
+		return
+	}
+
+	var body struct {
+		Name       string `json:"name,omitempty"`
+		Email      string `json:"email,omitempty"`
+		Password   string `json:"password,omitempty"`
+		SupplierID int    `json:"supplier_id,omitempty"`
+	}
+
+	if err := c.BindJSON(&body); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid payload"})
+		c.Abort()
+		return
+	}
+
+	if body.Name == "" && body.Email == "" && body.Password == "" && body.SupplierID == 0 {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "no fields to update"})
+		c.Abort()
+		return
+	}
+
+	ctx, cancel := CtxTimeout(c)
+	defer cancel()
+
+	var existing models.User
+	var supp sql.NullInt64
+	err = config.DB.QueryRowContext(ctx, "select user_id, name, email, password_hash, role, supplier_id from users where user_id=?", uid).Scan(&existing.UserID, &existing.Name, &existing.Email, &existing.PasswordHash, &existing.Role, &supp)
+
+	if err == sql.ErrNoRows {
+		c.JSON(http.StatusNotFound, gin.H{"error": "user not found"})
+		c.Abort()
+		return
+	} else if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "db error while fetching user"})
+		c.Abort()
+		return
+	}
+
+	if supp.Valid {
+		tmp := int(supp.Int64)
+		existing.SupplierID = &tmp
+	} else {
+		existing.SupplierID = nil
+	}
+
+	newName := existing.Name
+	newEmail := existing.Email
+	newPwdHash := existing.PasswordHash
+
+
+	if strings.TrimSpace(body.Name) != "" {
+		newName = strings.TrimSpace(body.Name)
+	}
+
+	if strings.TrimSpace(body.Email) != "" {
+
+		email := strings.TrimSpace(body.Email)
+
+		if err := utils.IsValidEmail(email); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			return
+		}
+
+		var exists bool
+		err := config.DB.QueryRowContext(ctx, "select exists(select 1 from users where lower(email)=lower(?) and user_id<>?)", email, uid).Scan(&exists)
+
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "db error while checking email"})
+			c.Abort()
+			return
+		}
+		if exists {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "email already registered"})
+			c.Abort()
+			return
+		}
+
+		newEmail = email
+	}
+
+	if strings.TrimSpace(body.Password) != "" {
+
+		if err := utils.IsValidPassword(body.Password); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			c.Abort()
+			return
+		}
+
+		hash, err := utils.HashPwd(body.Password)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to hash password"})
+			c.Abort()
+			return
+		}
+
+		newPwdHash = hash
+	}
+
+	_, err = config.DB.ExecContext(ctx, "update users set name=?, email=?,password_hash=?, WHERE user_id=?", newName, newEmail, newPwdHash, uid)
+
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to update user"})
+		c.Abort()
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"message":     "user updated successfully",
+		"user_id":     uid,
+		"name":        newName,
+		"email":       newEmail,
+		"supplier_id": existing.SupplierID,
+		"role":        existing.Role,
+	})
+}
