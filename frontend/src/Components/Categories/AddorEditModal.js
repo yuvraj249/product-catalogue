@@ -5,15 +5,20 @@ import api from '../../Api/axios'
 import { toast } from 'react-toastify'
 import { useState } from 'react'
 import { useEffect } from 'react'
+
+const initialCategoryObject = {
+  name: "",
+  description: ""
+}
+
 const AddorEditModal = ({open, onClose, updatingId, refetch}) => {
 
-const [object , setObject] = useState({
-        fields: {name: "", description: ""}
-})
+const [categoryObj, setCategoryObj] = useState(initialCategoryObject)
+
 
 useEffect(() => {
   if (!updatingId) {
-    setObject({ fields: { name: "", description: "" } });
+    setCategoryObj(initialCategoryObject);
     return;
   }
 
@@ -22,11 +27,9 @@ useEffect(() => {
       const res = await api.get(`/categories/${updatingId}`);
       const cat = res.data.category
 
-      setObject({
-        fields: {
+      setCategoryObj({
           name: cat.category_name,
           description: cat.category_description,
-        },
       });
     } catch (err) {
       toast.error("Failed to load category");
@@ -37,18 +40,18 @@ useEffect(() => {
 }, [updatingId])
 
 
+const payload = {
+    category_name: categoryObj.name,
+    category_description: categoryObj.description
+}
 
 const createCategory = async () => {
+
     try{
-        await api.post('/categories',{
-            category_name: object.fields.name,
-            category_description: object.fields.description
-        })
+        await api.post('/categories', payload)
         toast.success("Category created successfully")
+        setCategoryObj(initialCategoryObject)
         onClose()
-        setObject({
-            fields: {name: "", description: ""}
-        })
         refetch()
     }catch (err){
         const msg = err.response.data.error || ""
@@ -59,15 +62,10 @@ const createCategory = async () => {
 
 const updateCategory = async () => {
     try {
-        await api.put(`/categories/${updatingId}`, {
-        category_name: object.fields.name,
-        category_description: object.fields.description
-        })
+        await api.put(`/categories/${updatingId}`, payload)
         toast.success("Category updated successfully")
+        setCategoryObj(initialCategoryObject)
         onClose()
-        setObject({
-        fields: {name: "", description: ""}
-        })
         refetch()
     } catch (err) {
         const msg = err.response.data.error || "";
@@ -87,17 +85,17 @@ const onSubmitHandlder = (e) => {
 
   
 const onChangeName = (e) => {
-    setObject((prev) => ({
-        ...prev,
-        fields: { ...prev.fields, name: e.target.value }
+     setCategoryObj(prev => ({
+      ...prev,
+      name: e.target.value
     }))
   }
   
   
 const onChangeDesc = (e) => {
-    setObject((prev)=> ({
-        ...prev,
-        fields: { ...prev.fields, description: e.target.value }
+    setCategoryObj(prev => ({
+      ...prev,
+      description: e.target.value
     }))
   }
 
@@ -118,11 +116,11 @@ const onChangeDesc = (e) => {
                 <Form onSubmit={onSubmitHandlder}>
                     <FormGroup>
                         <Label>Name *</Label>
-                        <Input value={object.fields.name}  onChange={onChangeName} required/>
+                        <Input value={categoryObj.name}  onChange={onChangeName} required/>
                     </FormGroup>
                     <FormGroup>
                         <Label>Description *</Label>
-                        <Textarea value={object.fields.description} onChange={onChangeDesc}/>
+                        <Textarea value={categoryObj.description} onChange={onChangeDesc}/>
                     </FormGroup>
                     <ModalActions>
                         <CancelButton onClick={onClose}>Cancel</CancelButton>
