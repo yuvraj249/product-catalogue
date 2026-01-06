@@ -40,12 +40,11 @@ useEffect(() => {
 }, [updatingId])
 
 
-const payload = {
-    category_name: categoryObj.name,
-    category_description: categoryObj.description
-}
-
 const createCategory = async () => {
+    const payload = {
+      category_name: categoryObj.name,
+      category_description: categoryObj.description
+    }
 
     try{
         await api.post('/categories', payload)
@@ -61,6 +60,10 @@ const createCategory = async () => {
    }
 
 const updateCategory = async () => {
+    const payload = {
+      category_name: categoryObj.name,
+      category_description: categoryObj.description
+    }
     try {
         await api.put(`/categories/${updatingId}`, payload)
         toast.success("Category updated successfully")
