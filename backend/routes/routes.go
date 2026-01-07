@@ -36,11 +36,14 @@ func SetupRouter() *gin.Engine {
 
 	authorized.POST("/stock_movements", functions.CreateStockMovement)
 	authorized.GET("/stock_movements", functions.GetStockMovements)
+	authorized.PUT("/stock_movements/:id", middleware.RoleSupplierAdmin(), functions.UpdateStockMovement)
+	authorized.DELETE("/stock_movements/:id", middleware.RoleSupplierAdmin(), functions.DeleteStockMovement)
 
 	authorized.POST("/users/supplier-admin", middleware.RoleSystemAdmin(), functions.CreateSuppAdmin)
 	authorized.GET("/users/supplier-admin", middleware.RoleSystemAdmin(), functions.GetsuppAdmin)
 	authorized.GET("/users/supplier-admin/:id", middleware.RoleSystemAdmin(), functions.GetsuppAdminByID)
 	authorized.DELETE("/users/supplier-admin/:id", middleware.RoleSystemAdmin(), functions.DeleteSuppAdmin)
+	authorized.PUT("/users/supplier-admin/:id", middleware.RoleSystemAdmin(), functions.UpdateSuppAdmin)
 	authorized.GET("/dashboard", functions.GetDashboard)
 
 	return r

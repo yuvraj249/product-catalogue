@@ -29,6 +29,24 @@ export const getUserInfo = () => {
 
 
 export const isAuthenticated = () => {
-  const token = getToken()
-  return token ? true : false
+  const token = getToken();
+  if (!token) return false;
+
+  try {
+    const decoded = jwtDecode(token);
+    if (decoded.exp * 1000 < Date.now()) {
+      clearToken();
+      return false;
+    }
+
+    return true;
+  } catch (err) {
+    clearToken();
+    return false;
+  }
+};
+
+export const handleLogout = () => {
+  clearToken();
+  window.location.href = "/";
 };

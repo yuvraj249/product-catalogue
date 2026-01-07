@@ -269,3 +269,208 @@ func GetStockMovements(c *gin.Context) {
 
 }
 
+func UpdateStockMovement(c *gin.Context) {
+	p_id := c.Param("id")
+	id, err := strconv.Atoi(p_id)
+	if err != nil || id <= 0 {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid product id"})
+		c.Abort()
+		return
+
+	}
+	role := c.GetString("role")
+	if role != "supplier_admin" {
+		c.JSON(http.StatusForbidden, gin.H{"error": "only supplier_admin can update stock movements"})
+		c.Abort()
+		return
+	}
+
+	var req struct {
+		Quantity     int    `json:"quantity"`
+		MovementType string `json:"movement_type"`
+		Reason       string `json:"reason"`
+	}
+
+	if err := c.BindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid payload"})
+	}
+
+	req.MovementType = strings.ToUpper(strings.TrimSpace(req.MovementType))
+	if req.MovementType != "IN" && req.MovementType != "OUT" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "movement_type must be IN or OUT"})
+		return
+	}
+
+	if req.Quantity <= 0 {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "quantity must be > 0"})
+		return
+	}
+
+	ctx, cancel := CtxTimeout(c)
+	defer cancel()
+
+	var productID int
+	var oldQty int
+	var oldType string
+
+	err = config.DB.QueryRowContext(ctx, "select product_id, quantity, movement_type from stock_movmements where stock_id = ?", id).Scan(&productID, &oldQty, &oldType)
+
+	if err == sql.ErrNoRows {
+		c.JSON(http.StatusNotFound, gin.H{"error": "stock movement not found"})
+		c.Abort()
+		return
+	}
+
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "db error fetching movement"})
+		c.Abort()
+		return
+	}
+
+	supplierID := c.GetInt("supplier_id")
+
+	var prodSuppID int
+	err = config.DB.QueryRowContext(ctx, "select product_supplier_id from products where product_id = ?", productID).Scan(&prodSuppID)
+
+	if err == sql.ErrNoRows {
+		c.JSON(http.StatusNotFound, gin.H{"error": "product not found"})
+		return
+	}
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "db error fetching product"})
+		return
+	}
+
+	if supplierID != prodSuppID {
+		c.JSON(http.StatusForbidden, gin.H{"error": "you do not own this product"})
+		return
+	}
+
+	currentStock, err := CountStock(ctx, productID)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to count stock"})
+		return
+	}
+
+	if oldType == "IN" {
+		currentStock -= oldQty
+	} else {
+		currentStock += oldQty
+	}
+
+	if req.MovementType == "IN" {
+		currentStock += req.Quantity
+	} else {
+		currentStock -= req.Quantity
+	}
+
+	if currentStock < lowStockAlert {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error":         "stock would go below threshold",
+			"current_stock": currentStock,
+			"min_quantity":  lowStockAlert,
+		})
+		return
+	}
+
+	var reason sql.NullString
+	if strings.TrimSpace(req.Reason) != "" {
+		reason = sql.NullString{String: strings.TrimSpace(req.Reason), Valid: true}
+	}
+
+	_, err = config.DB.ExecContext(ctx, "update stock_movements set quantity = ? , movement_type = ? , reason = ? where stock_id = ?", req.Quantity, req.MovementType, reason, id)
+
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to update stock movement"})
+		return
+	}
+
+	newStock, _ := CountStock(ctx, productID)
+
+	c.JSON(http.StatusOK, gin.H{
+		"message":       "stock movement updated",
+		"stock_id":      id,
+		"product_id":    productID,
+		"current_stock": newStock,
+	})
+}
+
+func DeleteStockMovement(c *gin.Context) {
+	p_id := c.Param("id")
+	id, err := strconv.Atoi(p_id)
+	if err != nil || id <= 0 {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid product id"})
+		c.Abort()
+		return
+
+	}
+	role := c.GetString("role")
+	if role != "supplier_admin" {
+		c.JSON(http.StatusForbidden, gin.H{"error": "only supplier_admin can delete stock movements"})
+		c.Abort()
+		return
+	}
+
+	ctx, cancel := CtxTimeout(c)
+	defer cancel()
+
+	var productID, qty int
+	var mtype string
+
+	err = config.DB.QueryRowContext(ctx, "select product_id, quantity, movement_type from stock_movements where stock_id = ?", id).Scan(&productID, &qty, &mtype)
+
+	if err == sql.ErrNoRows {
+		c.JSON(http.StatusNotFound, gin.H{"error": "stock movement not found"})
+		c.Abort()
+		return
+	}
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "db error fetching movement"})
+		c.Abort()
+		return
+	}
+
+	supplierID := c.GetInt("supplier_id")
+	var prodSuppID int
+	err = config.DB.QueryRowContext(ctx, "select product_supplier_id from products where product_id = ?", productID).Scan(prodSuppID)
+
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "db error fetching product"})
+		c.Abort()
+		return
+	}
+
+	if supplierID != prodSuppID {
+		c.JSON(http.StatusForbidden, gin.H{"error": "you do not own this product"})
+		c.Abort()
+		return
+	}
+
+	currentStock, _ := CountStock(ctx, productID)
+
+	if mtype == "IN" {
+		currentStock -= qty
+	} else {
+		currentStock += qty
+	}
+
+	if currentStock < lowStockAlert {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error":         "deleting will drop stock below threshold",
+			"current_stock": currentStock,
+			"min_quantity":  lowStockAlert,
+		})
+		return
+	}
+
+	_, err = config.DB.ExecContext(ctx, "delete from stock_movements where stock_id = ?", id)
+
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to delete stock movement"})
+		c.Abort()
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "stock movement deleted"})
+
+}
