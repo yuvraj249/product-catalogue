@@ -53,44 +53,6 @@ func CreateCategory(c *gin.Context) {
 
 }
 
-func GetCategory(c *gin.Context) {
-	role := c.GetString("role")
-	ctx, cancel := CtxTimeout(c)
-	defer cancel()
-	if role != "system_admin" && role != "supplier_admin" {
-		c.JSON(http.StatusForbidden, gin.H{"error": "access denied"})
-		c.Abort()
-		return
-	}
-	rows, err := config.DB.QueryContext(ctx, "select category_id, category_name, category_description from categories")
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "db error while fetching categories"})
-		c.Abort()
-		return
-	}
-	defer rows.Close()
-	categories := []models.Category{}
-	for rows.Next() {
-		var ct models.Category
-		var catDesp sql.NullString
-
-		if err := rows.Scan(&ct.CategoryID, &ct.CategoryName, &catDesp); err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "error while scanning categories"})
-			c.Abort()
-			return
-		}
-		if catDesp.Valid {
-			ct.CategoryDescription = catDesp.String
-		} else {
-			ct.CategoryDescription = ""
-		}
-		categories = append(categories, ct)
-
-	}
-
-	c.JSON(http.StatusOK, gin.H{"categories": categories})
-
-}
 
 func GetCategoryByID(c *gin.Context) {
 	c_id := c.Param("id")
@@ -280,5 +242,58 @@ func UpdateCategory(c *gin.Context) {
 		catUpdated.CategoryDescription = ""
 	}
 	c.JSON(http.StatusOK, gin.H{"message": "category updated", "category": catUpdated})
+
+}
+
+func GetCategory(c *gin.Context) {
+	name := c.Query("name")
+	description := c.Query("description")
+
+	role := c.GetString("role")
+	if role != "system_admin" && role != "supplier_admin" {
+		c.JSON(http.StatusForbidden, gin.H{"error": "access denied"})
+		c.Abort()
+		return
+	}
+
+	ctx, cancel := CtxTimeout(c)
+	defer cancel()
+
+	var rows *sql.Rows
+	var err error
+
+	if name == "" && description == "" {
+		rows, err = config.DB.QueryContext(ctx, "select category_id, category_name, category_description from categories")
+
+	} else {
+		rows, err = config.DB.QueryContext(ctx, "select category_id, category_name, category_description from categories where lower(category_name) like lower(coalesce(?, category_name)) or lower(category_description) like lower(coalesce(?, category_description))", "%"+name+"%", "%"+description+"%")
+	}
+
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "db error while fetching categories"})
+		return
+	}
+
+	defer rows.Close()
+
+	var categories []models.Category
+
+	for rows.Next() {
+		var ct models.Category
+		var desc sql.NullString
+
+		if err := rows.Scan(&ct.CategoryID, &ct.CategoryName, &desc); err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "scan error"})
+			return
+		}
+
+		if desc.Valid {
+			ct.CategoryDescription = desc.String
+		}
+
+		categories = append(categories, ct)
+	}
+
+	c.JSON(http.StatusOK, gin.H{"categories": categories})
 
 }
