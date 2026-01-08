@@ -161,11 +161,12 @@ const deleteCategory = useCallback(async (id) => {
             accessorKey: 'category_description',
             header: 'Description',
         },
-        {
+           ...(user.role === "system_admin" ?
+            [ {
            id: 'actions',
            header: 'Actions', 
            cell: ({row} ) => 
-            user.role === "system_admin" && (
+            (
                 <ActionButtons>
                 <IconButton onClick={() => onClickEdit(row) }><Icon src={editIcon} alt="edit" /></IconButton>
                 <IconButton onClick={() => deleteCategory(row.original.category_id)}>
@@ -174,6 +175,7 @@ const deleteCategory = useCallback(async (id) => {
                 </ActionButtons>
             ) 
         },
+    ] : [])
     ], [user.role, onClickEdit, deleteCategory])
 
 
