@@ -55,13 +55,9 @@ const fetchCategories = useCallback(async () => {
 const location = useLocation()
 useEffect(() => {
     const getFromBrowser = new URLSearchParams(window.location.search)
-    const id = getFromBrowser.get("id")
-    const name = getFromBrowser.get("name")
-    const description = getFromBrowser.get("description")
-
-    const value = id || name || description || ""
-    if (value){
-        setGlobalFilter(value)
+    const q = getFromBrowser.get("q")
+    if (q !== null) {
+        setGlobalFilter(q)
     }
 }, [location.search])
 
