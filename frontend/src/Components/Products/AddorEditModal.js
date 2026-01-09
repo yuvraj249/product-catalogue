@@ -94,9 +94,9 @@ const AddOrEditProductModal = ({ open, onClose, updatingId, form, refetch, categ
           <Label>Category *</Label>
           <CategorySelect
             classNamePrefix="react-select"
-            options={categories.map((c) => ({
-              value: c.category_id,
-              label: c.category_name,
+            options={(categories || []).map((c) => ({
+                value: c.category_id,
+                label: c.category_name,
             }))}
             value={
               categories

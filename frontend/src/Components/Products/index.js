@@ -40,100 +40,62 @@ const Products = () => {
     form: {},
   })
 
-  const [categories, setCategories] = useState([]);
-  useEffect(() => {
+const [categories, setCategories] = useState([]);
+
+useEffect(() => {
   api.get("/categories")
     .then(res => setCategories(res.data.categories || []))
     .catch(() => toast.error("Failed to load categories"));
 }, [])
-  
-    const categoryMap = useMemo(() => {
-    const map = {};
-    categories.forEach(c => {
-      map[c.category_id] = c.category_name;
-    });
-    return map;
-  }, [categories])
 
-  const fetchProducts = useCallback(async () => {
+  const fetchProducts = useCallback(async (q = "") => {
     try {
-      setLoading(true);
-      const res = await api.get("/products")
-      setState((p) => ({ ...p, data: res.data.products || [] }))
+      setLoading(true)
+      const res = await api.get("/products", { params: { q } })
+      setState(p => ({ ...p, data: res.data.products || [] }))
     } catch {
-      toast.error("Failed to load products")
+      toast.error("failed to load products")
     } finally {
       setLoading(false)
     }
   }, [])
 
-  useEffect(() => {
+   useEffect(() => {
     fetchProducts()
   }, [fetchProducts])
 
+
   const location = useLocation()
   useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-      const id = params.get("id")
-      const product_name = params.get("product_name") 
-      const category = params.get("category") 
-      const value = id || product_name || category || ""
-    if(value){
-        setGlobalFilter(value)
+    const params = new URLSearchParams(location.search)
+    const value = params.get("q")
+
+    if (value !== null) {
+      setGlobalFilter(value)
     }
   }, [location.search])
 
+
   useEffect(() => {
-    const handler = setTimeout(async () => {
-        const search = globalFilter.trim()
-
-        switch(true){
-            case search === "":
-                fetchProducts()
-                return
-            case /^\d+$/.test(search):
-                try{
-                    const res = await api.get(`/products/${search}`)
-                    setState(prev => ({
-                        ...prev,
-                        data: [res.data.product]
-                    }))
-                } catch{
-                    setState(prev => ({...prev, data: []}))
-                }
-                return 
-            default:
-                try {
-                    const res = await api.get("/products",{
-                        params: {product_name: search, category: search }
-                    })
-
-                    setState(prev => ({
-                        ...prev,
-                        data: res.data.products || []
-                    }))
-                } catch (err){
-                    console.log(err.res.data || err.message)
-                    toast.error("Failed to search suppliers")
-                }
-
-        }
-
+    const handler = setTimeout(() => {
+      fetchProducts(globalFilter.trim())
     }, 350)
+
     return () => clearTimeout(handler)
   }, [globalFilter, fetchProducts])
+
 
   const deleteProduct = useCallback(
     async (id) => {
       try {
         await api.delete(`/products/${id}`)
         toast.success("Product deleted")
-        fetchProducts()
+        fetchProducts(globalFilter)
       } catch {
         toast.error("Failed to delete product")
       }
     },
-    [fetchProducts]
+    [fetchProducts,globalFilter]
   );
 
   const onClickEdit = useCallback((row) => {
@@ -171,11 +133,11 @@ const Products = () => {
         header: "Discount Value" 
       },
       {
-        accessorKey: "product_category_id",
+        accessorKey: "category_name",
         header: "Category",
-        cell: (info) => categoryMap[info.getValue()] || "—",
         sortingFn: caseInsensitiveSort
       },
+
       {
         id: "actions",
         header: "Actions",
@@ -192,7 +154,7 @@ const Products = () => {
           ),
       },
     ],
-    [user.role, onClickEdit, deleteProduct, categoryMap]
+    [user.role, onClickEdit, deleteProduct]
   )
 
   return (
@@ -241,4 +203,4 @@ const Products = () => {
   )
 }
 
-export default Products;
+export default Products
