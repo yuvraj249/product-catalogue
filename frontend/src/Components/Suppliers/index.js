@@ -48,88 +48,59 @@ const Suppliers = () => {
  })
   
 
-  const fetchSuppliers = useCallback(async () => {
-  try {
-    setLoading(true)
-    const res = await api.get('/suppliers')
-     setState((prev) => ({...prev, data: res.data.suppliers || []}))     
-  } catch (err) {
-    console.log('failed to fetch suppliers: ', err)
-    toast.error("Failed to load suppliers")
-  } finally {
-    setLoading(false)
-  }
-}, [])
+  const fetchSuppliers = useCallback(async (q = "") => {
+    try {
+      setLoading(true)
+         
+        const res = await api.get('/suppliers', { params: { q } })
+        setState(prev => ({ ...prev, data: res.data.suppliers || [] }))
 
-  useEffect(() => {
-    fetchSuppliers()
-  }, [fetchSuppliers])
+    } catch {
+      setState(prev => ({ ...prev, data: [] }))
+      toast.error('Failed to load suppliers')
+    } finally {
+      setLoading(false)
+    }
+  }, [])
 
   const location = useLocation()
   useEffect(() => {
-    const getFromBrowser = new URLSearchParams(window.location.search)
-    const id = getFromBrowser.get("id")
-    const name = getFromBrowser.get("name")
-    const contact = getFromBrowser.get("contact_info")
-    const email = getFromBrowser.get("email")
-    const company = getFromBrowser.get("company")
+  const params = new URLSearchParams(location.search)
+  const value = params.get("q")
 
-    const value = id || name || contact || email || company || ""
-    if(value){
-        setGlobalFilter(value)
+  if (value !== null) {
+    setGlobalFilter(value)
+  } else {
+    fetchSuppliers()
+  }
+}, [location.search, fetchSuppliers])
+
+
+
+ useEffect(() => {
+  const handler = setTimeout(() => {
+    const q = globalFilter.trim()
+    if (q === "") {
+      fetchSuppliers("")
+    } else {
+      fetchSuppliers(q)
     }
-  }, [location.search])
+  }, 350)
+  return () => clearTimeout(handler)
+}, [globalFilter, fetchSuppliers])
 
-  useEffect(() => {
-    const handler = setTimeout(async () => {
-        const search = globalFilter.trim()
 
-        switch(true){
-            case search === "":
-                fetchSuppliers()
-                return
-            case /^\d+$/.test(search):
-                try{
-                    const res = await api.get(`/suppliers/${search}`)
-                    setState(prev => ({
-                        ...prev,
-                        data: [res.data.supplier]
-                    }))
-                } catch{
-                    setState(prev => ({...prev, data: []}))
-                }
-                return 
-            default:
-                try {
-                    const res = await api.get("/suppliers",{
-                        params: {name: search, company: search}
-                    })
-
-                    setState(prev => ({
-                        ...prev,
-                        data: res.data.suppliers || []
-                    }))
-                } catch (err){
-                    console.log(err.res?.data || err.message)
-                    toast.error("Failed to search suppliers")
-                }
-
-        }
-
-    }, 350)
-    return () => clearTimeout(handler)
-  }, [globalFilter, fetchSuppliers])
 
 
   const deleteSupplier = useCallback(async (id) => {
   try {
     await api.delete(`suppliers/${id}`)
     toast.success('Supplier deleted successfully');
-    fetchSuppliers()
+    fetchSuppliers(globalFilter)
   } catch {
     toast.error('Failed to delete supplier');
   }
-}, [fetchSuppliers])
+}, [fetchSuppliers,globalFilter])
 
 
 const onClickEdit = useCallback((row) => {
@@ -142,7 +113,7 @@ const onClickEdit = useCallback((row) => {
         email: row.original.email,
         company: row.original.company,
       },
-    }));
+    }))
     setModalOpen(true);
   }, [])
 

@@ -86,6 +86,9 @@ func CreateSupplier(c *gin.Context) {
 
 func GetSupplier(c *gin.Context) {
 	role := c.GetString("role")
+	search := strings.TrimSpace(c.Query("q"))
+
+	like := "%" + search + "%"
 	ctx, cancel := CtxTimeout(c)
 	defer cancel()
 	var rows *sql.Rows
@@ -93,37 +96,22 @@ func GetSupplier(c *gin.Context) {
 
 	switch role {
 	case "system_admin":
-		rows, err = config.DB.QueryContext(ctx, "select supplier_id, name, contact_info, email , company from suppliers")
-		if err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "cannot fetch suppliers"})
-			c.Abort()
-			return
-		}
+		rows, err = config.DB.QueryContext(
+			ctx, "SELECT supplier_id, name, contact_info, email, company FROM suppliers WHERE ? = '' OR CAST(supplier_id AS CHAR) LIKE ? OR contact_info LIKE ? OR LOWER(name) LIKE LOWER(?) OR LOWER(email) LIKE LOWER(?) OR LOWER(company) LIKE LOWER(?) ORDER BY supplier_id ASC",
+			search, like, like, like, like, like,
+		)
+
 	case "supplier_admin":
-		supplierValue := c.GetInt("supplier_id")
-		var company string
-		err = config.DB.QueryRowContext(ctx, "select company from suppliers where supplier_id= ?", supplierValue).Scan(&company)
-		if err == sql.ErrNoRows {
-			c.JSON(http.StatusForbidden, gin.H{"error": "supplier not found"})
-			c.Abort()
-			return
-		} else if err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "error while fetching company"})
-			c.Abort()
-			return
-		}
-		rows, err = config.DB.QueryContext(ctx, "select  supplier_id, name, contact_info, email, company from suppliers where company= ?", company)
-		if err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "error while fetching suppliers"})
-			c.Abort()
-			return
-		}
+		supplierID := c.GetInt("supplier_id")
+		rows, err = config.DB.QueryContext(
+			ctx,
+			"SELECT supplier_id, name, contact_info, email, company FROM suppliers WHERE supplier_id = ? AND (? = '' OR contact_info LIKE ? OR LOWER(name) LIKE LOWER(?) OR LOWER(email) LIKE LOWER(?) OR LOWER(company) LIKE LOWER(?))",
+			supplierID, search, like, like, like, like,
+		)
 
 	default:
-		c.JSON(http.StatusForbidden, gin.H{"error": "unauthorized access"})
-		c.Abort()
+		c.JSON(http.StatusForbidden, gin.H{"error": "unauthorized"})
 		return
-
 	}
 	defer rows.Close()
 
@@ -131,7 +119,7 @@ func GetSupplier(c *gin.Context) {
 	for rows.Next() {
 		var sp models.Supplier
 		var contact_info sql.NullString
-		if err := rows.Scan(&sp.SupplierID, &sp.Name, &contact_info, &sp.Email, &sp.Company); err != nil {
+		if err = rows.Scan(&sp.SupplierID, &sp.Name, &contact_info, &sp.Email, &sp.Company); err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "error while scanning supppliers"})
 			c.Abort()
 			return
