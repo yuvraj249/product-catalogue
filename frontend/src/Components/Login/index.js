@@ -17,8 +17,29 @@ export const LoginPage = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
 
+  const validateForm = () => {
+    if (!email.trim()) {
+      toast.error("Email is required")
+      return false
+    }
+
+    if (!password.trim()) {
+      toast.error("Password is required")
+      return false
+    }
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+    if (!emailRegex.test(email)) {
+      toast.error("Enter a valid email address")
+      return false
+    }
+
+    return true
+  }
+
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (!validateForm()) return;
     setLoading(true);
 
     try {
