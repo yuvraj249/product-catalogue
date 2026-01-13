@@ -68,6 +68,6 @@ export const HeaderContent = styled.div`
   display: flex;
   align-items: center;
   justify-content: ${({ $center }) => $center ? "center" : "flex-start"};
-  gap: 40px;
+  gap: 10px;
 `;
 
