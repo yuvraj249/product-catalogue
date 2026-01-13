@@ -108,7 +108,12 @@ useEffect(() => {
   }, [])
 
   const onClickAdd = () => {
-    setState({ data: [], updatingId: null, form: {} })
+    setState((prev) => ({
+        ...prev,
+        updatingId: null,
+        form: {},
+  }))
+  setModalOpen(true);
     setModalOpen(true)
   }
 
@@ -127,17 +132,19 @@ useEffect(() => {
       },
       { accessorKey: "discount_type", 
         header: "Discount Type",
-        sortingFn: caseInsensitiveSort
+        sortingFn: caseInsensitiveSort,
+        cell: ({ getValue }) => getValue() || "-"
       },
       { accessorKey: "discount_value", 
-        header: "Discount Value" 
+        header: "Discount Value" ,
+        cell: ({ getValue }) => getValue() || "-"
       },
       {
         accessorKey: "category_name",
         header: "Category",
         sortingFn: caseInsensitiveSort
       },
-
+      ...(user.role === "supplier_admin" ? [
       {
         id: "actions",
         header: "Actions",
@@ -153,6 +160,7 @@ useEffect(() => {
             </ActionButtons>
           ),
       },
+    ] : [])
     ],
     [user.role, onClickEdit, deleteProduct]
   )

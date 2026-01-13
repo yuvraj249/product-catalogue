@@ -46,28 +46,47 @@ const AddOrEditProductModal = ({ open, onClose, updatingId, form, refetch, categ
     });
   }, [updatingId, form]);
 
-  const submit = async () => {
-    const payload = {
-      product_name: product.product_name.trim(),
-      product_description: product.product_description?.trim(),
-      product_cost: Number(product.product_cost),
-      product_category_id: Number(product.product_category_id),
-      discount_type: product.discount_type?.trim(),
-      discount_value: Number(product.discount_value),
-    };
+  const createProduct = async () => {
+  const payload = {
+    product_name: product.product_name.trim(),
+    product_description: product.product_description?.trim(),
+    product_cost: Number(product.product_cost),
+    product_category_id: Number(product.product_category_id),
+    discount_type: product.discount_type?.trim(),
+    discount_value: Number(product.discount_value),
+  }
 
-    try {
-      updatingId
-        ? await api.put(`/products/${updatingId}`, payload)
-        : await api.post("/products", payload);
+  try {
+    await api.post("/products", payload);
+    toast.success("Product created");
+    onClose();
+    refetch();
+  } catch (e) {
+    toast.error(e.response?.data?.error || "Failed");
+  }
+}
 
-      toast.success(`Product ${updatingId ? "updated" : "created"}`);
-      onClose();
-      refetch();
-    } catch (e) {
-      toast.error(e.response?.data?.error || "Failed");
-    }
-  };
+
+const updateProduct = async () => {
+  const payload = {
+    product_name: product.product_name.trim(),
+    product_description: product.product_description?.trim(),
+    product_cost: Number(product.product_cost),
+    product_category_id: Number(product.product_category_id),
+    discount_type: product.discount_type?.trim(),
+    discount_value: Number(product.discount_value),
+  }
+
+  try {
+    await api.put(`/products/${updatingId}`, payload);
+    toast.success("Product updated");
+    onClose();
+    refetch();
+  } catch (e) {
+    toast.error(e.response?.data?.error || "Failed");
+  }
+}
+
 
   return (
     <ModalBox open={open} onClose={onClose}>
@@ -152,7 +171,7 @@ const AddOrEditProductModal = ({ open, onClose, updatingId, form, refetch, categ
 
         <ModalActions>
           <CancelButton onClick={onClose}>Cancel</CancelButton>
-          <SubmitButton onClick={submit}>
+          <SubmitButton onClick={updatingId ? updateProduct : createProduct}>
             {updatingId ? "Update" : "Create"}
           </SubmitButton>
         </ModalActions>
