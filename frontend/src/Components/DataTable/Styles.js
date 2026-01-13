@@ -12,6 +12,7 @@ export const TableWrapper = styled.div`
 export const Table = styled.table`
   width: 100%;
   border-collapse: collapse;
+  table-layout: fixed;
 
   tbody tr {
     transition: background 0.15s ease;
