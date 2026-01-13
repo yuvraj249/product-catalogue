@@ -53,7 +53,6 @@ func CreateCategory(c *gin.Context) {
 
 }
 
-
 func GetCategoryByID(c *gin.Context) {
 	c_id := c.Param("id")
 	id, err := strconv.Atoi(c_id)
@@ -246,9 +245,6 @@ func UpdateCategory(c *gin.Context) {
 }
 
 func GetCategory(c *gin.Context) {
-	name := c.Query("name")
-	description := c.Query("description")
-
 	role := c.GetString("role")
 	if role != "system_admin" && role != "supplier_admin" {
 		c.JSON(http.StatusForbidden, gin.H{"error": "access denied"})
@@ -256,19 +252,13 @@ func GetCategory(c *gin.Context) {
 		return
 	}
 
+	search := strings.ToLower(strings.TrimSpace(c.Query("q")))
+	like := "%" + search + "%"
+
 	ctx, cancel := CtxTimeout(c)
 	defer cancel()
 
-	var rows *sql.Rows
-	var err error
-
-	if name == "" && description == "" {
-		rows, err = config.DB.QueryContext(ctx, "select category_id, category_name, category_description from categories")
-
-	} else {
-		rows, err = config.DB.QueryContext(ctx, "select category_id, category_name, category_description from categories where lower(category_name) like lower(coalesce(?, category_name)) or lower(category_description) like lower(coalesce(?, category_description))", "%"+name+"%", "%"+description+"%")
-	}
-
+	rows, err := config.DB.QueryContext(ctx, "select category_id,category_name,category_description from categories where ?='' or cast(category_id as char) like ? or lower(category_name) like ? or lower(category_description) like ? order by category_id asc", search, like, like, like)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "db error while fetching categories"})
 		return

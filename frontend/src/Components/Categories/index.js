@@ -55,13 +55,9 @@ const fetchCategories = useCallback(async () => {
 const location = useLocation()
 useEffect(() => {
     const getFromBrowser = new URLSearchParams(window.location.search)
-    const id = getFromBrowser.get("id")
-    const name = getFromBrowser.get("name")
-    const description = getFromBrowser.get("description")
-
-    const value = id || name || description || ""
-    if (value){
-        setGlobalFilter(value)
+    const q = getFromBrowser.get("q")
+    if (q !== null) {
+        setGlobalFilter(q)
     }
 }, [location.search])
 
@@ -161,11 +157,12 @@ const deleteCategory = useCallback(async (id) => {
             accessorKey: 'category_description',
             header: 'Description',
         },
-        {
+           ...(user.role === "system_admin" ?
+            [ {
            id: 'actions',
            header: 'Actions', 
            cell: ({row} ) => 
-            user.role === "system_admin" && (
+            (
                 <ActionButtons>
                 <IconButton onClick={() => onClickEdit(row) }><Icon src={editIcon} alt="edit" /></IconButton>
                 <IconButton onClick={() => deleteCategory(row.original.category_id)}>
@@ -174,6 +171,7 @@ const deleteCategory = useCallback(async (id) => {
                 </ActionButtons>
             ) 
         },
+    ] : [])
     ], [user.role, onClickEdit, deleteCategory])
 
 
