@@ -25,7 +25,7 @@ const initialState = {
   reason: "",
 };
 
-const AddOrEditStockModal = ({ open, onClose, refetch, products, editingItem }) => {
+const AddOrEditStockModal = ({ open, onClose, refetch, products, editingItem, setLoading}) => {
   const [form, setForm] = useState(initialState)
 
   useEffect(() => {
@@ -44,8 +44,52 @@ const AddOrEditStockModal = ({ open, onClose, refetch, products, editingItem }) 
 }, [open, editingItem])
 
 
+const validateStockForm = () => {
+    const qty = Number(form.quantity)
+
+    if (!form.product_id || form.product_id <= 0) {
+      toast.error("Please select a valid product")
+      return false
+    }
+
+    if (!form.quantity) {
+      toast.error("Quantity is required")
+      return false
+    }
+
+    if (isNaN(qty) || qty <= 0) {
+      toast.error("Quantity must be a positive number")
+      return false
+    }
+
+    if (!Number.isInteger(qty)) {
+    toast.error("Quantity must be a whole number (no decimals)")
+    return false
+  }
+
+  if (qty > 100000) {
+      toast.error("Quantity too large")
+      return false
+    }
+
+    if (!form.movement_type || !["IN", "OUT"].includes(form.movement_type)) {
+      toast.error("Invalid movement type")
+      return false
+    }
+
+    if (form.reason && form.reason.length > 200) {
+      toast.error("Reason too long (max 200 characters)")
+      return false
+    }
+
+    return true
+  }
+
 
   const addStockMovement = async () => {
+
+  if (!validateStockForm()) return
+  setLoading(true)
   if (!form.product_id || !form.quantity) {
     toast.error("product and quantity required")
     return
@@ -65,11 +109,16 @@ const AddOrEditStockModal = ({ open, onClose, refetch, products, editingItem }) 
     refetch()
   } catch (e) {
     toast.error(e.response?.data?.error || "add failed")
+  } finally{
+    setLoading(false)
   }
 } 
 
 
 const updateStockMovement = async () => {
+
+  if (!validateStockForm()) return
+  setLoading(true)
   if (!form.product_id || !form.quantity) {
     toast.error("product and quantity required")
     return
@@ -89,6 +138,8 @@ const updateStockMovement = async () => {
     refetch()
   } catch (e) {
     toast.error(e.response?.data?.error || "update failed")
+  } finally{
+    setLoading(false)
   }
 }
 
@@ -101,7 +152,7 @@ const submit = () => {
 }
 
   return (
-    <ModalBox open={open} onClose={onClose}>
+    <ModalBox open={open} onClose={() => {onClose(); setForm(initialState)}}>
       <ModalHeader>
         <ModalTitle>Update Stock</ModalTitle>
         <CloseButton onClick={onClose}>
@@ -136,7 +187,6 @@ const submit = () => {
               setForm(f => ({ ...f, quantity: e.target.value }))
             }
             min="1"
-            required
           />
         </FormGroup>
 
@@ -170,7 +220,7 @@ const submit = () => {
         </FormGroup>
 
         <ModalActions>
-          <CancelButton onClick={onClose}>Cancel</CancelButton>
+          <CancelButton onClick={() => {onClose(); setForm(initialState)}}>Cancel</CancelButton>
           <SubmitButton onClick={submit}>Save</SubmitButton>
         </ModalActions>
       </Form>

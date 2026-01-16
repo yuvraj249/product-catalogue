@@ -180,6 +180,7 @@ const StockMovements = () => {
         refetch={fetchMovements}
         products={products}
         editingItem={editingItem}
+        setLoading={setLoading}
     />
 
       <ToastContainer position="top-right" autoClose={3000}/>
