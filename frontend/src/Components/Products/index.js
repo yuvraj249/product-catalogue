@@ -204,6 +204,7 @@ useEffect(() => {
         form={state.form}
         refetch={fetchProducts}
         categories={categories}
+        setLoading={setLoading}
       />
 
       <ToastContainer />
