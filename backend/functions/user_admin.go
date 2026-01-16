@@ -294,23 +294,22 @@ func UpdateSuppAdmin(c *gin.Context) {
 		return
 	}
 
-	if supp.Valid {
-		tmp := int(supp.Int64)
-		existing.SupplierID = &tmp
-	} else {
-		existing.SupplierID = nil
-	}
+	// if supp.Valid {
+	// 	tmp := int(supp.Int64)
+	// 	existing.SupplierID = &tmp
+	// } else {
+	// 	existing.SupplierID = nil
+	// }
 
 	newName := existing.Name
 	newEmail := existing.Email
 	newPwdHash := existing.PasswordHash
-	var newSupplierID *int
+	// var newSupplierID *int
+
+	var newSupplierID sql.NullInt64
 
 	if supp.Valid {
-		tmp := int(supp.Int64)
-		newSupplierID = &tmp
-	} else {
-		newSupplierID = nil
+		newSupplierID = supp
 	}
 
 	if strings.TrimSpace(body.Name) != "" {
@@ -381,7 +380,10 @@ func UpdateSuppAdmin(c *gin.Context) {
 			return
 		}
 
-		newSupplierID = &body.SupplierID
+		newSupplierID = sql.NullInt64{
+			Int64: int64(body.SupplierID),
+			Valid: true,
+		}
 	}
 
 	_, err = config.DB.ExecContext(ctx, "update users set name=?, email=?,password_hash=?, supplier_id = ? where user_id=?", newName, newEmail, newPwdHash, newSupplierID, uid)

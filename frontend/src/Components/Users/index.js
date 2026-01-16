@@ -176,10 +176,6 @@ const supplierMap = useMemo(() => {
     [user.role, onClickEdit, deleteUser,supplierMap]
   );
 
-// const handleData = (data)=> {
-//     setState((prev)=> ({...prev, data : data}));
-// }
-  
 console.log({state})
   return (
     <>
@@ -219,6 +215,7 @@ console.log({state})
         form={state.form}
         refetch={fetchUsers}
         suppliers={suppliers}
+        setLoading={setLoading}
       />
 
       <ToastContainer position="top-right" autoClose={3000} />

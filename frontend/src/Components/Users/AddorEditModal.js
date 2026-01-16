@@ -20,7 +20,7 @@ import { useEffect, useState } from "react";
 
 const initialUser = { name: "", email: "", password: "", supplier_id: "" }
 
-const AddOrEditUserModal = ({ open, onClose, updatingId, form, refetch, suppliers }) => {
+const AddOrEditUserModal = ({ open, onClose, updatingId, form, refetch, suppliers , setLoading}) => {
   const [userObj, setUserObj] = useState(initialUser)
 
   useEffect(() => {
@@ -32,14 +32,105 @@ const AddOrEditUserModal = ({ open, onClose, updatingId, form, refetch, supplier
     setUserObj(form)
   }, [updatingId, form])
 
+  const validateUserForm = () => {
+  const name = userObj.name.trim()
+  const email = userObj.email.trim()
+  const password = userObj.password
+  const supplierId = userObj.supplier_id
+
+  if (!name) {
+    toast.error("User name is required")
+    return false
+  }
+
+  if (name.length < 2) {
+    toast.error("User name must be at least 2 characters")
+    return false
+  }
+
+  if (!email) {
+    toast.error("Email cannot be empty")
+    return false
+  }
+
+  const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/
+  if (!emailRegex.test(email)) {
+    toast.error("Invalid email format (e.g., user@example.com)")
+    return false
+  }
+
+  if (email.startsWith("@") || email.endsWith("@")) {
+    toast.error("Email cannot start or end with '@'")
+    return false
+  }
+
+  if (email.includes("..")) {
+    toast.error("Email cannot contain consecutive dots (..)")
+    return false
+  }
+
+  if (!updatingId) {
+    if (!password) {
+      toast.error("Password is required")
+      return false
+    }
+
+    if (password.length < 8) {
+      toast.error("Password must be at least 8 characters long")
+      return false
+    }
+
+    if (!/[A-Z]/.test(password)) {
+      toast.error("Password must contain at least one uppercase letter")
+      return false
+    }
+
+    if (!/[a-z]/.test(password)) {
+      toast.error("Password must contain at least one lowercase letter")
+      return false
+    }
+
+    if (!/[0-9]/.test(password)) {
+      toast.error("Password must contain at least one number")
+      return false
+    }
+
+    if (!/[!@#$%^&*(),.?":{}|<>_\-+=~`]/.test(password)) {
+      toast.error("Password must contain at least one special character")
+      return false
+    }
+  }
+
+  if (form.role !== "system_admin") {
+    if (!supplierId || Number(supplierId) <= 0) {
+      toast.error("Please select a valid supplier")
+      return false
+    }
+  }
+
+  return true
+}
+
+
   const createUser = async () => {
+
+    if (!validateUserForm()) return
+
+    const payload = {
+    name: userObj.name.trim(),
+    email: userObj.email.trim(),
+    supplier_id: Number(userObj.supplier_id),
+   }
+
+   if (userObj.password && userObj.password.trim() !== "") {
+    payload.password = userObj.password
+  }
+
+   setLoading(true)
+
+
     try {
-      await api.post("users/supplier-admin", {
-        name: userObj.name,
-        email: userObj.email,
-        password: userObj.password,
-        supplier_id: Number(userObj.supplier_id),
-      });
+      await api.post("users/supplier-admin", payload);
 
       toast.success("User created")
       setUserObj(initialUser)
@@ -47,17 +138,25 @@ const AddOrEditUserModal = ({ open, onClose, updatingId, form, refetch, supplier
       refetch()
     } catch (err) {
       toast.error(err.response?.data?.error || "Failed to create user")
+    } finally{
+      setLoading(false)
     }
   };
 
   const updateUser = async () => {
+
+    if (!validateUserForm()) return
+
+    const payload = {
+    name: userObj.name.trim(),
+    email: userObj.email.trim(),
+    password: userObj.password,
+    supplier_id: Number(userObj.supplier_id),
+   }
+
+   setLoading(true)
     try {
-      await api.put(`users/supplier-admin/${updatingId}`, {
-        name: userObj.name,
-        email: userObj.email,
-        password: userObj.password || undefined,
-        supplier_id: Number(userObj.supplier_id),
-      })
+      await api.put(`users/supplier-admin/${updatingId}`, payload)
 
       toast.success("User updated");
       setUserObj(initialUser);
@@ -65,6 +164,8 @@ const AddOrEditUserModal = ({ open, onClose, updatingId, form, refetch, supplier
       refetch()
     } catch (err) {
       toast.error(err.response?.data?.error || "Failed to update user")
+    } finally{
+      setLoading(false)
     }
   };
 
@@ -77,7 +178,7 @@ const AddOrEditUserModal = ({ open, onClose, updatingId, form, refetch, supplier
     <ModalBox open={open} onClose={onClose}>
       <ModalHeader>
         <ModalTitle>{updatingId ? "Edit User" : "Add User"}</ModalTitle>
-        <CloseButton onClick={onClose}>
+        <CloseButton onClick={() => {onClose(); setUserObj(initialUser)}}>
           <Icon src={xIcon} alt="close" />
         </CloseButton>
       </ModalHeader>
@@ -90,7 +191,6 @@ const AddOrEditUserModal = ({ open, onClose, updatingId, form, refetch, supplier
             onChange={(e) =>
               setUserObj((p) => ({ ...p, name: e.target.value }))
             }
-            required
           />
         </FormGroup>
 
@@ -101,7 +201,6 @@ const AddOrEditUserModal = ({ open, onClose, updatingId, form, refetch, supplier
             onChange={(e) =>
               setUserObj((p) => ({ ...p, email: e.target.value }))
             }
-            required
           />
         </FormGroup>
        
@@ -148,7 +247,7 @@ const AddOrEditUserModal = ({ open, onClose, updatingId, form, refetch, supplier
           />
         </FormGroup>
         <ModalActions>
-          <CancelButton onClick={onClose}>Cancel</CancelButton>
+          <CancelButton onClick={() => {onClose(); setUserObj(initialUser)}}>Cancel</CancelButton>
           <SubmitButton>{updatingId ? "Update" : "Create"}</SubmitButton>
         </ModalActions>
       </Form>
