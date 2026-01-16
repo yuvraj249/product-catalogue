@@ -170,7 +170,10 @@ const onChangeDesc = (e) => {
                             {updatingId ? "Edit Category" : "Add Category"}
                         </ModalTitle>
                         <CloseButton
-                        onClick={onClose}>
+                        onClick={() => {
+                          onClose()
+                          setCategoryObj(initialCategoryObject)
+                        }}>
                             <Icon src={xIcon} alt="close" />
                         </CloseButton>
                 </ModalHeader>
@@ -184,7 +187,7 @@ const onChangeDesc = (e) => {
                         <Textarea value={categoryObj.description} onChange={onChangeDesc}/>
                     </FormGroup>
                     <ModalActions>
-                        <CancelButton onClick={onClose}>Cancel</CancelButton>
+                        <CancelButton onClick={() => {onClose(); setCategoryObj(initialCategoryObject)}}>Cancel</CancelButton>
                         <SubmitButton>
                             {updatingId ? "Update" : "Create"}
                         </SubmitButton>
