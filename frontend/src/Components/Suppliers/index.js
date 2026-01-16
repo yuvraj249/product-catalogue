@@ -214,6 +214,7 @@ const onClickEdit = useCallback((row) => {
         onClose={onModalClose}
         updatingId={state.updatingId}
         refetch={fetchSuppliers}
+        setLoading={setLoading}
       />
       <ToastContainer position="top-right" autoClose={3000} />
   </>
