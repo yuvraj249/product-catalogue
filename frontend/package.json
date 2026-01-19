@@ -9,7 +9,6 @@
     "@testing-library/react": "^16.3.1",
     "@testing-library/user-event": "^13.5.0",
     "axios": "^1.13.2",
-    "cypress": "^15.8.2",
     "jwt-decode": "^4.0.0",
     "lodash": "^4.17.21",
     "react": "^19.2.3",
@@ -43,5 +42,8 @@
       "last 1 firefox version",
       "last 1 safari version"
     ]
+  },
+  "devDependencies": {
+    "cypress": "^15.9.0"
   }
 }
