@@ -166,10 +166,11 @@ const onChangeDesc = (e) => {
                 onClose={onClose}
                 >
                 <ModalHeader>
-                        <ModalTitle>
+                        <ModalTitle data-cy="category-modal-title">
                             {updatingId ? "Edit Category" : "Add Category"}
                         </ModalTitle>
                         <CloseButton
+                        data-cy="close-category-modal"
                         onClick={() => {
                           onClose()
                           setCategoryObj(initialCategoryObject)
@@ -180,15 +181,15 @@ const onChangeDesc = (e) => {
                 <Form onSubmit={onSubmitHandlder}>
                     <FormGroup>
                         <Label>Name *</Label>
-                        <Input value={categoryObj.name}  onChange={onChangeName}/>
+                        <Input  data-cy="category-name" value={categoryObj.name}  onChange={onChangeName}/>
                     </FormGroup>
                     <FormGroup>
                         <Label>Description *</Label>
-                        <Textarea value={categoryObj.description} onChange={onChangeDesc}/>
+                        <Textarea  data-cy="category-description" value={categoryObj.description} onChange={onChangeDesc}/>
                     </FormGroup>
                     <ModalActions>
-                        <CancelButton onClick={() => {onClose(); setCategoryObj(initialCategoryObject)}}>Cancel</CancelButton>
-                        <SubmitButton>
+                        <CancelButton data-cy="category-cancel" onClick={() => {onClose(); setCategoryObj(initialCategoryObject)}}>Cancel</CancelButton>
+                        <SubmitButton data-cy="category-submit">
                             {updatingId ? "Update" : "Create"}
                         </SubmitButton>
                     </ModalActions>

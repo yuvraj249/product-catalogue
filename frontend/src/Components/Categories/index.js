@@ -126,8 +126,8 @@ const deleteCategory = useCallback(async (id) => {
            cell: ({row} ) => 
             (
                 <ActionButtons>
-                <IconButton onClick={() => onClickEdit(row) }><Icon src={editIcon} alt="edit" /></IconButton>
-                <IconButton onClick={() => deleteCategory(row.original.category_id)}>
+                <IconButton data-cy="edit-category-btn" onClick={() => onClickEdit(row) }><Icon src={editIcon} alt="edit" /></IconButton>
+                <IconButton data-cy="delete-category-btn" onClick={() => deleteCategory(row.original.category_id)}>
                     <Icon src={trashIcon} alt="delete" />
                 </IconButton>
                 </ActionButtons>
@@ -151,7 +151,8 @@ const deleteCategory = useCallback(async (id) => {
                         </SearchWrap>
                         {
                             user.role === 'system_admin' && (
-                                <AddButton 
+                                <AddButton
+                                data-cy="add-category-btn" 
                                 onClick={onClickAddCatg}>
                                     <Icon src={plusIcon} alt="add" /> 
                                     Add Category 
