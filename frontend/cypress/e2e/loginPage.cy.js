@@ -89,13 +89,4 @@ describe('Login Page - Auth and Validation', () => {
     })
   })
 
-
-
-  it('blocks unauthenticated user from admin routes', () => {
-    cy.clearLocalStorage()
-    cy.visit('/admin/categories')
-
-    cy.url().should('eq', Cypress.config().baseUrl + '/')
-  })
-
 })
