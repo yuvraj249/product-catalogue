@@ -163,11 +163,12 @@ const onClickEdit = useCallback((row) => {
         cell: ({ row }) =>
           user.role === "system_admin" && (
             <ActionButtons>
-              <IconButton onClick={() => onClickEdit(row)}>
+              <IconButton data-cy="edit-supplier-btn" onClick={() => onClickEdit(row)}>
                 <Icon src={editIcon} alt="edit" />
               </IconButton>
 
               <IconButton
+                data-cy="delete-supplier-btn" 
                 onClick={() => deleteSupplier(row.original.supplier_id)}
               >
                 <Icon src={trashIcon} alt="delete" />
@@ -185,13 +186,14 @@ const onClickEdit = useCallback((row) => {
                 <SearchWrap>
                     <Icon src={searchIcon} alt="search" />
                         <SearchIpt
+                            data-cy="supplier-search"
                             value={globalFilter}
                             onChange={(e) => setGlobalFilter(e.target.value)}
                             placeholder="Search Suppliers"
                         />
                 </SearchWrap>
                 {user?.role === 'system_admin' && (
-                    <AddButton onClick={onClickAdd}>
+                    <AddButton data-cy="add-supplier-btn" onClick={onClickAdd}>
                         <Icon src={plusIcon} alt="add" />
                         Add Supplier
                     </AddButton>
@@ -202,6 +204,7 @@ const onClickEdit = useCallback((row) => {
             <p>Loading suppliers...</p>
           ) : (
             <Datatable
+          data-cy="suppliers-table"
           data={state.data}
           columns={columns}
           globalFilter={globalFilter}

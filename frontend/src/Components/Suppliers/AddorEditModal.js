@@ -185,8 +185,8 @@ const AddOrEditSupplierModal = ({ open, onClose, updatingId, refetch, setLoading
   return (
     <ModalBox open={open} onClose={onClose}>
       <ModalHeader>
-        <ModalTitle>{updatingId ? "Edit Supplier" : "Add Supplier"}</ModalTitle>
-        <CloseButton onClick={() => {onClose(); setSupplier(initialSupplier)}}>
+        <ModalTitle data-cy="supplier-modal-title">{updatingId ? "Edit Supplier" : "Add Supplier"}</ModalTitle>
+        <CloseButton  data-cy="supplier-close" onClick={() => {onClose(); setSupplier(initialSupplier)}}>
           <Icon src={xIcon} alt="close" />
         </CloseButton>
       </ModalHeader>
@@ -195,6 +195,7 @@ const AddOrEditSupplierModal = ({ open, onClose, updatingId, refetch, setLoading
         <FormGroup>
           <Label>Name *</Label>
           <Input
+            data-cy="supplier-name"
             value={supplier.name}
             onChange={(e) =>
               setSupplier((p) => ({ ...p, name: e.target.value }))
@@ -206,6 +207,7 @@ const AddOrEditSupplierModal = ({ open, onClose, updatingId, refetch, setLoading
         <FormGroup>
           <Label>Contact *</Label>
           <Input
+            data-cy="supplier-contact"
             value={supplier.contact}
             onChange={(e) =>
               setSupplier((p) => ({ ...p, contact: e.target.value }))
@@ -218,6 +220,7 @@ const AddOrEditSupplierModal = ({ open, onClose, updatingId, refetch, setLoading
         <FormGroup>
           <Label>Email *</Label>
           <Input
+            data-cy="supplier-email"
             value={supplier.email}
             onChange={(e) =>
               setSupplier((p) => ({ ...p, email: e.target.value }))
@@ -229,6 +232,7 @@ const AddOrEditSupplierModal = ({ open, onClose, updatingId, refetch, setLoading
         <FormGroup>
           <Label>Company *</Label>
           <Input
+            data-cy="supplier-company"
             value={supplier.company}
             onChange={(e) =>
               setSupplier((p) => ({ ...p, company: e.target.value }))
@@ -236,9 +240,9 @@ const AddOrEditSupplierModal = ({ open, onClose, updatingId, refetch, setLoading
           />
         </FormGroup>
         <ModalActions>
-          <CancelButton onClick={() => {setSupplier(initialSupplier); onClose() }}>Cancel</CancelButton>
+          <CancelButton data-cy="supplier-cancel" onClick={() => {setSupplier(initialSupplier); onClose() }}>Cancel</CancelButton>
 
-          <SubmitButton>{updatingId ? "Update" : "Create"}</SubmitButton>
+          <SubmitButton data-cy="supplier-submit">{updatingId ? "Update" : "Create"}</SubmitButton>
         </ModalActions>
       </Form>
     </ModalBox>
