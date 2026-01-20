@@ -5,9 +5,19 @@ describe('Suppliers Page - System Admin', () => {
   const supplierName = "Test Supplier"
   const updatedName = "Updated Supplier"
 
+  before(() => {
+    cy.loginAsSystemAdmin()
+    cy.cleanupAll()
+    cy.seedSuppliers()
+  })
+
   beforeEach(() => {
     cy.loginAsSystemAdmin()
     cy.visit('/admin/suppliers')
+  })
+
+  after(() => {
+    cy.cleanupAll()
   })
 
   it('loads suppliers page', () => {

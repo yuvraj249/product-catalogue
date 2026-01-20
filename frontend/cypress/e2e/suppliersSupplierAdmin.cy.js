@@ -2,9 +2,22 @@
 
 describe('Suppliers Page - Supplier Admin Restrictions', () => {
 
+  before(() => {
+    cy.loginAsSystemAdmin()
+    cy.cleanupAll()
+    cy.seedSuppliers()
+    cy.seedUsers()
+  })
+
+
   beforeEach(() => {
     cy.loginAsSupplierAdmin()
     cy.visit('/admin/suppliers')
+  })
+
+  after(() => {
+    cy.loginAsSystemAdmin()
+    cy.cleanupAll()
   })
 
   it('can view suppliers list', () => {
