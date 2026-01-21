@@ -2,6 +2,8 @@ import React, { useEffect, useState , useMemo} from "react";
 import api from "../../Api/axios";
 import { useNavigate } from "react-router-dom";
 import Datatable from "../DataTable";
+import { getUserInfo } from "../../utils/auth";
+import { toast , ToastContainer} from "react-toastify";
 import {
   PageHeader,
   Title,
@@ -36,6 +38,7 @@ const Dashboard = () => {
   const [stats, setStats] = useState({})
   const [lowStock, setLowStock] = useState([])
   const [threshold, setThreshold] = useState(10)
+  const user = getUserInfo()
 
   const navigate = useNavigate()
 
@@ -79,6 +82,7 @@ const Dashboard = () => {
       label: "Supplier Admins",
       value: stats.total_supplier_admins || 0,
       path: "/admin/users",
+      restricted: user.role !== "system_admin"
     },
   ] 
 
@@ -107,12 +111,12 @@ const Dashboard = () => {
   return (
     <>
       <PageHeader>
-        <Title>Dashboard</Title>
+        <Title data-cy="dashboard-title">Dashboard</Title>
       </PageHeader>
 
       <StatsGrid>
         {cards.map((card, i) => (
-          <StatCard key={i} onClick={() => navigate(card.path)}>
+          <StatCard key={i} data-cy={`dashboard-card-${card.label.toLowerCase().replace(" ", "-")}`} onClick={() => {if (card.restricted){toast.error("access denied"); return} navigate(card.path)}}>
             <StatIcon>
               <Icon src={card.icon} alt={card.label} />
             </StatIcon>
@@ -126,19 +130,21 @@ const Dashboard = () => {
 
       <Section>
         <SectionHeader>
-          <SectionTitle>
+          <SectionTitle data-cy="low-stock-title">
             <Icon src={alertIcon} alt="alert" />
             Low Stock Alert
           </SectionTitle>
-          <ThresholdBadge>Threshold: {threshold} units</ThresholdBadge>
+          <ThresholdBadge data-cy="low-stock-threshold">Threshold: {threshold} units</ThresholdBadge>
         </SectionHeader>
 
         <Datatable
+          data-cy="low-stock-table"
           data={lowStock}
           columns={lowStockColumns}
           globalFilter=""
           setGlobalFilter={() => {}}
         />
+        <ToastContainer position="top-right" autoClose={3000} />
       </Section>
     </>
   );
