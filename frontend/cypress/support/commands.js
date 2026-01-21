@@ -110,6 +110,9 @@ Cypress.Commands.add('seedUsers', () => {
 
 Cypress.Commands.add('seedProducts', () => {
   cy.get('@categoryIds').then(ids => {
+
+    cy.wrap([]).as('productIds')
+
     const products = [
       { name: 'Laptop', cost: 50000, cat: ids[0], desc: 'Gaming Laptop' },
       { name: 'Rice Bag', cost: 1200, cat: ids[1], desc: '25kg Rice' },
@@ -129,42 +132,40 @@ Cypress.Commands.add('seedProducts', () => {
           product_category_id: p.cat,
           discount_type: "",
           discount_value: 0
-        },
-        failOnStatusCode: true
+        }
+      }).then(res => {
+        cy.get('@productIds').then(prodIds => {
+          prodIds.push(res.body.product_id)
+          cy.wrap(prodIds).as('productIds')
+        })
       })
     })
   })
 })
 
 
-
-
-
 Cypress.Commands.add('seedStock', () => {
-  const stock = [
-    { product_id: 1, quantity: 5, movement_type: 'IN',  reason: 'Initial stock' },
-    { product_id: 2, quantity: 10, movement_type: 'IN', reason: 'Warehouse refill' },
-    { product_id: 3, quantity: 3, movement_type: 'OUT', reason: 'Customer order' },
-    { product_id: 4, quantity: 7, movement_type: 'IN',  reason: 'New shipment' },
-    { product_id: 5, quantity: 2, movement_type: 'OUT', reason: 'Damaged items' },
-  ]
+  cy.get('@productIds').then(ids => {
 
-  stock.forEach(s => {
-    cy.request({
-      method: 'POST',
-      url: 'http://localhost:8080/stock_movements',
-      headers: {
-        Authorization: `Bearer ${localStorage.getItem('auth_token')}`
-      },
-      body: {
-        product_id: s.product_id,
-        quantity: s.quantity,
-        movement_type: s.movement_type,
-        reason: s.reason
-      },
-      failOnStatusCode: true    })
+    const stock = [
+      { product_id: ids[0], quantity: 5, movement_type: 'IN',  reason: 'Initial stock' },
+      { product_id: ids[1], quantity: 10, movement_type: 'IN', reason: 'Warehouse refill' },
+    ]
+
+    stock.forEach(s => {
+      cy.request({
+        method: 'POST',
+        url: 'http://localhost:8080/stock_movements',
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem('auth_token')}`
+        },
+        body: s,
+        failOnStatusCode: true
+      })
+    })
   })
 })
+
 
 Cypress.Commands.add('cleanupAll', () => {
   cy.request({
