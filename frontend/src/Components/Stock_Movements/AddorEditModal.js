@@ -154,8 +154,8 @@ const submit = () => {
   return (
     <ModalBox open={open} onClose={() => {onClose(); setForm(initialState)}}>
       <ModalHeader>
-        <ModalTitle>Update Stock</ModalTitle>
-        <CloseButton onClick={onClose}>
+        <ModalTitle data-cy="stock-modal-title">Update Stock</ModalTitle>
+        <CloseButton data-cy="stock-modal-close" onClick={onClose}>
           <Icon src={xIcon} />
         </CloseButton>
       </ModalHeader>
@@ -165,6 +165,7 @@ const submit = () => {
           <Label>Product *</Label>
           <SelectBox
             classNamePrefix='react-select'
+            data-cy="stock-product-select"
             options={(products || []).map(p => ({
               value: p.product_id,
               label: p.product_name,
@@ -181,6 +182,7 @@ const submit = () => {
         <FormGroup>
           <Label>Quantity *</Label>
           <Input
+            data-cy="stock-quantity"
             type="number"
             value={form.quantity}
             onChange={(e) =>
@@ -193,6 +195,7 @@ const submit = () => {
         <FormGroup>
             <Label>Movement Type *</Label>
             <SelectBox
+                data-cy="stock-movement-type"
                 classNamePrefix='react-select'
                 options={[
                     { value: "IN", label: "IN (Add Stock)" },
@@ -211,6 +214,7 @@ const submit = () => {
         <FormGroup>
           <Label>Reason</Label>
           <Input
+            data-cy="stock-reason"
             value={form.reason}
             onChange={(e) =>
               setForm(f => ({ ...f, reason: e.target.value }))
@@ -220,8 +224,8 @@ const submit = () => {
         </FormGroup>
 
         <ModalActions>
-          <CancelButton onClick={() => {onClose(); setForm(initialState)}}>Cancel</CancelButton>
-          <SubmitButton onClick={submit}>Save</SubmitButton>
+          <CancelButton data-cy="stock-cancel-btn" onClick={() => {onClose(); setForm(initialState)}}>Cancel</CancelButton>
+          <SubmitButton  data-cy="stock-submit-btn" onClick={submit}>Save</SubmitButton>
         </ModalActions>
       </Form>
     </ModalBox>

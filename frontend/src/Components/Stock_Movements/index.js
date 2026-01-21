@@ -121,6 +121,7 @@ const StockMovements = () => {
         user.role === "supplier_admin" && (
           <ActionButtons>
             <IconButton
+              data-cy="edit-stock-btn"
               onClick={() => {
                 setEditingItem(row.original)
                 setModalOpen(true)
@@ -129,7 +130,7 @@ const StockMovements = () => {
               <Icon src={editIcon} />
             </IconButton>
 
-            <IconButton onClick={() => deleteMovement(row.original.stock_id)}>
+            <IconButton data-cy="delete-stock-btn" onClick={() => deleteMovement(row.original.stock_id)}>
               <Icon src={trashIcon} />
             </IconButton>
           </ActionButtons>
@@ -146,10 +147,11 @@ const StockMovements = () => {
   return (
     <>
       <PageHeader>
-        <Title>Stock Table</Title>
+        <Title data-cy="stock-title">Stock Table</Title>
         <SearchWrap>
           <Icon src={searchIcon} />
           <SearchIpt
+            data-cy="stock-search"
             value={globalFilter}
             onChange={(e) => setGlobalFilter(e.target.value)}
             placeholder="Search stock movements"
@@ -157,7 +159,7 @@ const StockMovements = () => {
         </SearchWrap>
 
         {user.role === "supplier_admin" && (
-            <AddButton onClick={() => {setEditingItem(null); setModalOpen(true)}}>
+            <AddButton data-cy="add-stock-btn" onClick={() => {setEditingItem(null); setModalOpen(true)}}>
             <Icon src={plusIcon} />
             Add Stock
             </AddButton>
@@ -168,6 +170,7 @@ const StockMovements = () => {
         <p>Loading stock movements…</p>
       ) : (
         <Datatable
+          data-cy="stock-table"
           data={data}
           columns={columns}
           globalFilter={globalFilter}
