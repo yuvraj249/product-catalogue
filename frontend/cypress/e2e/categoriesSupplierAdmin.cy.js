@@ -2,13 +2,21 @@
 
 describe('Categories Page - Supplier Admin Restrictions', () => {
 
+  before(() => {
+    cy.loginAsSystemAdmin()
+    cy.cleanupAll()
+    cy.seedCategories()
+    cy.seedSuppliers()
+    cy.seedUsers()
+  })
+
   beforeEach(() => {
     cy.loginAsSupplierAdmin()
     cy.visit('/admin/categories')
   })
 
   it('can view categories list', () => {
-    cy.contains('Categories').should('be.visible')
+    cy.get('[data-cy="categories-title"]').should('contain', 'Categories')
     cy.get('[data-cy="categories-table"]').should('be.visible')
   })
 

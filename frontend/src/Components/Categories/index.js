@@ -140,7 +140,7 @@ const deleteCategory = useCallback(async (id) => {
    return (
             <>
                 <PageHeader>
-                    <Title>Categories</Title>
+                    <Title data-cy="categories-title">Categories</Title>
                         <SearchWrap>
                             <Icon src={searchIcon} alt='search'/>
                             <SearchIpt 
