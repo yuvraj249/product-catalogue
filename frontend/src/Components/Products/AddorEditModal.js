@@ -183,16 +183,17 @@ const updateProduct = async () => {
   return (
     <ModalBox open={open} onClose={onClose}>
       <ModalHeader>
-        <ModalTitle>{updatingId ? "Edit Product" : "Add Product"}</ModalTitle>
+        <ModalTitle data-cy="product-modal-title">{updatingId ? "Edit Product" : "Add Product"}</ModalTitle>
         <CloseButton onClick={() => {onClose(); setProduct(initialProduct)}}>
           <Icon src={xIcon} />
         </CloseButton>
       </ModalHeader>
 
-      <Form onSubmit={(e) => e.preventDefault()}>
+      <Form data-cy="product-form" onSubmit={(e) => e.preventDefault()}>
         <FormGroup>
           <Label>Name *</Label>
           <Input
+            data-cy="product-name"
             value={product.product_name}
             onChange={(e) =>
               setProduct((p) => ({ ...p, product_name: e.target.value }))
@@ -203,6 +204,7 @@ const updateProduct = async () => {
         <FormGroup>
           <Label>Category *</Label>
           <CategorySelect
+            data-cy="product-category"
             classNamePrefix="react-select"
             options={(categories || []).map((c) => ({
                 value: c.category_id,
@@ -230,6 +232,7 @@ const updateProduct = async () => {
         <FormGroup>
           <Label>Cost *</Label>
           <Input
+            data-cy="product-cost"
             type="number"
             value={product.product_cost}
             onChange={(e) =>
@@ -241,6 +244,7 @@ const updateProduct = async () => {
         <FormGroup>
           <Label>Discount Type</Label>
           <Input
+            data-cy="product-discount-type"
             value={product.discount_type}
             onChange={(e) =>
               setProduct((p) => ({ ...p, discount_type: e.target.value }))
@@ -251,6 +255,7 @@ const updateProduct = async () => {
         <FormGroup>
           <Label>Discount Value</Label>
           <Input
+            data-cy="product-discount-value"
             type="number"
             value={product.discount_value}
             onChange={(e) =>
@@ -260,8 +265,8 @@ const updateProduct = async () => {
         </FormGroup>
 
         <ModalActions>
-          <CancelButton onClick={() => {onClose(); setProduct(initialProduct)}}>Cancel</CancelButton>
-          <SubmitButton onClick={updatingId ? updateProduct : createProduct}>
+          <CancelButton data-cy="product-cancel-btn" onClick={() => {onClose(); setProduct(initialProduct)}}>Cancel</CancelButton>
+          <SubmitButton data-cy="product-submit-btn" onClick={updatingId ? updateProduct : createProduct}>
             {updatingId ? "Update" : "Create"}
           </SubmitButton>
         </ModalActions>
