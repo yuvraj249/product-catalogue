@@ -138,7 +138,6 @@ const Dashboard = () => {
         </SectionHeader>
 
         <Datatable
-          data-cy="low-stock-table"
           data={lowStock}
           columns={lowStockColumns}
           globalFilter=""

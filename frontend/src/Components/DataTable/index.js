@@ -24,7 +24,7 @@ const Datatable = (props = initialProps) => {
 
 
   return (
-    <TableWrapper data-cy="low-stock-table">
+    <TableWrapper data-cy="data-table">
         <Table>
             <thead>
                 {table.getHeaderGroups().map((hg) => (

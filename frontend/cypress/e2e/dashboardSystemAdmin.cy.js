@@ -42,11 +42,11 @@ describe('Dashboard - System Admin', () => {
   it('shows low stock section', () => {
     cy.get('[data-cy="low-stock-title"]').should('contain', 'Low Stock')
     cy.get('[data-cy="low-stock-threshold"]').should('contain', 'Threshold')
-    cy.get('[data-cy="low-stock-table"]').should('exist')
+    cy.get('[data-cy="data-table"]').should('exist')
   })
 
   it('renders low stock products', () => {
-    cy.get('[data-cy="low-stock-table"]').contains('Laptop')
+    cy.get('[data-cy="data-table"]').contains('Laptop')
   })
 
   it('sorts product names', () => {

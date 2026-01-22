@@ -36,7 +36,7 @@ describe('Dashboard - Supplier Admin', () => {
   })
 
   it('shows only company low stock products', () => {
-    cy.get('[data-cy="low-stock-table"]').contains('Laptop')
+    cy.get('[data-cy="data-table"]').contains('Laptop')
   })
 
   it('cannot access users via dashboard card', () => {
