@@ -204,7 +204,6 @@ console.log({state})
         <p style={{ padding: 20 }}>Loading users…</p>
       ) : (
         <Datatable
-          data-cy="users-table"
           data={state.data}
           columns={columns}
         />
