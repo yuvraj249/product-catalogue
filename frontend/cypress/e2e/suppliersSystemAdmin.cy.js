@@ -23,7 +23,7 @@ describe('Suppliers Page - System Admin', () => {
   it('loads suppliers page', () => {
     cy.contains('Suppliers').should('be.visible')
     cy.get('[data-cy="add-supplier-btn"]').should('be.visible')
-    cy.get('[data-cy="suppliers-table"]').should('be.visible')
+    cy.get('[data-cy="data-table"]').should('be.visible')
   })
 
   it('opens Add Supplier modal', () => {

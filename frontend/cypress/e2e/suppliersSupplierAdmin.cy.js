@@ -22,7 +22,7 @@ describe('Suppliers Page - Supplier Admin Restrictions', () => {
 
   it('can view suppliers list', () => {
     cy.contains('Suppliers').should('be.visible')
-    cy.get('[data-cy="suppliers-table"]').should('be.visible')
+    cy.get('[data-cy="data-table"]').should('be.visible')
   })
 
   it('does not see Add Supplier button', () => {
