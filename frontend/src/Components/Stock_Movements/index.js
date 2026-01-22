@@ -170,7 +170,6 @@ const StockMovements = () => {
         <p>Loading stock movements…</p>
       ) : (
         <Datatable
-          data-cy="stock-table"
           data={data}
           columns={columns}
           globalFilter={globalFilter}

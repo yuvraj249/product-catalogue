@@ -27,7 +27,7 @@ describe('Stock Movements - System Admin', () => {
 
   it('loads Stock page', () => {
     cy.get('[data-cy="stock-title"]').should('contain', 'Stock')
-    cy.get('[data-cy="stock-table"]').should('be.visible')
+    cy.get('[data-cy="data-table"]').should('be.visible')
   })
 
   it('does NOT show Add Stock button', () => {
