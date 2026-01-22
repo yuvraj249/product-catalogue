@@ -17,7 +17,7 @@ describe('Categories Page - Supplier Admin Restrictions', () => {
 
   it('can view categories list', () => {
     cy.get('[data-cy="categories-title"]').should('contain', 'Categories')
-    cy.get('[data-cy="categories-table"]').should('be.visible')
+    cy.get('[data-cy="data-table"]').should('be.visible')
   })
 
   it('does not see Add Category button', () => {

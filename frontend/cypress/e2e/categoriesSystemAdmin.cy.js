@@ -19,7 +19,7 @@ describe('Categories Page - System Admin', () => {
   it('loads categories page', () => {
     cy.get('[data-cy="categories-title"]').should('contain', 'Categories')
     cy.get('[data-cy="add-category-btn"]').should('be.visible')
-    cy.get('[data-cy="categories-table"]').should('be.visible')
+    cy.get('[data-cy="data-table"]').should('be.visible')
   })
 
   it('opens Add Category modal', () => {
