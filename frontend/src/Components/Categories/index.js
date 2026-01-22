@@ -165,7 +165,7 @@ const deleteCategory = useCallback(async (id) => {
                 <Datatable 
                 data={state.data}
                 columns={columns}
-                globalFilter={globalFilter}
+                globalFilter=""
                 setGlobalFilter={setGlobalFilter}          
                 />
                 )}
