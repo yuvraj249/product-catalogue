@@ -28,7 +28,7 @@ describe('Products Page - Supplier Admin', () => {
   it('loads Products page', () => {
     cy.get('[data-cy="products-title"]').should('contain', 'Products')
     cy.get('[data-cy="add-product-btn"]').should('be.visible')
-    cy.get('[data-cy="products-table"]').should('be.visible')
+    cy.get('[data-cy="data-table"]').should('be.visible')
   })
 
   it('opens Add Product modal', () => {

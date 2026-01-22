@@ -24,7 +24,7 @@ describe('Products Page - System Admin', () => {
 
   it('loads Products page', () => {
     cy.get('[data-cy="products-title"]').should('contain', 'Products')
-    cy.get('[data-cy="products-table"]').should('be.visible')
+    cy.get('[data-cy="data-table"]').should('be.visible')
   })
 
   it('does NOT show Add Product button', () => {
@@ -46,7 +46,7 @@ describe('Products Page - System Admin', () => {
   it('can search products', () => {
     cy.get('[data-cy="product-search"]').type('Laptop')
 
-    cy.get('[data-cy="products-table"]', { timeout: 8000 })
+    cy.get('[data-cy="data-table"]', { timeout: 8000 })
       .should('contain.text', 'Laptop')
   })
 

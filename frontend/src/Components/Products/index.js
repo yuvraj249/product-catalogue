@@ -191,7 +191,6 @@ useEffect(() => {
         <p data-cy="products-loading">Loading products…</p>
       ) : (
         <Datatable 
-          data-cy="products-table"
           data={state.data}
           columns={columns}
           globalFilter={globalFilter}
