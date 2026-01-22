@@ -58,17 +58,7 @@ const AddOrEditUserModal = ({ open, onClose, updatingId, form, refetch, supplier
     toast.error("Invalid email format (e.g., user@example.com)")
     return false
   }
-
-  if (email.startsWith("@") || email.endsWith("@")) {
-    toast.error("Email cannot start or end with '@'")
-    return false
-  }
-
-  if (email.includes("..")) {
-    toast.error("Email cannot contain consecutive dots (..)")
-    return false
-  }
-
+  
   if (!updatingId) {
     if (!password) {
       toast.error("Password is required")
