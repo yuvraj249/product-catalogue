@@ -75,11 +75,16 @@ const AddOrEditSupplierModal = ({ open, onClose, updatingId, refetch, setLoading
     return false
   }
 
-  const validPhone = /^[0-9+\-() ]{7,15}$/
+  const validPhone = /^[0-9+\-() ]+$/
   if (!validPhone.test(contact)) {
     toast.error("Contact should contain only numbers, +, -, () or spaces")
     return false
   }
+
+  if (contact.length < 7 || contact.length > 15) {
+  toast.error("Contact number must be between 7 and 15 characters")
+  return false
+}
 
   if (!email) {
     toast.error("Email is required")
