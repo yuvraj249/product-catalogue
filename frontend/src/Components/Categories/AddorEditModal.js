@@ -11,7 +11,7 @@ const initialCategoryObject = {
   description: ""
 }
 
-const AddorEditModal = ({open, onClose, updatingId, refetch}) => {
+const AddorEditModal = ({open, onClose, updatingId, refetch, setLoading}) => {
 
 const [categoryObj, setCategoryObj] = useState(initialCategoryObject)
 
@@ -39,8 +39,58 @@ useEffect(() => {
   fetchCategory();
 }, [updatingId])
 
+const validateForm = async () => {
+  const name = categoryObj.name.trim()
+  const desc = categoryObj.description.trim()
+
+  if (!name) {
+    toast.error("Category name is required")
+    return false
+  }
+
+  if (name.length < 2) {
+    toast.error("Category name must be at least 2 characters")
+    return false
+  }
+
+  if (name.length > 50) {
+    toast.error("Category name must be under 50 characters")
+    return false
+  }
+
+  if (desc.length > 200) {
+    toast.error("Description must be under 200 characters")
+    return false
+  }
+
+  try {
+    const res = await api.get("/categories", {
+      params: { q: name }
+    })
+
+    const exists = res.data.categories?.some(
+      c => c.category_name.toLowerCase() === name.toLowerCase()
+    )
+
+    if (exists && !updatingId) {
+      toast.error("Category with this name already exists")
+      return false
+    }
+  } catch {
+    toast.error("Failed to validate category name")
+    return false
+  }
+
+  return true
+}
+
+
 
 const createCategory = async () => {
+    const valid = await validateForm()
+    if (!valid) return
+
+    setLoading(true)
     const payload = {
       category_name: categoryObj.name,
       category_description: categoryObj.description
@@ -56,10 +106,16 @@ const createCategory = async () => {
         const msg = err.response.data.error || ""
         toast.error(msg || "Failed to create or edit category")
 
+    }finally{
+      setLoading(false)
     }
    }
 
 const updateCategory = async () => {
+    const valid = await validateForm()
+    if (!valid) return
+
+    setLoading(true)
     const payload = {
       category_name: categoryObj.name,
       category_description: categoryObj.description
@@ -73,6 +129,8 @@ const updateCategory = async () => {
     } catch (err) {
         const msg = err.response.data.error || "";
         toast.error(msg || "Failed to update category");
+    }finally{
+      setLoading(false)
     }
 
    }
@@ -112,21 +170,24 @@ const onChangeDesc = (e) => {
                             {updatingId ? "Edit Category" : "Add Category"}
                         </ModalTitle>
                         <CloseButton
-                        onClick={onClose}>
+                        onClick={() => {
+                          onClose()
+                          setCategoryObj(initialCategoryObject)
+                        }}>
                             <Icon src={xIcon} alt="close" />
                         </CloseButton>
                 </ModalHeader>
                 <Form onSubmit={onSubmitHandlder}>
                     <FormGroup>
                         <Label>Name *</Label>
-                        <Input value={categoryObj.name}  onChange={onChangeName} required/>
+                        <Input value={categoryObj.name}  onChange={onChangeName}/>
                     </FormGroup>
                     <FormGroup>
                         <Label>Description *</Label>
                         <Textarea value={categoryObj.description} onChange={onChangeDesc}/>
                     </FormGroup>
                     <ModalActions>
-                        <CancelButton onClick={onClose}>Cancel</CancelButton>
+                        <CancelButton onClick={() => {onClose(); setCategoryObj(initialCategoryObject)}}>Cancel</CancelButton>
                         <SubmitButton>
                             {updatingId ? "Update" : "Create"}
                         </SubmitButton>
