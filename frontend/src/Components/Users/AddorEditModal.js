@@ -58,7 +58,7 @@ const AddOrEditUserModal = ({ open, onClose, updatingId, form, refetch, supplier
     toast.error("Invalid email format (e.g., user@example.com)")
     return false
   }
-  
+
   if (!updatingId) {
     if (!password) {
       toast.error("Password is required")
@@ -70,25 +70,11 @@ const AddOrEditUserModal = ({ open, onClose, updatingId, form, refetch, supplier
       return false
     }
 
-    if (!/[A-Z]/.test(password)) {
-      toast.error("Password must contain at least one uppercase letter")
-      return false
+    if (!/^(?=.*[A-Z])(?=.*[a-z])(?=.*[0-9])(?=.*[!@#$%^&*(),.?":{}|<>_\-+=~`])/.test(password)) {
+          toast.error("Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character")
+          return false
     }
 
-    if (!/[a-z]/.test(password)) {
-      toast.error("Password must contain at least one lowercase letter")
-      return false
-    }
-
-    if (!/[0-9]/.test(password)) {
-      toast.error("Password must contain at least one number")
-      return false
-    }
-
-    if (!/[!@#$%^&*(),.?":{}|<>_\-+=~`]/.test(password)) {
-      toast.error("Password must contain at least one special character")
-      return false
-    }
   }
 
   if (form.role !== "system_admin") {
