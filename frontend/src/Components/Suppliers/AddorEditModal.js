@@ -86,10 +86,9 @@ const AddOrEditSupplierModal = ({ open, onClose, updatingId, refetch, setLoading
     return false
   }
 
-  const validEmail =
-    /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-  if (!validEmail.test(email)) {
-    toast.error("Invalid email format")
+  const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/
+  if (!emailRegex.test(email)) {
+    toast.error("Invalid email format (e.g., user@example.com)")
     return false
   }
 
