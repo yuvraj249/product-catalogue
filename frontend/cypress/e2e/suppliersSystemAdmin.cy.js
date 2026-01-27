@@ -86,8 +86,8 @@ describe('Suppliers Page - System Admin', () => {
     cy.get('[data-cy="supplier-contact"]').type('+919999999999')
     cy.get('[data-cy="supplier-email"]').type('invalidemail')
     cy.get('[data-cy="supplier-submit"]').click()
+    cy.contains('.Toastify__toast','Invalid email format (e.g., user@example.com)').should('be.visible')
 
-    cy.contains('.Toastify__toast', 'Invalid email format')
   })
 
   it('blocks empty company name', () => {
