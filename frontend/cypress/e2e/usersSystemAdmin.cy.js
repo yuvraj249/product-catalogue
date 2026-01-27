@@ -49,7 +49,7 @@ describe('Users Page - System Admin', () => {
     cy.get('[data-cy="user-password"]').type(userPassword)
 
     cy.get('[data-cy="user-submit-btn"]').click()
-    cy.contains('Invalid email format').should('exist')
+    cy.contains('Invalid email format (e.g., user@example.com)').should('exist')
   })
 
   it('blocks weak password', () => {

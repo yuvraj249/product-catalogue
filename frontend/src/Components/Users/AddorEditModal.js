@@ -59,19 +59,6 @@ const AddOrEditUserModal = ({ open, onClose, updatingId, form, refetch, supplier
     return false
   }
 
-<<<<<<< HEAD
-  if (email.startsWith("@") || email.endsWith("@")) {
-    toast.error("Email cannot start or end with '@'")
-    return false
-  }
-
-  if (email.includes("..")) {
-    toast.error("Email cannot contain consecutive dots (..)")
-    return false
-  }
-
-=======
->>>>>>> 3ab0d9f (updated ui validtion for Users page)
   if (!updatingId) {
     if (!password) {
       toast.error("Password is required")
@@ -238,7 +225,6 @@ const AddOrEditUserModal = ({ open, onClose, updatingId, form, refetch, supplier
             onChange={(e) =>
               setUserObj((p) => ({ ...p, password: e.target.value }))
             }
-            // {...(!updatingId && { required: true })}
           />
         </FormGroup>
         <ModalActions>
