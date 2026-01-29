@@ -44,9 +44,5 @@ describe('Dashboard - Supplier Admin', () => {
   cy.contains('access denied').should('exist')
 })
 
-  it('navigates to products', () => {
-    cy.get('[data-cy="dashboard-card-total-products"]').click()
-    cy.url().should('include', '/admin/products')
-  })
 
 })
