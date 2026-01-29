@@ -116,10 +116,19 @@ func GetsuppAdmin(c *gin.Context) {
 		return
 	}
 
+	search := strings.TrimSpace(c.Query("q"))
+	searchLower := strings.ToLower(search)
+
+	var searchInt int
+	if v, err := strconv.Atoi(search); err == nil {
+		searchInt = v
+	}
+	like := "%" + searchLower + "%"
+
 	ctx, cancel := CtxTimeout(c)
 	defer cancel()
 
-	rows, err := config.DB.QueryContext(ctx, "select user_id, name, email, role, supplier_id from users order by user_id asc")
+	rows, err := config.DB.QueryContext(ctx, "select u.user_id,u.name,u.email,u.role,u.supplier_id from users u left join suppliers s on u.supplier_id=s.supplier_id where (?='' or (? regexp '^[0-9]+$' and u.user_id=?) or (? not regexp '^[0-9]+$' and (lower(u.name) like ? or lower(u.email) like ? or lower(u.role) like ? or lower(s.name) like ? or lower(s.company) like ?))) order by u.user_id asc", search, search, searchInt, search, like, like, like, like, like)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "db error while fetching users"})
 		c.Abort()
@@ -285,17 +294,23 @@ func UpdateSuppAdmin(c *gin.Context) {
 		return
 	}
 
-	if supp.Valid {
-		tmp := int(supp.Int64)
-		existing.SupplierID = &tmp
-	} else {
-		existing.SupplierID = nil
-	}
+	// if supp.Valid {
+	// 	tmp := int(supp.Int64)
+	// 	existing.SupplierID = &tmp
+	// } else {
+	// 	existing.SupplierID = nil
+	// }
 
 	newName := existing.Name
 	newEmail := existing.Email
 	newPwdHash := existing.PasswordHash
+	// var newSupplierID *int
 
+	var newSupplierID sql.NullInt64
+
+	if supp.Valid {
+		newSupplierID = supp
+	}
 
 	if strings.TrimSpace(body.Name) != "" {
 		newName = strings.TrimSpace(body.Name)
@@ -345,7 +360,33 @@ func UpdateSuppAdmin(c *gin.Context) {
 		newPwdHash = hash
 	}
 
-	_, err = config.DB.ExecContext(ctx, "update users set name=?, email=?,password_hash=?, WHERE user_id=?", newName, newEmail, newPwdHash, uid)
+	if body.SupplierID != 0 {
+
+		if body.SupplierID < 0 {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "supplier_id must be positive"})
+			c.Abort()
+			return
+		}
+
+		exists, err := SupplierExists(ctx, body.SupplierID)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "db error while checking supplier"})
+			c.Abort()
+			return
+		}
+		if !exists {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "supplier_id does not exist"})
+			c.Abort()
+			return
+		}
+
+		newSupplierID = sql.NullInt64{
+			Int64: int64(body.SupplierID),
+			Valid: true,
+		}
+	}
+
+	_, err = config.DB.ExecContext(ctx, "update users set name=?, email=?,password_hash=?, supplier_id = ? where user_id=?", newName, newEmail, newPwdHash, newSupplierID, uid)
 
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to update user"})
@@ -358,7 +399,7 @@ func UpdateSuppAdmin(c *gin.Context) {
 		"user_id":     uid,
 		"name":        newName,
 		"email":       newEmail,
-		"supplier_id": existing.SupplierID,
+		"supplier_id": newSupplierID,
 		"role":        existing.Role,
 	})
 }
