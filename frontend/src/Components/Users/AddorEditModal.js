@@ -3,8 +3,6 @@ import {
   ModalTitle,
   CloseButton,
   Form,
-  FormGroup,
-  Label,
   Input,
   ModalActions,
   CancelButton,
@@ -17,6 +15,7 @@ import ModalBox from "../ModalBox";
 import api from "../../Api/axios";
 import { toast } from "react-toastify";
 import { useEffect, useState } from "react";
+import FormField from "../FormField";
 
 const initialUser = { name: "", email: "", password: "", supplier_id: "" }
 
@@ -160,73 +159,90 @@ const AddOrEditUserModal = ({ open, onClose, updatingId, form, refetch, supplier
       </ModalHeader>
 
       <Form onSubmit={onSubmitHandler}>
-        <FormGroup>
-          <Label>Name *</Label>
-          <Input
-            value={userObj.name}
-            onChange={(e) =>
-              setUserObj((p) => ({ ...p, name: e.target.value }))
-            }
-          />
-        </FormGroup>
 
-        <FormGroup>
-          <Label>Email *</Label>
-          <Input
-            value={userObj.email}
-            onChange={(e) =>
-              setUserObj((p) => ({ ...p, email: e.target.value }))
-            }
-          />
-        </FormGroup>
-       
-       {form.role !== "system_admin" && (
-        <FormGroup>
-            <Label>Supplier *</Label>
-            <SupplierSelect
-                classNamePrefix="react-select"
-                options={suppliers.map(s => ({
-                value: s.supplier_id,
-                label: s.name || s.company || `Supplier #${s.supplier_id}`
-            }))}
+  <FormField label="Name" required>
+    <Input
+      value={userObj.name}
+      onChange={(e) =>
+        setUserObj((p) => ({ ...p, name: e.target.value }))
+      }
+    />
+  </FormField>
 
-                value={suppliers
-                .map(s => ({
-                value: s.supplier_id,
-                label: s.name || s.company || `Supplier #${s.supplier_id}`
+  <FormField label="Email" required>
+    <Input
+      value={userObj.email}
+      onChange={(e) =>
+        setUserObj((p) => ({ ...p, email: e.target.value }))
+      }
+    />
+  </FormField>
+
+  {form.role !== "system_admin" && (
+    <FormField label="Supplier" required>
+      <SupplierSelect
+        classNamePrefix="react-select"
+        options={suppliers.map((s) => ({
+          value: s.supplier_id,
+          label: s.name || s.company || `Supplier #${s.supplier_id}`,
+        }))}
+        value={
+          suppliers
+            .map((s) => ({
+              value: s.supplier_id,
+              label: s.name || s.company || `Supplier #${s.supplier_id}`,
             }))
-            .find(opt => opt.value === Number(userObj.supplier_id)) || null}
-
-            onChange={(opt) =>
-            setUserObj(prev => ({
+            .find(
+              (opt) => opt.value === Number(userObj.supplier_id)
+            ) || null
+        }
+        onChange={(opt) =>
+          setUserObj((prev) => ({
             ...prev,
-            supplier_id: opt.value
-            }))
-           }
-            placeholder="Select supplier"
-            isSearchable
-           />
-        </FormGroup>
-       )}
+            supplier_id: opt.value,
+          }))
+        }
+        placeholder="Select supplier"
+        isSearchable
+      />
+    </FormField>
+  )}
 
-        <FormGroup>
-          <Label>
-            {updatingId ? "Password (leave blank to keep same)" : "Password *"}
-          </Label>
-          <Input
-            type="password"
-            value={userObj.password}
-            onChange={(e) =>
-              setUserObj((p) => ({ ...p, password: e.target.value }))
-            }
-            {...(!updatingId && { required: true })}
-          />
-        </FormGroup>
-        <ModalActions>
-          <CancelButton onClick={() => {onClose(); setUserObj(initialUser)}}>Cancel</CancelButton>
-          <SubmitButton>{updatingId ? "Update" : "Create"}</SubmitButton>
-        </ModalActions>
-      </Form>
+  <FormField
+    label={
+      updatingId
+        ? "Password (leave blank to keep same)"
+        : "Password"
+    }
+    required={!updatingId}
+  >
+    <Input
+      type="password"
+      value={userObj.password}
+      onChange={(e) =>
+        setUserObj((p) => ({ ...p, password: e.target.value }))
+      }
+      {...(!updatingId && { required: true })}
+    />
+  </FormField>
+
+  <ModalActions>
+    <CancelButton
+      onClick={() => {
+        onClose();
+        setUserObj(initialUser);
+      }}
+    >
+      Cancel
+    </CancelButton>
+
+    <SubmitButton>
+      {updatingId ? "Update" : "Create"}
+    </SubmitButton>
+  </ModalActions>
+
+</Form>
+
     </ModalBox>
   );
 };
