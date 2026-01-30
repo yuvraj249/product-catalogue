@@ -1,9 +1,10 @@
-import {ModalHeader, ModalTitle, CloseButton, Form, FormGroup, Label, Input, ModalActions, CancelButton, SubmitButton, Icon} from "./Styles"
+import {ModalHeader, ModalTitle, CloseButton, Form, Input, ModalActions, CancelButton, SubmitButton, Icon} from "./Styles"
 import xIcon from "../../Images/cross.svg"
 import ModalBox from "../ModalBox"
 import api from "../../Api/axios"
 import { toast } from "react-toastify"
 import { useEffect, useState } from "react"
+import FormField from "../FormField"
 
 const initialSupplier = {
   name: "",
@@ -196,59 +197,65 @@ const AddOrEditSupplierModal = ({ open, onClose, updatingId, refetch, setLoading
       </ModalHeader>
 
       <Form onSubmit={onSubmitHandler}>
-        <FormGroup>
-          <Label>Name *</Label>
-          <Input
-            data-cy="supplier-name"
-            value={supplier.name}
-            onChange={(e) =>
-              setSupplier((p) => ({ ...p, name: e.target.value }))
-            }
-          />
-        </FormGroup>
 
+  <FormField label="Name" required>
+    <Input
+      data-cy="supplier-name"
+      value={supplier.name}
+      onChange={(e) =>
+        setSupplier((p) => ({ ...p, name: e.target.value }))
+      }
+    />
+  </FormField>
 
-        <FormGroup>
-          <Label>Contact *</Label>
-          <Input
-            data-cy="supplier-contact"
-            value={supplier.contact}
-            onChange={(e) =>
-              setSupplier((p) => ({ ...p, contact: e.target.value }))
-            }
-      
-          />
-        </FormGroup>
+  <FormField label="Contact" required>
+    <Input
+      data-cy="supplier-contact"
+      value={supplier.contact}
+      onChange={(e) =>
+        setSupplier((p) => ({ ...p, contact: e.target.value }))
+      }
+    />
+  </FormField>
 
+  <FormField label="Email" required>
+    <Input
+      data-cy="supplier-email"
+      value={supplier.email}
+      onChange={(e) =>
+        setSupplier((p) => ({ ...p, email: e.target.value }))
+      }
+    />
+  </FormField>
 
-        <FormGroup>
-          <Label>Email *</Label>
-          <Input
-            data-cy="supplier-email"
-            value={supplier.email}
-            onChange={(e) =>
-              setSupplier((p) => ({ ...p, email: e.target.value }))
-            }
-  
-          />
-        </FormGroup>
+  <FormField label="Company" required>
+    <Input
+      data-cy="supplier-company"
+      value={supplier.company}
+      onChange={(e) =>
+        setSupplier((p) => ({ ...p, company: e.target.value }))
+      }
+    />
+  </FormField>
 
-        <FormGroup>
-          <Label>Company *</Label>
-          <Input
-            data-cy="supplier-company"
-            value={supplier.company}
-            onChange={(e) =>
-              setSupplier((p) => ({ ...p, company: e.target.value }))
-            }
-          />
-        </FormGroup>
-        <ModalActions>
-          <CancelButton data-cy="supplier-cancel" onClick={() => {setSupplier(initialSupplier); onClose() }}>Cancel</CancelButton>
+  <ModalActions>
+    <CancelButton
+      data-cy="supplier-cancel"
+      onClick={() => {
+        setSupplier(initialSupplier);
+        onClose();
+      }}
+    >
+      Cancel
+    </CancelButton>
 
-          <SubmitButton data-cy="supplier-submit">{updatingId ? "Update" : "Create"}</SubmitButton>
-        </ModalActions>
-      </Form>
+    <SubmitButton data-cy="supplier-submit">
+      {updatingId ? "Update" : "Create"}
+    </SubmitButton>
+  </ModalActions>
+
+</Form>
+
     </ModalBox>
   )
 }
