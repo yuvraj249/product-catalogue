@@ -153,6 +153,8 @@ func CreateProduct(c *gin.Context) {
 
 func GetProduct(c *gin.Context) {
 	role := c.GetString("role")
+	search := strings.ToLower(strings.TrimSpace(c.Query("q")))
+	like := "%" + search + "%"
 
 	ctx, cancel := CtxTimeout(c)
 	defer cancel()
@@ -162,37 +164,24 @@ func GetProduct(c *gin.Context) {
 
 	switch role {
 	case "system_admin":
-		rows, err = config.DB.QueryContext(ctx, "select product_id, product_name, product_description, product_cost, product_category_id, product_supplier_id, discount_type, discount_value from products")
-		if err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "could not fetch products"})
-			c.Abort()
-			return
-		}
-	case "supplier_admin":
-		supplierVal := c.GetInt("supplier_id")
-		var company string
-		if err = config.DB.QueryRowContext(ctx, "select company from suppliers WHERE supplier_id = ?", supplierVal).Scan(&company); err != nil {
-			if err == sql.ErrNoRows {
-				c.JSON(http.StatusForbidden, gin.H{"error": "supplier not found"})
-				c.Abort()
-				return
-			}
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to fetch supplier company"})
-			c.Abort()
-			return
-		}
-		rows, err = config.DB.QueryContext(ctx, "select p.product_id, p.product_name, p.product_description, p.product_cost, p.product_category_id, p.product_supplier_id, p.discount_type,p.discount_value from products p join suppliers s on p.product_supplier_id = s.supplier_id where s.company = ? order by product_id desc", company)
-		if err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to fetch company products"})
-			c.Abort()
-			return
-		}
+		rows, err = config.DB.QueryContext(ctx, "select p.product_id,p.product_name,p.product_description,p.product_cost,p.product_category_id,c.category_name,p.product_supplier_id,p.discount_type,p.discount_value from products p left join categories c on p.product_category_id=c.category_id where ?='' or cast(p.product_id as char) like ? or lower(p.product_name) like ? or lower(trim(c.category_name)) like ? or cast(p.product_cost as char) like ? or lower(p.discount_type) like ? or format(p.discount_value,2) like ? order by p.product_id asc", search, like, like, like, like, like, like)
 
-	default:
-		c.JSON(http.StatusForbidden, gin.H{"error": "access denied"})
+	case "supplier_admin":
+		supplierID := c.GetInt("supplier_id")
+		rows, err = config.DB.QueryContext(ctx, "select p.product_id,p.product_name,p.product_description,p.product_cost,p.product_category_id,c.category_name,p.product_supplier_id,p.discount_type,p.discount_value from products p left join categories c on p.product_category_id=c.category_id where p.product_supplier_id=? and (?='' or cast(p.product_id as char) like ? or lower(p.product_name) like ? or lower(trim(c.category_name)) like ? or cast(p.product_cost as char) like ? or lower(p.discount_type) like ? or format(p.discount_value,2) like ?) order by p.product_id asc", supplierID, search, like, like, like, like, like, like)
+	}
+
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "db error while fetching products"})
 		c.Abort()
 		return
 	}
+	if rows == nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "query returned no rows"})
+		c.Abort()
+		return
+	}
+
 	defer rows.Close()
 
 	products := []models.Product{}
@@ -201,11 +190,12 @@ func GetProduct(c *gin.Context) {
 		var desp sql.NullString
 		var cost sql.NullFloat64
 		var catgID sql.NullInt64
+		var catName sql.NullString
 		var suppId sql.NullInt64
 		var discType sql.NullString
 		var discValue sql.NullFloat64
 
-		if err := rows.Scan(&p.ProductID, &p.ProductName, &desp, &cost, &catgID, &suppId, &discType, &discValue); err != nil {
+		if err = rows.Scan(&p.ProductID, &p.ProductName, &desp, &cost, &catgID, &catName, &suppId, &discType, &discValue); err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "error while scanning products"})
 			c.Abort()
 			return
@@ -227,6 +217,11 @@ func GetProduct(c *gin.Context) {
 			p.ProductCategoryID = temp
 		} else {
 			p.ProductCategoryID = 0
+		}
+		if catName.Valid {
+			p.CategoryName = catName.String
+		} else {
+			p.CategoryName = ""
 		}
 		if suppId.Valid {
 			temp := int(suppId.Int64)
