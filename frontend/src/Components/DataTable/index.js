@@ -5,8 +5,6 @@ import {useReactTable, getCoreRowModel, getSortedRowModel, flexRender} from "@ta
 const initialProps = {
   data: [],
   columns: [],
-  // globalFilter: "",
-  // setGlobalFilter: () => {}
 }
 
 const Datatable = (props = initialProps) => {
@@ -15,10 +13,7 @@ const Datatable = (props = initialProps) => {
     const table = useReactTable({
     data,
     columns,
-    // state: { globalFilter },
-    // onGlobalFilterChange: setGlobalFilter,
     getCoreRowModel: getCoreRowModel(),
-    // getFilteredRowModel: getFilteredRowModel(),
     getSortedRowModel: getSortedRowModel()
   })
 

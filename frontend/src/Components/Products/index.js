@@ -192,8 +192,6 @@ useEffect(() => {
         <Datatable
           data={state.data}
           columns={columns}
-          globalFilter={globalFilter}
-          setGlobalFilter={setGlobalFilter}
         />
       )}
 
