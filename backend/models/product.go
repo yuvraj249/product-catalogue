@@ -9,4 +9,5 @@ type Product struct {
 	ProductSupplierID  int     `json:"product_supplier_id,omitempty"`
 	DiscountType       string  `json:"discount_type,omitempty"`
 	DiscountValue      float64 `json:"discount_value,omitempty"`
+	CategoryName       string  `json:"category_name"`
 }

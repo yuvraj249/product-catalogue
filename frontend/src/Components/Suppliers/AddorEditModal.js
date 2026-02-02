@@ -1,4 +1,4 @@
-import {ModalHeader, ModalTitle, CloseButton, Form, Input, ModalActions, CancelButton, SubmitButton, Icon} from "./Styles"
+import {ModalHeader, ModalTitle, CloseButton, Form, FormGroup, Label, Input, ModalActions, CancelButton, SubmitButton, Icon} from "./Styles"
 import xIcon from "../../Images/cross.svg"
 import ModalBox from "../ModalBox"
 import api from "../../Api/axios"
