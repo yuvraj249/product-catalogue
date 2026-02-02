@@ -1,10 +1,11 @@
-import { ModalHeader, ModalTitle, CloseButton, Form, FormGroup, Label, Input, Textarea, ModalActions, CancelButton, SubmitButton, Icon } from './Styles'
+import { ModalHeader, ModalTitle, CloseButton, Form, Input, Textarea, ModalActions, CancelButton, SubmitButton, Icon } from './Styles'
 import xIcon from '../../Images/cross.svg'
 import ModalBox from '../ModalBox'
 import api from '../../Api/axios'
 import { toast } from 'react-toastify'
 import { useState } from 'react'
 import { useEffect } from 'react'
+import FormField from '../FormField'
 
 const initialCategoryObject = {
   name: "",
@@ -178,21 +179,36 @@ const onChangeDesc = (e) => {
                         </CloseButton>
                 </ModalHeader>
                 <Form onSubmit={onSubmitHandlder}>
-                    <FormGroup>
-                        <Label>Name *</Label>
-                        <Input value={categoryObj.name}  onChange={onChangeName}/>
-                    </FormGroup>
-                    <FormGroup>
-                        <Label>Description *</Label>
-                        <Textarea value={categoryObj.description} onChange={onChangeDesc}/>
-                    </FormGroup>
-                    <ModalActions>
-                        <CancelButton onClick={() => {onClose(); setCategoryObj(initialCategoryObject)}}>Cancel</CancelButton>
-                        <SubmitButton>
-                            {updatingId ? "Update" : "Create"}
-                        </SubmitButton>
+
+                  <FormField label="Name" required>
+                    <Input
+                      value={categoryObj.name}
+                      onChange={onChangeName}
+                   />
+                  </FormField>
+
+                  <FormField label="Description" required>
+                    <Textarea
+                    value={categoryObj.description}
+                    onChange={onChangeDesc}
+                  />
+                  </FormField>
+
+                  <ModalActions>
+                    <CancelButton
+                      onClick={() => {
+                      onClose();
+                      setCategoryObj(initialCategoryObject);
+                     }}
+                    >Cancel
+                    </CancelButton>
+
+                    <SubmitButton>
+                      {updatingId ? "Update" : "Create"}
+                    </SubmitButton>
                     </ModalActions>
-                </Form>
+
+                    </Form>
             </ModalBox>
   )
 }

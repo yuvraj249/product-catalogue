@@ -164,9 +164,7 @@ const deleteCategory = useCallback(async (id) => {
                 ) : (
                 <Datatable 
                 data={state.data}
-                columns={columns}
-                globalFilter=""
-                setGlobalFilter={setGlobalFilter}          
+                columns={columns}         
                 />
                 )}
          <AddorEditModal
