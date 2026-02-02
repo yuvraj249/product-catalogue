@@ -3,8 +3,6 @@ import {
   ModalTitle,
   CloseButton,
   Form,
-  FormGroup,
-  Label,
   Input,
   ModalActions,
   CancelButton,
@@ -17,6 +15,7 @@ import xIcon from "../../Images/cross.svg";
 import api from "../../Api/axios";
 import { toast } from "react-toastify";
 import { useEffect, useState } from "react";
+import FormField from "../FormField";
 
 const initialState = {
   product_id: null,
@@ -161,69 +160,81 @@ const submit = () => {
       </ModalHeader>
 
       <Form onSubmit={(e) => e.preventDefault()}>
-        <FormGroup>
-          <Label>Product *</Label>
-          <SelectBox
-            classNamePrefix='react-select'
-            options={(products || []).map(p => ({
-              value: p.product_id,
-              label: p.product_name,
-            }))}
-            value={(products || [])
-              .map(p => ({ value: p.product_id, label: p.product_name }))
-              .find(o => o.value === form.product_id) || null}
-            onChange={(opt) =>
-              setForm(f => ({ ...f, product_id: opt.value }))
-            }
-          />
-        </FormGroup>
 
-        <FormGroup>
-          <Label>Quantity *</Label>
-          <Input
-            type="number"
-            value={form.quantity}
-            onChange={(e) =>
-              setForm(f => ({ ...f, quantity: e.target.value }))
-            }
-            min="1"
-          />
-        </FormGroup>
+  <FormField label="Product" required>
+    <SelectBox
+      classNamePrefix="react-select"
+      options={(products || []).map((p) => ({
+        value: p.product_id,
+        label: p.product_name,
+      }))}
+      value={
+        (products || [])
+          .map((p) => ({
+            value: p.product_id,
+            label: p.product_name,
+          }))
+          .find((o) => o.value === form.product_id) || null
+      }
+      onChange={(opt) =>
+        setForm((f) => ({ ...f, product_id: opt.value }))
+      }
+    />
+  </FormField>
 
-        <FormGroup>
-            <Label>Movement Type *</Label>
-            <SelectBox
-                classNamePrefix='react-select'
-                options={[
-                    { value: "IN", label: "IN (Add Stock)" },
-                    { value: "OUT", label: "OUT (Remove Stock)" },
-                ]}
-                value={[
-                    { value: "IN", label: "IN (Add Stock)" },
-                    { value: "OUT", label: "OUT (Remove Stock)" },
-                    ].find(o => o.value === form.movement_type)}
-                onChange={(opt) =>
-                    setForm(f => ({ ...f, movement_type: opt.value }))
-                }
-            />
-        </FormGroup>
+  <FormField label="Quantity" required>
+    <Input
+      type="number"
+      value={form.quantity}
+      onChange={(e) =>
+        setForm((f) => ({ ...f, quantity: e.target.value }))
+      }
+      min="1"
+    />
+  </FormField>
 
-        <FormGroup>
-          <Label>Reason</Label>
-          <Input
-            value={form.reason}
-            onChange={(e) =>
-              setForm(f => ({ ...f, reason: e.target.value }))
-            }
-            placeholder="optional"
-          />
-        </FormGroup>
+  <FormField label="Movement Type" required>
+    <SelectBox
+      classNamePrefix="react-select"
+      options={[
+        { value: "IN", label: "IN (Add Stock)" },
+        { value: "OUT", label: "OUT (Remove Stock)" },
+      ]}
+      value={[
+        { value: "IN", label: "IN (Add Stock)" },
+        { value: "OUT", label: "OUT (Remove Stock)" },
+      ].find((o) => o.value === form.movement_type)}
+      onChange={(opt) =>
+        setForm((f) => ({ ...f, movement_type: opt.value }))
+      }
+    />
+  </FormField>
 
-        <ModalActions>
-          <CancelButton onClick={() => {onClose(); setForm(initialState)}}>Cancel</CancelButton>
-          <SubmitButton onClick={submit}>Save</SubmitButton>
-        </ModalActions>
-      </Form>
+  <FormField label="Reason">
+    <Input
+      value={form.reason}
+      onChange={(e) =>
+        setForm((f) => ({ ...f, reason: e.target.value }))
+      }
+      placeholder="optional"
+    />
+  </FormField>
+
+  <ModalActions>
+    <CancelButton
+      onClick={() => {
+        onClose();
+        setForm(initialState);
+      }}
+    >
+      Cancel
+    </CancelButton>
+
+    <SubmitButton onClick={submit}>Save</SubmitButton>
+  </ModalActions>
+
+</Form>
+
     </ModalBox>
   );
 };

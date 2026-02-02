@@ -170,7 +170,7 @@ const StockMovements = () => {
         <Datatable
           data={data}
           columns={columns}
-          globalFilter={globalFilter}
+          globalFilter=""
           setGlobalFilter={setGlobalFilter}
         />
       )}
