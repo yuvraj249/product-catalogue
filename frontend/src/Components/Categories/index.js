@@ -19,6 +19,7 @@ import trashIcon from '../../Images/trash.svg'
 import Datatable from '../DataTable';
 import AddorEditModal from './AddorEditModal'
 import { useLocation } from 'react-router-dom'
+import { useDebounce } from '../../DebounceSearch'
 
 
 const Categories = () => { 
@@ -56,15 +57,10 @@ useEffect(() => {
     }
 }, [location.search])
 
-useEffect(() => {
-    const handler = setTimeout(() => {
-      const value = globalFilter.trim()
-
-      fetchCategories(value)
-    }, 350)
-
-    return () => clearTimeout(handler)
-  }, [globalFilter, fetchCategories])
+const debouncedSearch = useDebounce(globalFilter, 350);
+ useEffect(() => {
+  fetchCategories(debouncedSearch.trim());
+}, [debouncedSearch, fetchCategories]);
 
 
 const deleteCategory = useCallback(async (id) => {
