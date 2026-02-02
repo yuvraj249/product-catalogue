@@ -2,6 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import api from '../../Api/axios';
 import { useCallback } from 'react';
 import { getUserInfo } from '../../utils/auth';
+import { useDebounce } from '../../DebounceSearch';
 import {
   PageHeader,
   Title,
@@ -56,7 +57,6 @@ const Suppliers = () => {
         setState(prev => ({ ...prev, data: res.data.suppliers || [] }))
 
     } catch {
-      setState(prev => ({ ...prev, data: [] }))
       toast.error('Failed to load suppliers')
     } finally {
       setLoading(false)
@@ -76,22 +76,10 @@ const Suppliers = () => {
 }, [location.search, fetchSuppliers])
 
 
-
+  const debouncedSearch = useDebounce(globalFilter, 350);
  useEffect(() => {
-  const handler = setTimeout(() => {
-    const q = globalFilter.trim()
-    if (q === "") {
-      fetchSuppliers("")
-    } else {
-      fetchSuppliers(q)
-    }
-  }, 350)
-  return () => clearTimeout(handler)
-}, [globalFilter, fetchSuppliers])
-
-
-
-
+  fetchSuppliers(debouncedSearch.trim());
+}, [debouncedSearch, fetchSuppliers]);
   const deleteSupplier = useCallback(async (id) => {
   try {
     await api.delete(`suppliers/${id}`)
@@ -207,8 +195,6 @@ const onClickEdit = useCallback((row) => {
           data-cy="suppliers-table"
           data={state.data}
           columns={columns}
-          globalFilter={globalFilter}
-          setGlobalFilter={setGlobalFilter}
           />
       )}
 

@@ -1,5 +1,5 @@
 import { TableWrapper , Table, Th, Td, SortWrapper, Arrow, HeaderContent } from './Styles';
-import {useReactTable, getCoreRowModel, getFilteredRowModel, getSortedRowModel, flexRender} from "@tanstack/react-table";
+import {useReactTable, getCoreRowModel, getSortedRowModel, flexRender} from "@tanstack/react-table";
 
 
 const initialProps = {
@@ -11,14 +11,11 @@ const initialProps = {
 
 const Datatable = (props = initialProps) => {
 
-    const {data, columns, globalFilter, setGlobalFilter} = props
+    const {data, columns} = props
     const table = useReactTable({
     data,
     columns,
-    state: { globalFilter },
-    onGlobalFilterChange: setGlobalFilter,
     getCoreRowModel: getCoreRowModel(),
-    getFilteredRowModel: getFilteredRowModel(),
     getSortedRowModel: getSortedRowModel()
   })
 

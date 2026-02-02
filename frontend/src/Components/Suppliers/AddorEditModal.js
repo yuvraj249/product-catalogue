@@ -196,7 +196,7 @@ const AddOrEditSupplierModal = ({ open, onClose, updatingId, refetch, setLoading
         </CloseButton>
       </ModalHeader>
 
-      <Form onSubmit={onSubmitHandler}>
+  <Form onSubmit={onSubmitHandler}>
 
   <FormField label="Name" required>
     <Input
