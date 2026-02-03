@@ -3,8 +3,6 @@ import {
   ModalTitle,
   CloseButton,
   Form,
-  FormGroup,
-  Label,
   Input,
   ModalActions,
   CancelButton,
@@ -17,6 +15,7 @@ import xIcon from "../../Images/cross.svg";
 import api from "../../Api/axios";
 import { toast } from "react-toastify";
 import { useEffect, useState } from "react";
+import FormField from "../FormField";
 
 const initialProduct = {
   product_name: "",
@@ -189,88 +188,89 @@ const updateProduct = async () => {
         </CloseButton>
       </ModalHeader>
 
-      <Form data-cy="product-form" onSubmit={(e) => e.preventDefault()}>
-        <FormGroup>
-          <Label>Name *</Label>
-          <Input
-            data-cy="product-name"
-            value={product.product_name}
-            onChange={(e) =>
-              setProduct((p) => ({ ...p, product_name: e.target.value }))
-            }
-          />
-        </FormGroup>
+      <Form onSubmit={(e) => e.preventDefault()}>
 
-        <FormGroup>
-          <Label>Category *</Label>
-          <CategorySelect
-            data-cy="product-category"
-            classNamePrefix="react-select"
-            options={(categories || []).map((c) => ({
-                value: c.category_id,
-                label: c.category_name,
-            }))}
-            value={
-              categories
-                .map((c) => ({
-                  value: c.category_id,
-                  label: c.category_name,
-                }))
-                .find(
-                  (o) => o.value === Number(product.product_category_id)
-                ) || null
-            }
-            onChange={(opt) =>
-              setProduct((p) => ({
-                ...p,
-                product_category_id: Number(opt.value),
-              }))
-            }
-          />
-        </FormGroup>
+  <FormField label="Name" required>
+    <Input
+      value={product.product_name}
+      onChange={(e) =>
+        setProduct((p) => ({ ...p, product_name: e.target.value }))
+      }
+    />
+  </FormField>
 
-        <FormGroup>
-          <Label>Cost *</Label>
-          <Input
-            data-cy="product-cost"
-            type="number"
-            value={product.product_cost}
-            onChange={(e) =>
-              setProduct((p) => ({ ...p, product_cost: e.target.value }))
-            }
-          />
-        </FormGroup>
+  <FormField label="Category" required>
+    <CategorySelect
+      classNamePrefix="react-select"
+      options={(categories || []).map((c) => ({
+        value: c.category_id,
+        label: c.category_name,
+      }))}
+      value={
+        categories
+          .map((c) => ({
+            value: c.category_id,
+            label: c.category_name,
+          }))
+          .find(
+            (o) => o.value === Number(product.product_category_id)
+          ) || null
+      }
+      onChange={(opt) =>
+        setProduct((p) => ({
+          ...p,
+          product_category_id: Number(opt.value),
+        }))
+      }
+    />
+  </FormField>
 
-        <FormGroup>
-          <Label>Discount Type</Label>
-          <Input
-            data-cy="product-discount-type"
-            value={product.discount_type}
-            onChange={(e) =>
-              setProduct((p) => ({ ...p, discount_type: e.target.value }))
-            }
-          />
-        </FormGroup>
+  <FormField label="Cost" required>
+    <Input
+      type="number"
+      value={product.product_cost}
+      onChange={(e) =>
+        setProduct((p) => ({ ...p, product_cost: e.target.value }))
+      }
+    />
+  </FormField>
 
-        <FormGroup>
-          <Label>Discount Value</Label>
-          <Input
-            data-cy="product-discount-value"
-            type="number"
-            value={product.discount_value}
-            onChange={(e) =>
-              setProduct((p) => ({ ...p, discount_value: e.target.value }))
-            }
-          />
-        </FormGroup>
+  <FormField label="Discount Type">
+    <Input
+      value={product.discount_type}
+      onChange={(e) =>
+        setProduct((p) => ({ ...p, discount_type: e.target.value }))
+      }
+    />
+  </FormField>
 
-        <ModalActions>
-          <CancelButton data-cy="product-cancel-btn" onClick={() => {onClose(); setProduct(initialProduct)}}>Cancel</CancelButton>
-          <SubmitButton data-cy="product-submit-btn" onClick={updatingId ? updateProduct : createProduct}>
-            {updatingId ? "Update" : "Create"}
-          </SubmitButton>
-        </ModalActions>
-      </Form>
+  <FormField label="Discount Value">
+    <Input
+      type="number"
+      value={product.discount_value}
+      onChange={(e) =>
+        setProduct((p) => ({ ...p, discount_value: e.target.value }))
+      }
+    />
+  </FormField>
+
+  <ModalActions>
+    <CancelButton
+      onClick={() => {
+        onClose();
+        setProduct(initialProduct);
+      }}
+    >
+      Cancel
+    </CancelButton>
+
+    <SubmitButton onClick={updatingId ? updateProduct : createProduct}>
+      {updatingId ? "Update" : "Create"}
+    </SubmitButton>
+  </ModalActions>
+
+</Form>
+
     </ModalBox>
   );
 };
