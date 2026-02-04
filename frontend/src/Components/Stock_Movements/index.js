@@ -7,9 +7,10 @@ import {
   SearchWrap,
   SearchIpt,
   Icon,
-  AddButton,
   ActionButtons,
   IconButton,
+  HeaderAction,
+  HeaderAddButton
 
 } from "./Styles";
 import { toast, ToastContainer } from "react-toastify";
@@ -157,10 +158,12 @@ const StockMovements = () => {
         </SearchWrap>
 
         {user.role === "supplier_admin" && (
-            <AddButton onClick={() => {setEditingItem(null); setModalOpen(true)}}>
+         <HeaderAction>
+          <HeaderAddButton size="sm" variant="primary" onClick={() => {setEditingItem(null); setModalOpen(true)}}>
             <Icon src={plusIcon} />
             Add Stock
-            </AddButton>
+            </HeaderAddButton>
+        </HeaderAction>
   )}
       </PageHeader>
 

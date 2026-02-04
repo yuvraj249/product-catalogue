@@ -4,9 +4,8 @@ import {
   CloseButton,
   Form,
   Input,
+  Button,
   ModalActions,
-  CancelButton,
-  SubmitButton,
   Icon,
   SelectBox,
 } from "./Styles";
@@ -195,16 +194,17 @@ const submit = () => {
   </FormField>
 
   <ModalActions>
-    <CancelButton
+    <Button
+      variant="secondary"
       onClick={() => {
         onClose();
         setForm(initialState);
       }}
     >
       Cancel
-    </CancelButton>
+    </Button>
 
-    <SubmitButton onClick={submit}>Save</SubmitButton>
+    <Button variant="primary" onClick={submit}>Save</Button>
   </ModalActions>
 
 </Form>
