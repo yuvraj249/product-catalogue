@@ -6,6 +6,7 @@ import { toast } from 'react-toastify'
 import { useState } from 'react'
 import { useEffect } from 'react'
 import FormField from '../FormField'
+import { validateCategoryForm } from '../../utils/validation'
 
 const initialCategoryObject = {
   name: "",
@@ -40,55 +41,9 @@ useEffect(() => {
   fetchCategory();
 }, [updatingId])
 
-const validateForm = async () => {
-  const name = categoryObj.name.trim()
-  const desc = categoryObj.description.trim()
-
-  if (!name) {
-    toast.error("Category name is required")
-    return false
-  }
-
-  if (name.length < 2) {
-    toast.error("Category name must be at least 2 characters")
-    return false
-  }
-
-  if (name.length > 50) {
-    toast.error("Category name must be under 50 characters")
-    return false
-  }
-
-  if (desc.length > 200) {
-    toast.error("Description must be under 200 characters")
-    return false
-  }
-
-  try {
-    const res = await api.get("/categories", {
-      params: { q: name }
-    })
-
-    const exists = res.data.categories?.some(
-      c => c.category_name.toLowerCase() === name.toLowerCase()
-    )
-
-    if (exists && !updatingId) {
-      toast.error("Category with this name already exists")
-      return false
-    }
-  } catch {
-    toast.error("Failed to validate category name")
-    return false
-  }
-
-  return true
-}
-
-
 
 const createCategory = async () => {
-    const valid = await validateForm()
+    const valid = await validateCategoryForm(categoryObj, updatingId)
     if (!valid) return
 
     setLoading(true)
@@ -113,7 +68,7 @@ const createCategory = async () => {
    }
 
 const updateCategory = async () => {
-    const valid = await validateForm()
+    const valid = await validateCategoryForm(categoryObj, updatingId)
     if (!valid) return
 
     setLoading(true)
