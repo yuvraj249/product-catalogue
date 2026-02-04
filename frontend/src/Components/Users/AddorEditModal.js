@@ -16,6 +16,7 @@ import api from "../../Api/axios";
 import { toast } from "react-toastify";
 import { useEffect, useState } from "react";
 import FormField from "../FormField";
+import { validateUserForm } from "../../utils/validation";
 
 const initialUser = { name: "", email: "", password: "", supplier_id: "" }
 
@@ -31,65 +32,9 @@ const AddOrEditUserModal = ({ open, onClose, updatingId, form, refetch, supplier
     setUserObj(form)
   }, [updatingId, form])
 
-  const validateUserForm = () => {
-  const name = userObj.name.trim()
-  const email = userObj.email.trim()
-  const password = userObj.password
-  const supplierId = userObj.supplier_id
-
-  if (!name) {
-    toast.error("User name is required")
-    return false
-  }
-
-  if (name.length < 2) {
-    toast.error("User name must be at least 2 characters")
-    return false
-  }
-
-  if (!email) {
-    toast.error("Email cannot be empty")
-    return false
-  }
-
-  const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/
-  if (!emailRegex.test(email)) {
-    toast.error("Invalid email format (e.g., user@example.com)")
-    return false
-  }
-
-  if (!updatingId) {
-    if (!password) {
-      toast.error("Password is required")
-      return false
-    }
-
-    if (password.length < 8) {
-      toast.error("Password must be at least 8 characters long")
-      return false
-    }
-
-    if (!/^(?=.*[A-Z])(?=.*[a-z])(?=.*[0-9])(?=.*[!@#$%^&*(),.?":{}|<>_\-+=~`])/.test(password)) {
-          toast.error("Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character")
-          return false
-    }
-
-  }
-
-  if (form.role !== "system_admin") {
-    if (!supplierId || Number(supplierId) <= 0) {
-      toast.error("Please select a valid supplier")
-      return false
-    }
-  }
-
-  return true
-}
-
-
   const createUser = async () => {
 
-    if (!validateUserForm()) return
+    if (!validateUserForm(userObj, updatingId, form)) return
 
     const payload = {
     name: userObj.name.trim(),
@@ -120,7 +65,7 @@ const AddOrEditUserModal = ({ open, onClose, updatingId, form, refetch, supplier
 
   const updateUser = async () => {
 
-    if (!validateUserForm()) return
+    if (!validateUserForm(userObj, updatingId, form)) return
 
     const payload = {
     name: userObj.name.trim(),
