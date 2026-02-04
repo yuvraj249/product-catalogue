@@ -12,6 +12,7 @@ import {
   IconButton,
 } from "./Styles";
 import { toast, ToastContainer } from "react-toastify";
+import { useDebounce } from "../../DebounceSearch";
 import Datatable from "../DataTable";
 import AddOrEditProductModal from "./AddorEditModal";
 import plusIcon from "../../Images/plus.svg";
@@ -76,13 +77,10 @@ useEffect(() => {
   }, [location.search])
 
 
-  useEffect(() => {
-    const handler = setTimeout(() => {
-      fetchProducts(globalFilter.trim())
-    }, 350)
-
-    return () => clearTimeout(handler)
-  }, [globalFilter, fetchProducts])
+ const debouncedSearch = useDebounce(globalFilter, 350);
+ useEffect(() => {
+  fetchProducts(debouncedSearch.trim());
+}, [debouncedSearch, fetchProducts]);
 
 
   const deleteProduct = useCallback(

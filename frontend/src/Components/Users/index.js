@@ -19,6 +19,7 @@ import trashIcon from "../../Images/trash.svg";
 import Datatable from "../DataTable";
 import AddOrEditUserModal from "./AddorEditModal";
 import { useLocation } from "react-router-dom";
+import { useDebounce } from "../../DebounceSearch";
 
 const Users = () => {
   const user = getUserInfo()
@@ -73,18 +74,10 @@ const supplierMap = useMemo(() => {
   }, [location.search]);
 
 
-   useEffect(() => {
-    const handler = setTimeout(() => {
-      if (globalFilter.trim() === "") {
-            fetchUsers()
-    } else {
-        fetchUsers(globalFilter.trim())
-    }
-    }, 350);
-
-    return () => clearTimeout(handler)
-  }, [globalFilter, fetchUsers])
-
+ const debouncedSearch = useDebounce(globalFilter, 350);
+ useEffect(() => {
+  fetchUsers(debouncedSearch.trim());
+}, [debouncedSearch, fetchUsers]);
  
   
   const deleteUser = useCallback(
