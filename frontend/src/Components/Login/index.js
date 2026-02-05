@@ -17,8 +17,29 @@ export const LoginPage = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
 
+  const validateForm = () => {
+    if (!email.trim()) {
+      toast.error("Email is required")
+      return false
+    }
+
+    if (!password.trim()) {
+      toast.error("Password is required")
+      return false
+    }
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+    if (!emailRegex.test(email)) {
+      toast.error("Enter a valid email address")
+      return false
+    }
+
+    return true
+  }
+
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (!validateForm()) return;
     setLoading(true);
 
     try {
@@ -55,20 +76,20 @@ export const LoginPage = () => {
         <Form onSubmit={handleSubmit}>
          <FormGroup>
           <label>Email Address</label>
-        <Input placeholder='abc@gmail.com' value={email} onChange={e => setEmail(e.target.value)}/>
+        <Input data-cy="email-input" placeholder='abc@gmail.com' value={email} onChange={e => setEmail(e.target.value)}/>
          </FormGroup>
 
          <FormGroup>
          <label>Password</label>
         <PasswordWrapper>
-          <Input placeholder='password' type={!showPassword ? "text" : "password"} value={password} onChange={e => setPassword(e.target.value)} />
+          <Input data-cy="password-input" placeholder='password' type={!showPassword ? "text" : "password"} value={password} onChange={e => setPassword(e.target.value)} />
           <IconButton type='button' onClick={() => setShowPassword(!showPassword)}>
             <img src={showPassword ? eyeOff : eye} alt='toggle password' width={18} />
           </IconButton>
         </PasswordWrapper>
         </FormGroup> 
        
-       <SubmitButton type="submit" disabled={loading}>
+       <SubmitButton type="submit" disabled={loading} data-cy="login-btn">
             {loading ? "Signing In..." : "Sign In"}
             <img src={arrow} alt="" width={18} style={{ marginLeft: 8 }} />
         </SubmitButton>
