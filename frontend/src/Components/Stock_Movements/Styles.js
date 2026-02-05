@@ -20,12 +20,6 @@ export const Title = styled.h1`
   font-weight: 700;
 `;
 
-export const CategoryDescription = styled.div`
-  color: #4f6b72;
-  line-height: 1.5;
-  max-width: 400px;
-`;
-
 export const Button = styled.button`
   font-weight: 600;
   cursor: pointer;

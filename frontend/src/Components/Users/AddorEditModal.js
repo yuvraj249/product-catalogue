@@ -5,10 +5,9 @@ import {
   Form,
   Input,
   ModalActions,
-  CancelButton,
-  SubmitButton,
   Icon,
-  SupplierSelect
+  SupplierSelect,
+  Button
 } from "./Styles";
 import xIcon from "../../Images/cross.svg";
 import ModalBox from "../ModalBox";
@@ -172,18 +171,19 @@ const AddOrEditUserModal = ({ open, onClose, updatingId, form, refetch, supplier
   </FormField>
 
   <ModalActions>
-    <CancelButton
+    <Button
+      variant="secondary"
       onClick={() => {
         onClose();
         setUserObj(initialUser);
       }}
     >
       Cancel
-    </CancelButton>
+    </Button>
 
-    <SubmitButton>
+    <Button variant="primary">
       {updatingId ? "Update" : "Create"}
-    </SubmitButton>
+    </Button>
   </ModalActions>
 
 </Form>

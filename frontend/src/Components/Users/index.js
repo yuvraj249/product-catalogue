@@ -4,12 +4,13 @@ import { getUserInfo } from "../../utils/auth";
 import {
   PageHeader,
   Title,
-  AddButton,
   Icon,
   SearchWrap,
   SearchIpt,
   IconButton,
   ActionButtons,
+  HeaderAddButton,
+  HeaderAction
 } from "./Styles";
 import { toast, ToastContainer } from "react-toastify";
 import plusIcon from "../../Images/plus.svg";
@@ -185,10 +186,10 @@ console.log({state})
         </SearchWrap>
 
         {user.role === "system_admin" && (
-          <AddButton onClick={onClickAdd}>
+          <HeaderAction><HeaderAddButton onClick={onClickAdd}>
             <Icon src={plusIcon} alt="add" />
             Add User
-          </AddButton>
+          </HeaderAddButton></HeaderAction>
         )}
       </PageHeader>
 

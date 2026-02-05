@@ -5,10 +5,9 @@ import {
   Form,
   Input,
   ModalActions,
-  CancelButton,
-  SubmitButton,
   Icon,
   CategorySelect,
+  Button
 } from "./Styles";
 import ModalBox from "../ModalBox";
 import xIcon from "../../Images/cross.svg";
@@ -173,18 +172,19 @@ const updateProduct = async () => {
   </FormField>
 
   <ModalActions>
-    <CancelButton
+    <Button
+      variant="secondary"
       onClick={() => {
         onClose();
         setProduct(initialProduct);
       }}
     >
       Cancel
-    </CancelButton>
+    </Button>
 
-    <SubmitButton onClick={updatingId ? updateProduct : createProduct}>
+    <Button varaint="primary" onClick={updatingId ? updateProduct : createProduct}>
       {updatingId ? "Update" : "Create"}
-    </SubmitButton>
+    </Button>
   </ModalActions>
 
 </Form>

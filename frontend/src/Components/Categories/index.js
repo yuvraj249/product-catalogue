@@ -4,12 +4,13 @@ import { getUserInfo } from '../../utils/auth'
 import {
     PageHeader,
     Title,
-    AddButton,
     Icon, 
     SearchWrap,
     SearchIpt,
     IconButton,
     ActionButtons,
+    HeaderAddButton,
+    HeaderAction
 } from './Styles'
 import {toast,ToastContainer} from 'react-toastify'
 import plusIcon from '../../Images/plus.svg'
@@ -147,11 +148,11 @@ const deleteCategory = useCallback(async (id) => {
                         </SearchWrap>
                         {
                             user.role === 'system_admin' && (
-                                <AddButton 
+                               <HeaderAction><HeaderAddButton 
                                 onClick={onClickAddCatg}>
                                     <Icon src={plusIcon} alt="add" /> 
                                     Add Category 
-                                </AddButton>
+                                </HeaderAddButton></HeaderAction>
                             )
                         }
                 </PageHeader>

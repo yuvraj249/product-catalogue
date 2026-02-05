@@ -1,4 +1,4 @@
-import { ModalHeader, ModalTitle, CloseButton, Form, Input, Textarea, ModalActions, CancelButton, SubmitButton, Icon } from './Styles'
+import { ModalHeader, ModalTitle, CloseButton, Form, Input, Textarea, ModalActions, Icon, Button } from './Styles'
 import xIcon from '../../Images/cross.svg'
 import ModalBox from '../ModalBox'
 import api from '../../Api/axios'
@@ -150,17 +150,18 @@ const onChangeDesc = (e) => {
                   </FormField>
 
                   <ModalActions>
-                    <CancelButton
+                    <Button
+                      variant="secondary"
                       onClick={() => {
                       onClose();
                       setCategoryObj(initialCategoryObject);
                      }}
                     >Cancel
-                    </CancelButton>
+                    </Button>
 
-                    <SubmitButton>
+                    <Button  variant="primary">
                       {updatingId ? "Update" : "Create"}
-                    </SubmitButton>
+                    </Button>
                     </ModalActions>
 
                     </Form>

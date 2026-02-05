@@ -4,12 +4,13 @@ import { getUserInfo } from "../../utils/auth";
 import {
   PageHeader,
   Title,
-  AddButton,
   Icon,
   SearchWrap,
   SearchIpt,
   ActionButtons,
   IconButton,
+  HeaderAddButton,
+  HeaderAction
 } from "./Styles";
 import { toast, ToastContainer } from "react-toastify";
 import { useDebounce } from "../../DebounceSearch";
@@ -177,10 +178,10 @@ useEffect(() => {
         </SearchWrap>
 
         {user.role === "supplier_admin" && (
-          <AddButton onClick={onClickAdd}>
+         <HeaderAction><HeaderAddButton onClick={onClickAdd}>
             <Icon src={plusIcon} />
             Add Product
-          </AddButton>
+          </HeaderAddButton></HeaderAction>
         )}
       </PageHeader>
 
