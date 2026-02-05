@@ -1,9 +1,6 @@
 import { toast } from "react-toastify";
-<<<<<<< Suppliers_Page
-=======
 import api from "../Api/axios";
 
->>>>>>> frontend_development
 
 export const validateSupplierForm = (supplier) => {
   const name = supplier.name.trim()
@@ -92,8 +89,6 @@ export const validateSupplierForm = (supplier) => {
 
   return true
 }
-<<<<<<< Suppliers_Page
-=======
 
 
 export const validateUserForm = (userObj, updatingId, form) => {
@@ -280,4 +275,44 @@ export const validateCategoryForm = async (categoryObj, updatingId) => {
 
   return true
 }
->>>>>>> frontend_development
+
+export const validateStockForm = (form) => {
+    const qty = Number(form.quantity)
+
+    if (!form.product_id || form.product_id <= 0) {
+      toast.error("Please select a valid product")
+      return false
+    }
+
+    if (!form.quantity) {
+      toast.error("Quantity is required")
+      return false
+    }
+
+    if (isNaN(qty) || qty <= 0) {
+      toast.error("Quantity must be a positive number")
+      return false
+    }
+
+    if (!Number.isInteger(qty)) {
+    toast.error("Quantity must be a whole number (no decimals)")
+    return false
+  }
+
+  if (qty > 100000) {
+      toast.error("Quantity too large")
+      return false
+    }
+
+    if (!form.movement_type || !["IN", "OUT"].includes(form.movement_type)) {
+      toast.error("Invalid movement type")
+      return false
+    }
+
+    if (form.reason && form.reason.length > 200) {
+      toast.error("Reason too long (max 200 characters)")
+      return false
+    }
+
+    return true
+  }
