@@ -11,7 +11,7 @@ import {
   IconButton,
   HeaderAddButton,
   HeaderAction
-} from "./Styles";
+} from "../CommonUIStyles/Styles";
 import { toast, ToastContainer } from "react-toastify";
 import { useDebounce } from "../../DebounceSearch";
 import Datatable from "../DataTable";

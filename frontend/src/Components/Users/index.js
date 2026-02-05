@@ -11,7 +11,7 @@ import {
   ActionButtons,
   HeaderAddButton,
   HeaderAction
-} from "./Styles";
+} from "../CommonUIStyles/Styles"
 import { toast, ToastContainer } from "react-toastify";
 import plusIcon from "../../Images/plus.svg";
 import searchIcon from "../../Images/search.svg";

@@ -7,8 +7,8 @@ import {
   Button,
   ModalActions,
   Icon,
-  SelectBox,
-} from "./Styles";
+} from "../CommonUIStyles/Styles";
+import { SelectBox } from "./Styles";
 import ModalBox from "../ModalBox";
 import xIcon from "../../Images/cross.svg";
 import api from "../../Api/axios";

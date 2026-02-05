@@ -12,7 +12,7 @@ import {
   HeaderAction,
   HeaderAddButton
 
-} from "./Styles";
+} from "../CommonUIStyles/Styles";
 import { toast, ToastContainer } from "react-toastify";
 import Datatable from "../DataTable";
 import searchIcon from "../../Images/search.svg";

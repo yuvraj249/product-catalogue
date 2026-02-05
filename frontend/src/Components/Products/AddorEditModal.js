@@ -6,9 +6,9 @@ import {
   Input,
   ModalActions,
   Icon,
-  CategorySelect,
   Button
-} from "./Styles";
+} from "../CommonUIStyles/Styles";
+import { CategorySelect } from "./Styles";
 import ModalBox from "../ModalBox";
 import xIcon from "../../Images/cross.svg";
 import api from "../../Api/axios";

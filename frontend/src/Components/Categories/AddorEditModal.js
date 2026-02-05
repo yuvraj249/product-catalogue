@@ -1,4 +1,5 @@
-import { ModalHeader, ModalTitle, CloseButton, Form, Input, Textarea, ModalActions, Icon, Button } from './Styles'
+import { Textarea} from './Styles'
+import { ModalHeader, ModalTitle, CloseButton, Form, Input, ModalActions, Icon, Button } from "../CommonUIStyles/Styles";
 import xIcon from '../../Images/cross.svg'
 import ModalBox from '../ModalBox'
 import api from '../../Api/axios'

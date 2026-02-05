@@ -6,9 +6,9 @@ import {
   Input,
   ModalActions,
   Icon,
-  SupplierSelect,
   Button
-} from "./Styles";
+} from "../CommonUIStyles/Styles";
+import { SupplierSelect } from "./Styles";
 import xIcon from "../../Images/cross.svg";
 import ModalBox from "../ModalBox";
 import api from "../../Api/axios";
