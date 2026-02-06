@@ -3,12 +3,9 @@ import {
   ModalTitle,
   CloseButton,
   Form,
-  FormGroup,
-  Label,
   Input,
+  Button,
   ModalActions,
-  CancelButton,
-  SubmitButton,
   Icon,
   SelectBox,
 } from "./Styles";
@@ -16,7 +13,9 @@ import ModalBox from "../ModalBox";
 import xIcon from "../../Images/cross.svg";
 import api from "../../Api/axios";
 import { toast } from "react-toastify";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
+import FormField from "../FormField";
+import { validateStockForm } from "../../utils/validation";
 
 const initialState = {
   product_id: null,
@@ -44,51 +43,39 @@ const AddOrEditStockModal = ({ open, onClose, refetch, products, editingItem, se
 }, [open, editingItem])
 
 
-const validateStockForm = () => {
-    const qty = Number(form.quantity)
+const productOptions = useMemo(() => {
+    return (products || []).map((p) => ({
+      value: p.product_id,
+      label: p.product_name,
+    }));
+  }, [products]);
 
-    if (!form.product_id || form.product_id <= 0) {
-      toast.error("Please select a valid product")
-      return false
-    }
+  const selectedProduct = useMemo(() => {
+    return (
+      productOptions.find((o) => o.value === form.product_id) || null
+    );
+  }, [productOptions, form.product_id]);
 
-    if (!form.quantity) {
-      toast.error("Quantity is required")
-      return false
-    }
+  const movementTypeOptions = useMemo(
+    () => [
+      { value: "IN", label: "IN (Add Stock)" },
+      { value: "OUT", label: "OUT (Remove Stock)" },
+    ],
+    []
+  );
 
-    if (isNaN(qty) || qty <= 0) {
-      toast.error("Quantity must be a positive number")
-      return false
-    }
-
-    if (!Number.isInteger(qty)) {
-    toast.error("Quantity must be a whole number (no decimals)")
-    return false
-  }
-
-  if (qty > 100000) {
-      toast.error("Quantity too large")
-      return false
-    }
-
-    if (!form.movement_type || !["IN", "OUT"].includes(form.movement_type)) {
-      toast.error("Invalid movement type")
-      return false
-    }
-
-    if (form.reason && form.reason.length > 200) {
-      toast.error("Reason too long (max 200 characters)")
-      return false
-    }
-
-    return true
-  }
+  const selectedMovementType = useMemo(() => {
+    return (
+      movementTypeOptions.find(
+        (o) => o.value === form.movement_type
+      ) || null
+    );
+  }, [movementTypeOptions, form.movement_type])
 
 
   const addStockMovement = async () => {
 
-  if (!validateStockForm()) return
+  if (!validateStockForm(form)) return
   setLoading(true)
   if (!form.product_id || !form.quantity) {
     toast.error("product and quantity required")
@@ -117,7 +104,7 @@ const validateStockForm = () => {
 
 const updateStockMovement = async () => {
 
-  if (!validateStockForm()) return
+  if (!validateStockForm(form)) return
   setLoading(true)
   if (!form.product_id || !form.quantity) {
     toast.error("product and quantity required")
@@ -151,6 +138,7 @@ const submit = () => {
   }
 }
 
+
   return (
     <ModalBox open={open} onClose={() => {onClose(); setForm(initialState)}}>
       <ModalHeader>
@@ -161,73 +149,66 @@ const submit = () => {
       </ModalHeader>
 
       <Form onSubmit={(e) => e.preventDefault()}>
-        <FormGroup>
-          <Label>Product *</Label>
-          <SelectBox
-            classNamePrefix='react-select'
-            data-cy="stock-product-select"
-            options={(products || []).map(p => ({
-              value: p.product_id,
-              label: p.product_name,
-            }))}
-            value={(products || [])
-              .map(p => ({ value: p.product_id, label: p.product_name }))
-              .find(o => o.value === form.product_id) || null}
-            onChange={(opt) =>
-              setForm(f => ({ ...f, product_id: opt.value }))
-            }
-          />
-        </FormGroup>
 
-        <FormGroup>
-          <Label>Quantity *</Label>
-          <Input
-            data-cy="stock-quantity"
-            type="number"
-            value={form.quantity}
-            onChange={(e) =>
-              setForm(f => ({ ...f, quantity: e.target.value }))
-            }
-            min="1"
-          />
-        </FormGroup>
+  <FormField label="Product" required>
+    <SelectBox
+      classNamePrefix="react-select"
+      options={productOptions}
+      value={selectedProduct}
+      onChange={(opt) =>
+        setForm((f) => ({ ...f, product_id: opt.value }))
+      }
+    />
+  </FormField>
 
-        <FormGroup>
-            <Label>Movement Type *</Label>
-            <SelectBox
-                data-cy="stock-movement-type"
-                classNamePrefix='react-select'
-                options={[
-                    { value: "IN", label: "IN (Add Stock)" },
-                    { value: "OUT", label: "OUT (Remove Stock)" },
-                ]}
-                value={[
-                    { value: "IN", label: "IN (Add Stock)" },
-                    { value: "OUT", label: "OUT (Remove Stock)" },
-                    ].find(o => o.value === form.movement_type)}
-                onChange={(opt) =>
-                    setForm(f => ({ ...f, movement_type: opt.value }))
-                }
-            />
-        </FormGroup>
+  <FormField label="Quantity" required>
+    <Input
+      type="number"
+      value={form.quantity}
+      onChange={(e) =>
+        setForm((f) => ({ ...f, quantity: e.target.value }))
+      }
+      min="1"
+    />
+  </FormField>
 
-        <FormGroup>
-          <Label>Reason</Label>
-          <Input
-            data-cy="stock-reason"
-            value={form.reason}
-            onChange={(e) =>
-              setForm(f => ({ ...f, reason: e.target.value }))
-            }
-            placeholder="optional"
-          />
-        </FormGroup>
+  <FormField label="Movement Type" required>
+    <SelectBox
+      classNamePrefix="react-select"
+      options={movementTypeOptions}
+      value={selectedMovementType}
+      onChange={(opt) =>
+        setForm((f) => ({ ...f, movement_type: opt.value }))
+      }
+    />
+  </FormField>
 
-        <ModalActions>
-          <CancelButton data-cy="stock-cancel-btn" onClick={() => {onClose(); setForm(initialState)}}>Cancel</CancelButton>
-          <SubmitButton  data-cy="stock-submit-btn" onClick={submit}>Save</SubmitButton>
-        </ModalActions>
-      </Form>
+  <FormField label="Reason">
+    <Input
+      value={form.reason}
+      onChange={(e) =>
+        setForm((f) => ({ ...f, reason: e.target.value }))
+      }
+      placeholder="optional"
+    />
+  </FormField>
+
+  <ModalActions>
+    <Button
+      variant="secondary"
+      onClick={() => {
+        onClose();
+        setForm(initialState);
+      }}
+    >
+      Cancel
+    </Button>
+
+    <Button variant="primary" onClick={submit}>Save</Button>
+  </ModalActions>
+
+</Form>
+
     </ModalBox>
   );
 };

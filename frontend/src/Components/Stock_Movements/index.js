@@ -7,9 +7,10 @@ import {
   SearchWrap,
   SearchIpt,
   Icon,
-  AddButton,
   ActionButtons,
   IconButton,
+  HeaderAction,
+  HeaderAddButton
 
 } from "./Styles";
 import { toast, ToastContainer } from "react-toastify";
@@ -159,10 +160,12 @@ const StockMovements = () => {
         </SearchWrap>
 
         {user.role === "supplier_admin" && (
-            <AddButton data-cy="add-stock-btn" onClick={() => {setEditingItem(null); setModalOpen(true)}}>
+         <HeaderAction>
+          <HeaderAddButton size="sm" variant="primary" onClick={() => {setEditingItem(null); setModalOpen(true)}}>
             <Icon src={plusIcon} />
             Add Stock
-            </AddButton>
+            </HeaderAddButton>
+        </HeaderAction>
   )}
       </PageHeader>
 
@@ -172,8 +175,6 @@ const StockMovements = () => {
         <Datatable
           data={data}
           columns={columns}
-          globalFilter={globalFilter}
-          setGlobalFilter={setGlobalFilter}
         />
       )}
       <AddOrEditStockModal

@@ -1,6 +1,5 @@
-import styled from 'styled-components';
-import Select from 'react-select'
-
+import styled, { css } from "styled-components";
+import Select from "react-select";
 
 export const PageHeader = styled.div`
   display: grid;
@@ -21,41 +20,82 @@ export const Title = styled.h1`
   font-weight: 700;
 `;
 
-export const AddButton = styled.button`
-  display: flex;
-  align-items: center;
-  margin-left: auto;
-  gap: 8px;
-  padding: 12px 24px;
-  background: linear-gradient(135deg, #2a7b9b, #57c785);
-  border: none;
-  color: white;
-  font-weight: 600;
-  border-radius: 8px;
-  cursor: pointer;
-
-  &:hover {
-    box-shadow: 0 6px 16px rgba(42, 123, 155, 0.25);
-    transform: translateY(-1px);
-  }
+export const CategoryDescription = styled.div`
+  color: #4f6b72;
+  line-height: 1.5;
+  max-width: 400px;
 `;
 
+export const Button = styled.button`
+  font-weight: 600;
+  cursor: pointer;
+  border: none;
+  transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+
+  ${({ size = "md" }) => {
+    switch (size) {
+      case "header":
+        return css`
+          padding: 12px 24px;
+          font-size: 16px;
+          border-radius: 8px;
+        `;
+      case "sm":
+        return css`
+          padding: 8px 18px;
+          font-size: 14px;
+          border-radius: 8px;
+        `;
+      default:
+        return css`
+          padding: 12px 26px;
+          font-size: 15px;
+          border-radius: 10px;
+        `;
+    }
+  }}
+
+  ${({ variant = "primary" }) => {
+    switch (variant) {
+      case "secondary":
+        return css`
+          background: transparent;
+          color: #4f6b72;
+          border: 1px solid rgba(42, 123, 155, 0.3);
+        `;
+      case "danger":
+        return css`
+          background: linear-gradient(135deg, #c0392b, #e74c3c);
+          color: white;
+        `;
+      default:
+        return css`
+          background: linear-gradient(135deg, #2a7b9b, #57c785);
+          color: white;
+        `;
+    }
+  }}
+`;
+
+
 export const SearchWrap = styled.div`
-  flex: 1;
   display: flex;
   align-items: center;
   gap: 8px;
   padding: 10px 16px;
-  background: #ffffff;
-  border: 1px solid rgba(42,123,155,0.25);
+  background: white;
+  border: 1px solid rgba(42, 123, 155, 0.25);
   border-radius: 8px;
   max-width: 500px;
-  width: 100%;
   transition: all 0.15s ease;
 
   &:focus-within {
-    border-color: #2A7B9B;
-    box-shadow: 0 0 0 3px rgba(42,123,155,0.15);
+    border-color: #2a7b9b;
+    box-shadow: 0 0 0 3px rgba(42, 123, 155, 0.15);
   }
 `;
 
@@ -64,18 +104,101 @@ export const SearchIpt = styled.input`
   flex: 1;
   background: transparent;
   outline: none;
-  color: #1f2d36;
   font-size: 14px;
+  color: #1f2d36;
 
   &::placeholder {
     color: #4f6b72;
   }
 `;
 
-export const CategoryDescription = styled.div`
-  color: #4f6b72;
-  line-height: 1.5;
-  max-width: 400px;
+export const ModalHeader = styled.div`
+  padding: 22px 28px;
+  border-bottom: 1px solid rgba(42, 123, 155, 0.25);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+`;
+
+export const ModalTitle = styled.h2`
+  margin: 0;
+  font-size: 20px;
+  font-weight: 700;
+  color: #1f2d36;
+`;
+
+export const CloseButton = styled.button`
+  background: none;
+  border: none;
+  color: #2a7b9b;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 6px;
+  display: flex;
+
+  &:hover {
+    background: rgba(42, 123, 155, 0.12);
+  }
+`;
+
+export const Form = styled.form`
+  padding: 24px;
+  max-height: 70vh;
+  overflow-y: auto;
+`;
+
+export const ModalActions = styled.div`
+  display: flex;
+  justify-content: flex-end;
+  gap: 16px;
+  margin-top: 8px;
+`;
+
+export const Input = styled.input`
+  padding: 14px 16px;
+  border-radius: 12px;
+  border: 1px solid rgba(42, 123, 155, 0.3);
+  background: #f3f8fb;
+  font-size: 16px;
+  outline: none;
+  transition: all 0.15s ease;
+
+  &:focus {
+    border-color: #2a7b9b;
+    box-shadow: 0 0 0 3px rgba(42, 123, 155, 0.15);
+    background: white;
+  }
+`;
+
+export const Icon = styled.img`
+  width: 20px;
+  height: 20px;
+`;
+
+export const SelectBox = styled(Select)`
+  .react-select__control {
+    min-height: 52px;
+    border-radius: 12px;
+    border: 1px solid rgba(42, 123, 155, 0.3);
+    background: #f3f8fb;
+    padding: 6px 8px;
+    box-shadow: none;
+  }
+
+  .react-select__control--is-focused {
+    border-color: #2a7b9b;
+    box-shadow: 0 0 0 3px rgba(42, 123, 155, 0.15);
+    background: white;
+  }
+
+  .react-select__option--is-selected {
+    background: #2a7b9b;
+    color: white;
+  }
+
+  .react-select__option--is-focused {
+    background: rgba(42, 123, 155, 0.12);
+  }
 `;
 
 export const ActionButtons = styled.div`
@@ -99,195 +222,15 @@ export const IconButton = styled.button`
   }
 `;
 
-
-export const ModalHeader = styled.div`
-  padding: 22px 28px;
-  border-bottom: 1px solid rgba(42,123,155,0.25);
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-`;
-
-export const ModalTitle = styled.h2`
-  margin: 0;
-  font-size: 20px;
-  font-weight: 700;
-  color: #1f2d36;
-`;
-
-export const CloseButton = styled.button`
-  background: none;
-  border: none;
-  color: #2A7B9B;
-  cursor: pointer;
-  padding: 4px;
-  border-radius: 6px;
+ export const HeaderAction = styled.div`
+  margin-left: auto;
   display: flex;
   align-items: center;
-
-  &:hover {
-    background: rgba(42,123,155,0.12);
-  }
 `;
 
-export const Form = styled.form`
-  padding: 24px;
-  max-height: 70vh;
-  overflow-y: auto;
+export const HeaderAddButton = styled(Button)`
+  padding: 10px 22px;
+  font-size: 14px;
+  border-radius: 8px;
+  white-space: nowrap;
 `;
-
-export const FormGroup = styled.div`
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  margin-bottom: 20px;
-`;
-
-export const Label = styled.label`
-  font-size: 16px;
-  font-weight: 600;
-  color: #1f2d36;
-`;
-
-export const Input = styled.input`
-  padding: 14px 16px;
-  border-radius: 12px;
-  border: 1px solid rgba(42,123,155,0.30);
-  background: #f3f8fb;
-  font-size: 16px;
-  outline: none;
-  color: #1f2d36;
-  transition: all 0.15s ease;
-
-  &:focus {
-    border-color: #2A7B9B;
-    box-shadow: 0 0 0 3px rgba(42,123,155,0.15);
-    background: white;
-  }
-
-  &::placeholder {
-    color: #4f6b72;
-  }
-`;
-
-export const Textarea = styled.textarea`
-  padding: 14px 17px;
-  border-radius: 12px;
-  border: 1px solid rgba(42,123,155,0.30);
-  background: #f3f8fb;
-  font-size: 15px;
-  outline: none;
-  color: #1f2d36;
-  font-family: inherit;
-  resize: vertical;
-  transition: all 0.15s ease;
-  overflow-y: auto;
-
-  &::-webkit-scrollbar {
-    width: 0;
-  }
-
-  &:focus {
-    border-color: #2A7B9B;
-    box-shadow: 0 0 0 3px rgba(42,123,155,0.15);
-    background: white;
-  }
-
-  &::placeholder {
-    color: #4f6b72;
-  }
-`;
-
-export const ModalActions = styled.div`
-  display: flex;
-  justify-content: flex-end;
-  gap: 16px;
-  margin-top: 8px;
-`;
-
-export const CancelButton = styled.button`
-  padding: 12px 26px;
-  background: transparent;
-  color: #4f6b72;
-  border: 1px solid rgba(42,123,155,0.30);
-  border-radius: 10px;
-  font-weight: 600;
-  font-size: 15px;
-  cursor: pointer;
-  transition: all 0.15s ease;
-
-  &:hover {
-    background: rgba(42,123,155,0.10);
-  }
-`;
-
-export const SubmitButton = styled.button`
-  padding: 12px 26px;
-  background: linear-gradient(135deg, #2A7B9B, #57C785);
-  color: white;
-  border-radius: 10px;
-  border: none;
-  font-weight: 600;
-  font-size: 15px;
-  cursor: pointer;
-  transition: all 0.2s ease;
-
-  &:hover {
-    box-shadow: 0 6px 16px rgba(42,123,155,0.25);
-  }
-`;
-
-export const Icon = styled.img`
-  width: 20px;
-  height: 20px;
-`;
-
-export const SelectBox = styled(Select)`
-  .react-select__control {
-    min-height: 52px;
-    border-radius: 12px;
-    border: 1px solid rgba(42,123,155,0.30);
-    background: #f3f8fb;
-    font-size: 16px;
-    box-shadow: none;
-    padding: 6px 8px;
-  }
-
-  .react-select__control--is-focused {
-    border-color: #2A7B9B;
-    box-shadow: 0 0 0 3px rgba(42,123,155,0.15);
-    background: white;
-  }
-
-  .react-select__value-container {
-    padding: 0 8px;
-  }
-
-  .react-select__single-value {
-    color: #1f2d36;
-    font-weight: 500;
-  }
-
-  .react-select__menu {
-    border-radius: 12px;
-    background: white;
-    z-index: 20;
-  }
-
-  .react-select__option--is-selected {
-    background: #2A7B9B;
-    color: white;
-  }
-
-  .react-select__option--is-focused {
-    background: rgba(42,123,155,0.12);
-  }
-`;
-
-
-
-
-
-
-
-

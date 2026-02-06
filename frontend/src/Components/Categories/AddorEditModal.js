@@ -1,17 +1,19 @@
-import { ModalHeader, ModalTitle, CloseButton, Form, FormGroup, Label, Input, Textarea, ModalActions, CancelButton, SubmitButton, Icon } from './Styles'
+import { ModalHeader, ModalTitle, CloseButton, Form, Input, Textarea, ModalActions, CancelButton, SubmitButton, Icon } from './Styles'
 import xIcon from '../../Images/cross.svg'
 import ModalBox from '../ModalBox'
 import api from '../../Api/axios'
 import { toast } from 'react-toastify'
 import { useState } from 'react'
 import { useEffect } from 'react'
+import FormField from '../FormField'
+import { validateCategoryForm } from '../../utils/validation'
 
 const initialCategoryObject = {
   name: "",
   description: ""
 }
 
-const AddorEditModal = ({open, onClose, updatingId, refetch}) => {
+const AddorEditModal = ({open, onClose, updatingId, refetch, setLoading}) => {
 
 const [categoryObj, setCategoryObj] = useState(initialCategoryObject)
 
@@ -41,6 +43,10 @@ useEffect(() => {
 
 
 const createCategory = async () => {
+    const valid = await validateCategoryForm(categoryObj, updatingId)
+    if (!valid) return
+
+    setLoading(true)
     const payload = {
       category_name: categoryObj.name,
       category_description: categoryObj.description
@@ -56,10 +62,16 @@ const createCategory = async () => {
         const msg = err.response.data.error || ""
         toast.error(msg || "Failed to create or edit category")
 
+    }finally{
+      setLoading(false)
     }
    }
 
 const updateCategory = async () => {
+    const valid = await validateCategoryForm(categoryObj, updatingId)
+    if (!valid) return
+
+    setLoading(true)
     const payload = {
       category_name: categoryObj.name,
       category_description: categoryObj.description
@@ -73,6 +85,8 @@ const updateCategory = async () => {
     } catch (err) {
         const msg = err.response.data.error || "";
         toast.error(msg || "Failed to update category");
+    }finally{
+      setLoading(false)
     }
 
    }
@@ -112,26 +126,44 @@ const onChangeDesc = (e) => {
                             {updatingId ? "Edit Category" : "Add Category"}
                         </ModalTitle>
                         <CloseButton
-                        onClick={onClose}>
+                        onClick={() => {
+                          onClose()
+                          setCategoryObj(initialCategoryObject)
+                        }}>
                             <Icon src={xIcon} alt="close" />
                         </CloseButton>
                 </ModalHeader>
                 <Form onSubmit={onSubmitHandlder}>
-                    <FormGroup>
-                        <Label>Name *</Label>
-                        <Input value={categoryObj.name}  onChange={onChangeName} required/>
-                    </FormGroup>
-                    <FormGroup>
-                        <Label>Description *</Label>
-                        <Textarea value={categoryObj.description} onChange={onChangeDesc}/>
-                    </FormGroup>
-                    <ModalActions>
-                        <CancelButton onClick={onClose}>Cancel</CancelButton>
-                        <SubmitButton>
-                            {updatingId ? "Update" : "Create"}
-                        </SubmitButton>
+
+                  <FormField label="Name" required>
+                    <Input
+                      value={categoryObj.name}
+                      onChange={onChangeName}
+                   />
+                  </FormField>
+
+                  <FormField label="Description" required>
+                    <Textarea
+                    value={categoryObj.description}
+                    onChange={onChangeDesc}
+                  />
+                  </FormField>
+
+                  <ModalActions>
+                    <CancelButton
+                      onClick={() => {
+                      onClose();
+                      setCategoryObj(initialCategoryObject);
+                     }}
+                    >Cancel
+                    </CancelButton>
+
+                    <SubmitButton>
+                      {updatingId ? "Update" : "Create"}
+                    </SubmitButton>
                     </ModalActions>
-                </Form>
+
+                    </Form>
             </ModalBox>
   )
 }

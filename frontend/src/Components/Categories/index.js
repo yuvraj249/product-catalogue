@@ -19,6 +19,7 @@ import trashIcon from '../../Images/trash.svg'
 import Datatable from '../DataTable';
 import AddorEditModal from './AddorEditModal'
 import { useLocation } from 'react-router-dom'
+import { useDebounce } from '../../DebounceSearch'
 
 
 const Categories = () => { 
@@ -33,24 +34,19 @@ const Categories = () => {
   });
   
 
-const fetchCategories = useCallback(async () => {
-    try{
-       setLoading(true)
-        const res = await api.get("/categories")
-        setState((prev) => ({...prev, data: res.data.categories || []}))     
-    }catch(err){
-        console.log('failed to fetch categories: ', err)
-        toast.error("Failed to load categories")
-    } finally{
-        setLoading(false)
+const fetchCategories = useCallback(async (q = "") => {
+    try {
+      setLoading(true)
+      const res = await api.get("/categories", {
+        params: { q }
+      })
+      setState(p => ({ ...p, data: res.data.categories || [] }))
+    } catch {
+      toast.error("Failed to load categories")
+    } finally {
+      setLoading(false)
     }
-   }, [])
-
-   useEffect(() => {
-    fetchCategories()
-   }, [fetchCategories])
-
-
+  }, [])
 
 const location = useLocation()
 useEffect(() => {
@@ -61,48 +57,10 @@ useEffect(() => {
     }
 }, [location.search])
 
-useEffect(() => {
-  const handler = setTimeout(async () => {
-    const search = globalFilter.trim()
-
-    switch (true) {
-        case search === "":
-            fetchCategories()
-            return
-
-        case /^\d+$/.test(search):
-
-            try {
-                const res = await api.get(`/categories/${search}`)
-                setState(prev => ({
-                ...prev,
-                data: [res.data.category]
-            }))
-          } catch {
-                setState(prev => ({ ...prev, data: [] }))
-        }
-        return
-
-        default:
-            try {
-                const res = await api.get("/categories", {
-                params: { name: search, description: search }
-            })
-
-                setState(prev => ({
-                    ...prev,
-                    data: res.data.categories || []
-               }))
-              } catch (err) {
-                    console.log(err.response?.data || err.message)
-                    toast.error("Failed to search categories")
-        }
-    }
-  }, 350)
-
-  return () => clearTimeout(handler)
-}, [globalFilter, fetchCategories])
-
+const debouncedSearch = useDebounce(globalFilter, 350);
+ useEffect(() => {
+  fetchCategories(debouncedSearch.trim());
+}, [debouncedSearch, fetchCategories]);
 
 
 const deleteCategory = useCallback(async (id) => {
@@ -202,9 +160,7 @@ const deleteCategory = useCallback(async (id) => {
                 ) : (
                 <Datatable 
                 data={state.data}
-                columns={columns}
-                globalFilter={globalFilter}
-                setGlobalFilter={setGlobalFilter}          
+                columns={columns}         
                 />
                 )}
          <AddorEditModal
@@ -212,6 +168,7 @@ const deleteCategory = useCallback(async (id) => {
             onClose={onModalClose}
             updatingId={state.updatingId}
             refetch={fetchCategories}
+            setLoading={setLoading}
         />                    
         <ToastContainer position="top-right" autoClose={3000}/>        
     </>
