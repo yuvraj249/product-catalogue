@@ -6,13 +6,14 @@ import { useDebounce } from '../../DebounceSearch';
 import {
   PageHeader,
   Title,
-  AddButton,
   Icon,
   SearchWrap,
   SearchIpt,
   ActionButtons,
   IconButton,
-} from './Styles'
+  HeaderAction,
+  HeaderAddButton
+} from '../CommonUIStyles/Styles'
 import { toast, ToastContainer } from 'react-toastify';
 import Datatable from '../DataTable';
 import AddOrEditSupplierModal from './AddorEditModal';
@@ -181,10 +182,10 @@ const onClickEdit = useCallback((row) => {
                         />
                 </SearchWrap>
                 {user?.role === 'system_admin' && (
-                    <AddButton data-cy="add-supplier-btn" onClick={onClickAdd}>
+                <HeaderAction><HeaderAddButton data-cy="add-supplier-btn" onClick={onClickAdd}>
                         <Icon src={plusIcon} alt="add" />
                         Add Supplier
-                    </AddButton>
+                </HeaderAddButton></HeaderAction>
                 )}
           </PageHeader>
 

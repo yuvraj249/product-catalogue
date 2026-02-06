@@ -1,4 +1,4 @@
-import {ModalHeader, ModalTitle, CloseButton, Form, FormGroup, Label, Input, ModalActions, CancelButton, SubmitButton, Icon} from "./Styles"
+import {ModalHeader, ModalTitle, CloseButton, Form, Input, ModalActions, Icon, Button} from "../CommonUIStyles/Styles"
 import xIcon from "../../Images/cross.svg"
 import ModalBox from "../ModalBox"
 import api from "../../Api/axios"
@@ -151,7 +151,8 @@ const AddOrEditSupplierModal = ({ open, onClose, updatingId, refetch, setLoading
   </FormField>
 
   <ModalActions>
-    <CancelButton
+    <Button
+      variant="secondary"
       data-cy="supplier-cancel"
       onClick={() => {
         setSupplier(initialSupplier);
@@ -159,11 +160,11 @@ const AddOrEditSupplierModal = ({ open, onClose, updatingId, refetch, setLoading
       }}
     >
       Cancel
-    </CancelButton>
+    </Button>
 
-    <SubmitButton data-cy="supplier-submit">
+    <Button varaint="primary" data-cy="supplier-submit">
       {updatingId ? "Update" : "Create"}
-    </SubmitButton>
+    </Button>
   </ModalActions>
 
 </Form>
