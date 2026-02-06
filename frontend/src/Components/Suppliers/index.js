@@ -2,6 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import api from '../../Api/axios';
 import { useCallback } from 'react';
 import { getUserInfo } from '../../utils/auth';
+import { useDebounce } from '../../DebounceSearch';
 import {
   PageHeader,
   Title,
@@ -48,88 +49,46 @@ const Suppliers = () => {
  })
   
 
-  const fetchSuppliers = useCallback(async () => {
-  try {
-    setLoading(true)
-    const res = await api.get('/suppliers')
-     setState((prev) => ({...prev, data: res.data.suppliers || []}))     
-  } catch (err) {
-    console.log('failed to fetch suppliers: ', err)
-    toast.error("Failed to load suppliers")
-  } finally {
-    setLoading(false)
-  }
-}, [])
+  const fetchSuppliers = useCallback(async (q = "") => {
+    try {
+      setLoading(true)
+         
+        const res = await api.get('/suppliers', { params: { q } })
+        setState(prev => ({ ...prev, data: res.data.suppliers || [] }))
 
-  useEffect(() => {
-    fetchSuppliers()
-  }, [fetchSuppliers])
+    } catch {
+      toast.error('Failed to load suppliers')
+    } finally {
+      setLoading(false)
+    }
+  }, [])
 
   const location = useLocation()
   useEffect(() => {
-    const getFromBrowser = new URLSearchParams(window.location.search)
-    const id = getFromBrowser.get("id")
-    const name = getFromBrowser.get("name")
-    const contact = getFromBrowser.get("contact_info")
-    const email = getFromBrowser.get("email")
-    const company = getFromBrowser.get("company")
+  const params = new URLSearchParams(location.search)
+  const value = params.get("q")
 
-    const value = id || name || contact || email || company || ""
-    if(value){
-        setGlobalFilter(value)
-    }
-  }, [location.search])
-
-  useEffect(() => {
-    const handler = setTimeout(async () => {
-        const search = globalFilter.trim()
-
-        switch(true){
-            case search === "":
-                fetchSuppliers()
-                return
-            case /^\d+$/.test(search):
-                try{
-                    const res = await api.get(`/suppliers/${search}`)
-                    setState(prev => ({
-                        ...prev,
-                        data: [res.data.supplier]
-                    }))
-                } catch{
-                    setState(prev => ({...prev, data: []}))
-                }
-                return 
-            default:
-                try {
-                    const res = await api.get("/suppliers",{
-                        params: {name: search, company: search}
-                    })
-
-                    setState(prev => ({
-                        ...prev,
-                        data: res.data.suppliers || []
-                    }))
-                } catch (err){
-                    console.log(err.res?.data || err.message)
-                    toast.error("Failed to search suppliers")
-                }
-
-        }
-
-    }, 350)
-    return () => clearTimeout(handler)
-  }, [globalFilter, fetchSuppliers])
+  if (value !== null) {
+    setGlobalFilter(value)
+  } else {
+    fetchSuppliers()
+  }
+}, [location.search, fetchSuppliers])
 
 
+  const debouncedSearch = useDebounce(globalFilter, 350);
+ useEffect(() => {
+  fetchSuppliers(debouncedSearch.trim());
+}, [debouncedSearch, fetchSuppliers]);
   const deleteSupplier = useCallback(async (id) => {
   try {
     await api.delete(`suppliers/${id}`)
     toast.success('Supplier deleted successfully');
-    fetchSuppliers()
+    fetchSuppliers(globalFilter)
   } catch {
     toast.error('Failed to delete supplier');
   }
-}, [fetchSuppliers])
+}, [fetchSuppliers,globalFilter])
 
 
 const onClickEdit = useCallback((row) => {
@@ -142,7 +101,7 @@ const onClickEdit = useCallback((row) => {
         email: row.original.email,
         company: row.original.company,
       },
-    }));
+    }))
     setModalOpen(true);
   }, [])
 
@@ -192,11 +151,12 @@ const onClickEdit = useCallback((row) => {
         cell: ({ row }) =>
           user.role === "system_admin" && (
             <ActionButtons>
-              <IconButton onClick={() => onClickEdit(row)}>
+              <IconButton data-cy="edit-supplier-btn" onClick={() => onClickEdit(row)}>
                 <Icon src={editIcon} alt="edit" />
               </IconButton>
 
               <IconButton
+                data-cy="delete-supplier-btn" 
                 onClick={() => deleteSupplier(row.original.supplier_id)}
               >
                 <Icon src={trashIcon} alt="delete" />
@@ -214,13 +174,14 @@ const onClickEdit = useCallback((row) => {
                 <SearchWrap>
                     <Icon src={searchIcon} alt="search" />
                         <SearchIpt
+                            data-cy="supplier-search"
                             value={globalFilter}
                             onChange={(e) => setGlobalFilter(e.target.value)}
                             placeholder="Search Suppliers"
                         />
                 </SearchWrap>
                 {user?.role === 'system_admin' && (
-                    <AddButton onClick={onClickAdd}>
+                    <AddButton data-cy="add-supplier-btn" onClick={onClickAdd}>
                         <Icon src={plusIcon} alt="add" />
                         Add Supplier
                     </AddButton>
@@ -231,10 +192,9 @@ const onClickEdit = useCallback((row) => {
             <p>Loading suppliers...</p>
           ) : (
             <Datatable
+          data-cy="suppliers-table"
           data={state.data}
           columns={columns}
-          globalFilter={globalFilter}
-          setGlobalFilter={setGlobalFilter}
           />
       )}
 
@@ -243,6 +203,7 @@ const onClickEdit = useCallback((row) => {
         onClose={onModalClose}
         updatingId={state.updatingId}
         refetch={fetchSuppliers}
+        setLoading={setLoading}
       />
       <ToastContainer position="top-right" autoClose={3000} />
   </>

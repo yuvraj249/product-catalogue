@@ -4,6 +4,8 @@ import ModalBox from "../ModalBox"
 import api from "../../Api/axios"
 import { toast } from "react-toastify"
 import { useEffect, useState } from "react"
+import FormField from "../FormField"
+import { validateSupplierForm } from "../../utils/validation"
 
 const initialSupplier = {
   name: "",
@@ -12,7 +14,7 @@ const initialSupplier = {
   company: "",
 };
 
-const AddOrEditSupplierModal = ({ open, onClose, updatingId, refetch }) => {
+const AddOrEditSupplierModal = ({ open, onClose, updatingId, refetch, setLoading }) => {
   const [supplier, setSupplier] = useState(initialSupplier)
   useEffect(() => {
     if (!updatingId) {
@@ -38,9 +40,11 @@ const AddOrEditSupplierModal = ({ open, onClose, updatingId, refetch }) => {
     fetchSupplier()
   }, [updatingId])
 
-
-
   const createSupplier = async () => {
+   if (!validateSupplierForm(supplier)) return
+
+    setLoading(true)
+    
     const payload = {
       name: supplier.name,
       contact_info: supplier.contact,
@@ -56,11 +60,16 @@ const AddOrEditSupplierModal = ({ open, onClose, updatingId, refetch }) => {
       refetch();
     } catch (err) {
       toast.error(err.response?.data?.error || "Failed to create supplier");
+    }finally{
+      setLoading(false)
     }
   }
 
 
   const updateSupplier = async () => {
+    if (!validateSupplierForm(supplier)) return
+
+    setLoading(true)
     const payload = {
       name: supplier.name,
       contact_info: supplier.contact,
@@ -76,6 +85,8 @@ const AddOrEditSupplierModal = ({ open, onClose, updatingId, refetch }) => {
       refetch()
     } catch (err) {
       toast.error(err.response?.data?.error || "Failed to update supplier")
+    }finally{
+      setLoading(false)
     }
   }
 
@@ -91,64 +102,72 @@ const AddOrEditSupplierModal = ({ open, onClose, updatingId, refetch }) => {
   return (
     <ModalBox open={open} onClose={onClose}>
       <ModalHeader>
-        <ModalTitle>{updatingId ? "Edit Supplier" : "Add Supplier"}</ModalTitle>
-        <CloseButton onClick={onClose}>
+        <ModalTitle data-cy="supplier-modal-title">{updatingId ? "Edit Supplier" : "Add Supplier"}</ModalTitle>
+        <CloseButton  data-cy="supplier-close" onClick={() => {onClose(); setSupplier(initialSupplier)}}>
           <Icon src={xIcon} alt="close" />
         </CloseButton>
       </ModalHeader>
 
-      <Form onSubmit={onSubmitHandler}>
-        <FormGroup>
-          <Label>Name *</Label>
-          <Input
-            value={supplier.name}
-            onChange={(e) =>
-              setSupplier((p) => ({ ...p, name: e.target.value }))
-            }
-            required
-          />
-        </FormGroup>
+  <Form onSubmit={onSubmitHandler}>
 
+  <FormField label="Name" required>
+    <Input
+      data-cy="supplier-name"
+      value={supplier.name}
+      onChange={(e) =>
+        setSupplier((p) => ({ ...p, name: e.target.value }))
+      }
+    />
+  </FormField>
 
-        <FormGroup>
-          <Label>Contact *</Label>
-          <Input
-            value={supplier.contact}
-            onChange={(e) =>
-              setSupplier((p) => ({ ...p, contact: e.target.value }))
-            }
-            required
-          />
-        </FormGroup>
+  <FormField label="Contact" required>
+    <Input
+      data-cy="supplier-contact"
+      value={supplier.contact}
+      onChange={(e) =>
+        setSupplier((p) => ({ ...p, contact: e.target.value }))
+      }
+    />
+  </FormField>
 
+  <FormField label="Email" required>
+    <Input
+      data-cy="supplier-email"
+      value={supplier.email}
+      onChange={(e) =>
+        setSupplier((p) => ({ ...p, email: e.target.value }))
+      }
+    />
+  </FormField>
 
-        <FormGroup>
-          <Label>Email *</Label>
-          <Input
-            value={supplier.email}
-            onChange={(e) =>
-              setSupplier((p) => ({ ...p, email: e.target.value }))
-            }
-            required
-          />
-        </FormGroup>
+  <FormField label="Company" required>
+    <Input
+      data-cy="supplier-company"
+      value={supplier.company}
+      onChange={(e) =>
+        setSupplier((p) => ({ ...p, company: e.target.value }))
+      }
+    />
+  </FormField>
 
-        <FormGroup>
-          <Label>Company *</Label>
-          <Input
-            value={supplier.company}
-            onChange={(e) =>
-              setSupplier((p) => ({ ...p, company: e.target.value }))
-            }
-            required
-          />
-        </FormGroup>
-        <ModalActions>
-          <CancelButton onClick={onClose}>Cancel</CancelButton>
+  <ModalActions>
+    <CancelButton
+      data-cy="supplier-cancel"
+      onClick={() => {
+        setSupplier(initialSupplier);
+        onClose();
+      }}
+    >
+      Cancel
+    </CancelButton>
 
-          <SubmitButton>{updatingId ? "Update" : "Create"}</SubmitButton>
-        </ModalActions>
-      </Form>
+    <SubmitButton data-cy="supplier-submit">
+      {updatingId ? "Update" : "Create"}
+    </SubmitButton>
+  </ModalActions>
+
+</Form>
+
     </ModalBox>
   )
 }
