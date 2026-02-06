@@ -13,7 +13,7 @@ import ModalBox from "../ModalBox";
 import xIcon from "../../Images/cross.svg";
 import api from "../../Api/axios";
 import { toast } from "react-toastify";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import FormField from "../FormField";
 import { validateProductForm } from "../../utils/validation";
 
@@ -44,6 +44,23 @@ const AddOrEditProductModal = ({ open, onClose, updatingId, form, refetch, categ
       discount_value: String(form.discount_value ?? ""),
     });
   }, [updatingId, form]);
+
+  const categoryOptions = useMemo(
+    () =>
+      (categories || []).map((c) => ({
+        value: c.category_id,
+        label: c.category_name,
+      })),
+    [categories]
+  );
+
+  const selectedCategory = useMemo(
+    () =>
+      categoryOptions.find(
+        (o) => o.value === Number(product.product_category_id)
+      ) || null,
+    [categoryOptions, product.product_category_id]
+  );
 
 
   const createProduct = async () => {
@@ -119,26 +136,8 @@ const updateProduct = async () => {
   <FormField label="Category" required>
     <CategorySelect
       classNamePrefix="react-select"
-      options={(categories || []).map((c) => ({
-        value: c.category_id,
-        label: c.category_name,
-      }))}
-      value={
-        categories
-          .map((c) => ({
-            value: c.category_id,
-            label: c.category_name,
-          }))
-          .find(
-            (o) => o.value === Number(product.product_category_id)
-          ) || null
-      }
-      onChange={(opt) =>
-        setProduct((p) => ({
-          ...p,
-          product_category_id: Number(opt.value),
-        }))
-      }
+      options={categoryOptions}
+      value={selectedCategory}
     />
   </FormField>
 
