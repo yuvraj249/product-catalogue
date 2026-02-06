@@ -50,7 +50,7 @@ export const LoginPage = () => {
       console.log("LOGIN RESPONSE:", data);
       setToken(data.token);
       toast.success("Login successful")  
-      navigate("/admin/categories");
+      navigate("/admin/dashboard");
     } catch (err) {
       console.error("LOGIN ERROR:", err);
       const msg = err.response.data.error || "";
