@@ -13,7 +13,7 @@ import xIcon from "../../Images/cross.svg";
 import ModalBox from "../ModalBox";
 import api from "../../Api/axios";
 import { toast } from "react-toastify";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import FormField from "../FormField";
 import { validateUserForm } from "../../utils/validation";
 
@@ -30,6 +30,23 @@ const AddOrEditUserModal = ({ open, onClose, updatingId, form, refetch, supplier
 
     setUserObj(form)
   }, [updatingId, form])
+
+  const supplierOptions = useMemo(
+    () =>
+      (suppliers || []).map((s) => ({
+        value: s.supplier_id,
+        label: s.name || s.company || `Supplier #${s.supplier_id}`,
+      })),
+    [suppliers]
+  );
+
+  const selectedSupplier = useMemo(
+    () =>
+      supplierOptions.find(
+        (o) => o.value === Number(userObj.supplier_id)
+      ) || null,
+    [supplierOptions, userObj.supplier_id]
+  );
 
   const createUser = async () => {
 
@@ -126,20 +143,8 @@ const AddOrEditUserModal = ({ open, onClose, updatingId, form, refetch, supplier
     <FormField label="Supplier" required>
       <SupplierSelect
         classNamePrefix="react-select"
-        options={suppliers.map((s) => ({
-          value: s.supplier_id,
-          label: s.name || s.company || `Supplier #${s.supplier_id}`,
-        }))}
-        value={
-          suppliers
-            .map((s) => ({
-              value: s.supplier_id,
-              label: s.name || s.company || `Supplier #${s.supplier_id}`,
-            }))
-            .find(
-              (opt) => opt.value === Number(userObj.supplier_id)
-            ) || null
-        }
+        options={supplierOptions}
+        value={selectedSupplier}
         onChange={(opt) =>
           setUserObj((prev) => ({
             ...prev,
