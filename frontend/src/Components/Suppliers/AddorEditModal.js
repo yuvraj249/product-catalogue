@@ -4,6 +4,8 @@ import ModalBox from "../ModalBox"
 import api from "../../Api/axios"
 import { toast } from "react-toastify"
 import { useEffect, useState } from "react"
+import FormField from "../FormField"
+import { validateSupplierForm } from "../../utils/validation"
 
 const initialSupplier = {
   name: "",
@@ -38,92 +40,8 @@ const AddOrEditSupplierModal = ({ open, onClose, updatingId, refetch, setLoading
     fetchSupplier()
   }, [updatingId])
 
-  const validateSupplierForm = () => {
-  const name = supplier.name.trim()
-  const contact = supplier.contact.trim()
-  const email = supplier.email.trim()
-  const company = supplier.company.trim()
-
-  if (!name) {
-    toast.error("Supplier name required")
-    return false
-  }
-
-  if (name.length > 50) {
-    toast.error("Supplier name too long")
-    return false
-  }
-
-  if (name.length < 2) {
-    toast.error("Supplier name too short")
-    return false
-  }
-
-  const validName = /^[A-Za-z ]+$/
-  if (!validName.test(name)) {
-    toast.error("Supplier name should only contain alphabets and spaces")
-    return false
-  }
-
-  if (!/[A-Za-z]/.test(name)) {
-    toast.error("Supplier name must contain at least one letter")
-    return false
-  }
-
-  if (!contact) {
-    toast.error("Contact number required")
-    return false
-  }
-
-  const validPhone = /^[0-9+\-() ]{7,15}$/
-  if (!validPhone.test(contact)) {
-    toast.error("Contact should contain only numbers, +, -, () or spaces")
-    return false
-  }
-
-  if (!email) {
-    toast.error("Email is required")
-    return false
-  }
-
-  const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/
-  if (!emailRegex.test(email)) {
-    toast.error("Invalid email format (e.g., user@example.com)")
-    return false
-  }
-
-  if (!company) {
-    toast.error("Company name required")
-    return false
-  }
-
-  if (company.length > 50) {
-    toast.error("Company name too long")
-    return false
-  }
-
-  if (company.length < 2) {
-    toast.error("Company name too short")
-    return false
-  }
-
-  const validCompany = /^[A-Za-z0-9 ]+$/
-  if (!validCompany.test(company)) {
-    toast.error("Company name should contain only alphabets, numbers and spaces")
-    return false
-  }
-
-  if (!/[A-Za-z]/.test(company)) {
-    toast.error("Company name must contain at least one letter")
-    return false
-  }
-
-  return true
-}
-
-
   const createSupplier = async () => {
-   if (!validateSupplierForm()) return
+   if (!validateSupplierForm(supplier)) return
 
     setLoading(true)
     
@@ -149,7 +67,7 @@ const AddOrEditSupplierModal = ({ open, onClose, updatingId, refetch, setLoading
 
 
   const updateSupplier = async () => {
-    if (!validateSupplierForm()) return
+    if (!validateSupplierForm(supplier)) return
 
     setLoading(true)
     const payload = {
@@ -190,60 +108,66 @@ const AddOrEditSupplierModal = ({ open, onClose, updatingId, refetch, setLoading
         </CloseButton>
       </ModalHeader>
 
-      <Form onSubmit={onSubmitHandler}>
-        <FormGroup>
-          <Label>Name *</Label>
-          <Input
-            data-cy="supplier-name"
-            value={supplier.name}
-            onChange={(e) =>
-              setSupplier((p) => ({ ...p, name: e.target.value }))
-            }
-          />
-        </FormGroup>
+  <Form onSubmit={onSubmitHandler}>
 
+  <FormField label="Name" required>
+    <Input
+      data-cy="supplier-name"
+      value={supplier.name}
+      onChange={(e) =>
+        setSupplier((p) => ({ ...p, name: e.target.value }))
+      }
+    />
+  </FormField>
 
-        <FormGroup>
-          <Label>Contact *</Label>
-          <Input
-            data-cy="supplier-contact"
-            value={supplier.contact}
-            onChange={(e) =>
-              setSupplier((p) => ({ ...p, contact: e.target.value }))
-            }
-      
-          />
-        </FormGroup>
+  <FormField label="Contact" required>
+    <Input
+      data-cy="supplier-contact"
+      value={supplier.contact}
+      onChange={(e) =>
+        setSupplier((p) => ({ ...p, contact: e.target.value }))
+      }
+    />
+  </FormField>
 
+  <FormField label="Email" required>
+    <Input
+      data-cy="supplier-email"
+      value={supplier.email}
+      onChange={(e) =>
+        setSupplier((p) => ({ ...p, email: e.target.value }))
+      }
+    />
+  </FormField>
 
-        <FormGroup>
-          <Label>Email *</Label>
-          <Input
-            data-cy="supplier-email"
-            value={supplier.email}
-            onChange={(e) =>
-              setSupplier((p) => ({ ...p, email: e.target.value }))
-            }
-  
-          />
-        </FormGroup>
+  <FormField label="Company" required>
+    <Input
+      data-cy="supplier-company"
+      value={supplier.company}
+      onChange={(e) =>
+        setSupplier((p) => ({ ...p, company: e.target.value }))
+      }
+    />
+  </FormField>
 
-        <FormGroup>
-          <Label>Company *</Label>
-          <Input
-            data-cy="supplier-company"
-            value={supplier.company}
-            onChange={(e) =>
-              setSupplier((p) => ({ ...p, company: e.target.value }))
-            }
-          />
-        </FormGroup>
-        <ModalActions>
-          <CancelButton data-cy="supplier-cancel" onClick={() => {setSupplier(initialSupplier); onClose() }}>Cancel</CancelButton>
+  <ModalActions>
+    <CancelButton
+      data-cy="supplier-cancel"
+      onClick={() => {
+        setSupplier(initialSupplier);
+        onClose();
+      }}
+    >
+      Cancel
+    </CancelButton>
 
-          <SubmitButton data-cy="supplier-submit">{updatingId ? "Update" : "Create"}</SubmitButton>
-        </ModalActions>
-      </Form>
+    <SubmitButton data-cy="supplier-submit">
+      {updatingId ? "Update" : "Create"}
+    </SubmitButton>
+  </ModalActions>
+
+</Form>
+
     </ModalBox>
   )
 }

@@ -169,66 +169,34 @@ func CreateStockMovement(c *gin.Context) {
 
 func GetStockMovements(c *gin.Context) {
 	role := c.GetString("role")
-	prodFilter := 0
-	if p := c.Query("product_id"); p != "" {
-		pid, err := strconv.Atoi(p)
-		if err != nil || pid <= 0 {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid product_id"})
-			c.Abort()
-			return
-		}
-		prodFilter = pid
-	}
+	search := strings.ToLower(strings.TrimSpace(c.Query("q")))
+	like := "%" + search + "%"
 	ctx, cancel := CtxTimeout(c)
 	defer cancel()
-
-	var args []interface{}
-	var query string
 	var rows *sql.Rows
 	var err error
 	switch role {
 	case "system_admin":
-		if prodFilter != 0 {
-			query = "select stock_id, product_id,quantity,  movement_type, reason, performed_by from stock_movements where product_id = ? order by stock_id desc "
-			args = []interface{}{prodFilter}
-		} else {
-			query = "select stock_id, product_id,quantity,  movement_type, reason, performed_by from stock_movements order by stock_id desc "
-			args = nil
-		}
-		rows, err = config.DB.QueryContext(ctx, query, args...)
-		if err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "db error while fetching stock movements"})
-			c.Abort()
-			return
-		}
+		rows, err = config.DB.QueryContext(ctx, "select sm.stock_id, sm.product_id, p.product_name, sm.quantity, sm.movement_type, sm.reason, sm.performed_by, coalesce(u.name,'') as username from stock_movements sm join products p on sm.product_id = p.product_id left join users u on sm.performed_by = u.user_id where ?='' or cast(sm.stock_id as char) like ? or lower(p.product_name) like ? or cast(sm.quantity as char) like ? or lower(sm.movement_type) like ? or lower(coalesce(sm.reason,'')) like ? or lower(coalesce(u.name,'')) like ? order by sm.stock_id desc", search, like, like, like, like, like, like)
+
 	case "supplier_admin":
 		supplierID := c.GetInt("supplier_id")
-		company, err := SupplierCompany(ctx, supplierID)
-		if err != nil {
-			if err == sql.ErrNoRows {
-				c.JSON(http.StatusForbidden, gin.H{"error": "supplier not found"})
-			} else {
-				c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to fetch supplier company"})
-			}
-			c.Abort()
-			return
-		}
-		if prodFilter != 0 {
-			query = "select sm.stock_id, sm.product_id,sm.quantity,  sm.movement_type, sm.reason, sm.performed_by from stock_movements sm join products p on sm.product_id = p.product_id join suppliers s on p.product_supplier_id = s.supplier_id where s.company = ? and sm.product_id = ? order by sm.stock_id desc "
-			args = []interface{}{company, prodFilter}
-		} else {
-			query = "select sm.stock_id, sm.product_id,sm.quantity,  sm.movement_type, sm.reason, sm.performed_by from stock_movements sm join products p on sm.product_id = p.product_id join suppliers s on p.product_supplier_id = s.supplier_id where s.company = ? order by sm.stock_id desc "
-			args = []interface{}{company}
-
-		}
-		rows, err = config.DB.QueryContext(ctx, query, args...)
-		if err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "db error while fetching stock movements"})
-			c.Abort()
-			return
-		}
+		rows, err = config.DB.QueryContext(
+			ctx,
+			"select sm.stock_id, sm.product_id, p.product_name, sm.quantity, sm.movement_type, sm.reason, sm.performed_by, '' as username from stock_movements sm join products p on sm.product_id = p.product_id where p.product_supplier_id=? and (?='' or cast(sm.stock_id as char) like ? or lower(p.product_name) like ? or cast(sm.quantity as char) like ? or lower(sm.movement_type) like ? or lower(coalesce(sm.reason,'')) like ?) order by sm.stock_id desc",
+			supplierID, search, like, like, like, like, like,
+		)
 	default:
 		c.JSON(http.StatusForbidden, gin.H{"error": "access denied"})
+		c.Abort()
+		return
+	}
+
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error":   "db query failed",
+			"details": err.Error(),
+		})
 		c.Abort()
 		return
 	}
@@ -240,8 +208,8 @@ func GetStockMovements(c *gin.Context) {
 	for rows.Next() {
 		var sm models.Stock_Movement
 		var reason sql.NullString
-		var performed_by sql.NullInt64
-		if err := rows.Scan(&sm.StockID, &sm.ProductID, &sm.Quantity, &sm.MovementType, &reason, &performed_by); err != nil {
+		var username sql.NullString
+		if err := rows.Scan(&sm.StockID, &sm.ProductID, &sm.ProductName, &sm.Quantity, &sm.MovementType, &reason, &sm.PerformedBy, &username); err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "error scanning stock movements"})
 			c.Abort()
 			return
@@ -251,11 +219,12 @@ func GetStockMovements(c *gin.Context) {
 		} else {
 			sm.Reason = ""
 		}
-		if performed_by.Valid {
-			sm.PerformedBy = int(performed_by.Int64)
+		if username.Valid {
+			sm.Username = username.String
 		} else {
-			sm.PerformedBy = 0
+			sm.Username = ""
 		}
+
 		movements = append(movements, sm)
 
 	}
@@ -313,7 +282,7 @@ func UpdateStockMovement(c *gin.Context) {
 	var oldQty int
 	var oldType string
 
-	err = config.DB.QueryRowContext(ctx, "select product_id, quantity, movement_type from stock_movmements where stock_id = ?", id).Scan(&productID, &oldQty, &oldType)
+	err = config.DB.QueryRowContext(ctx, "select product_id, quantity, movement_type from stock_movements where stock_id = ?", id).Scan(&productID, &oldQty, &oldType)
 
 	if err == sql.ErrNoRows {
 		c.JSON(http.StatusNotFound, gin.H{"error": "stock movement not found"})
@@ -432,7 +401,7 @@ func DeleteStockMovement(c *gin.Context) {
 
 	supplierID := c.GetInt("supplier_id")
 	var prodSuppID int
-	err = config.DB.QueryRowContext(ctx, "select product_supplier_id from products where product_id = ?", productID).Scan(prodSuppID)
+	err = config.DB.QueryRowContext(ctx, "select product_supplier_id from products where product_id = ?", productID).Scan(&prodSuppID)
 
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "db error fetching product"})
@@ -452,15 +421,6 @@ func DeleteStockMovement(c *gin.Context) {
 		currentStock -= qty
 	} else {
 		currentStock += qty
-	}
-
-	if currentStock < lowStockAlert {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error":         "deleting will drop stock below threshold",
-			"current_stock": currentStock,
-			"min_quantity":  lowStockAlert,
-		})
-		return
 	}
 
 	_, err = config.DB.ExecContext(ctx, "delete from stock_movements where stock_id = ?", id)
