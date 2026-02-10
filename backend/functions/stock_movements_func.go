@@ -359,7 +359,12 @@ func UpdateStockMovement(c *gin.Context) {
 		return
 	}
 
-	newStock, _ := CountStock(ctx, productID)
+	newStock, err := CountStock(ctx, productID)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to count stock movement"})
+		c.Abort()
+		return
+	}
 
 	c.JSON(http.StatusOK, gin.H{
 		"message":       "stock movement updated",
@@ -420,7 +425,12 @@ func DeleteStockMovement(c *gin.Context) {
 		return
 	}
 
-	currentStock, _ := CountStock(ctx, productID)
+	currentStock, err := CountStock(ctx, productID)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to count stock movement"})
+		c.Abort()
+		return
+	}
 
 	if mtype == "IN" {
 		currentStock -= qty
