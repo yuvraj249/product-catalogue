@@ -88,7 +88,11 @@ func GetSupplier(c *gin.Context) {
 	role := c.GetString("role")
 	search := strings.TrimSpace(c.Query("q"))
 
-	like := "%" + search + "%"
+	supplierID := "%" + search + "%"
+	contactInfo := "%" + search + "%"
+	name := "%" + search + "%"
+	email := "%" + search + "%"
+	company := "%" + search + "%"
 	ctx, cancel := CtxTimeout(c)
 	defer cancel()
 	var rows *sql.Rows
@@ -98,7 +102,7 @@ func GetSupplier(c *gin.Context) {
 	case "system_admin":
 		rows, err = config.DB.QueryContext(
 			ctx, "SELECT supplier_id, name, contact_info, email, company FROM suppliers WHERE ? = '' OR CAST(supplier_id AS CHAR) LIKE ? OR contact_info LIKE ? OR LOWER(name) LIKE LOWER(?) OR LOWER(email) LIKE LOWER(?) OR LOWER(company) LIKE LOWER(?) ORDER BY supplier_id ASC",
-			search, like, like, like, like, like,
+			search, supplierID, contactInfo, name, email, company,
 		)
 
 	case "supplier_admin":
@@ -106,7 +110,7 @@ func GetSupplier(c *gin.Context) {
 		rows, err = config.DB.QueryContext(
 			ctx,
 			"SELECT supplier_id, name, contact_info, email, company FROM suppliers WHERE supplier_id = ? AND (? = '' OR contact_info LIKE ? OR LOWER(name) LIKE LOWER(?) OR LOWER(email) LIKE LOWER(?) OR LOWER(company) LIKE LOWER(?))",
-			supplierID, search, like, like, like, like,
+			search, supplierID, contactInfo, name, email, company,
 		)
 
 	default:

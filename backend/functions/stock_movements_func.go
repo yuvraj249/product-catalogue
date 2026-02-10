@@ -170,21 +170,26 @@ func CreateStockMovement(c *gin.Context) {
 func GetStockMovements(c *gin.Context) {
 	role := c.GetString("role")
 	search := strings.ToLower(strings.TrimSpace(c.Query("q")))
-	like := "%" + search + "%"
+	stockID := "%" + search + "%"
+	productName := "%" + search + "%"
+	quantity := "%" + search + "%"
+	movementType := "%" + search + "%"
+	reason := "%" + search + "%"
+	username := "%" + search + "%"
 	ctx, cancel := CtxTimeout(c)
 	defer cancel()
 	var rows *sql.Rows
 	var err error
 	switch role {
 	case "system_admin":
-		rows, err = config.DB.QueryContext(ctx, "select sm.stock_id, sm.product_id, p.product_name, sm.quantity, sm.movement_type, sm.reason, sm.performed_by, coalesce(u.name,'') as username from stock_movements sm join products p on sm.product_id = p.product_id left join users u on sm.performed_by = u.user_id where ?='' or cast(sm.stock_id as char) like ? or lower(p.product_name) like ? or cast(sm.quantity as char) like ? or lower(sm.movement_type) like ? or lower(coalesce(sm.reason,'')) like ? or lower(coalesce(u.name,'')) like ? order by sm.stock_id desc", search, like, like, like, like, like, like)
+		rows, err = config.DB.QueryContext(ctx, "select sm.stock_id, sm.product_id, p.product_name, sm.quantity, sm.movement_type, sm.reason, sm.performed_by, coalesce(u.name,'') as username from stock_movements sm join products p on sm.product_id = p.product_id left join users u on sm.performed_by = u.user_id where ?='' or cast(sm.stock_id as char) like ? or lower(p.product_name) like ? or cast(sm.quantity as char) like ? or lower(sm.movement_type) like ? or lower(coalesce(sm.reason,'')) like ? or lower(coalesce(u.name,'')) like ? order by sm.stock_id desc", search, stockID, productName, quantity, movementType, reason, username)
 
 	case "supplier_admin":
 		supplierID := c.GetInt("supplier_id")
 		rows, err = config.DB.QueryContext(
 			ctx,
 			"select sm.stock_id, sm.product_id, p.product_name, sm.quantity, sm.movement_type, sm.reason, sm.performed_by, '' as username from stock_movements sm join products p on sm.product_id = p.product_id where p.product_supplier_id=? and (?='' or cast(sm.stock_id as char) like ? or lower(p.product_name) like ? or cast(sm.quantity as char) like ? or lower(sm.movement_type) like ? or lower(coalesce(sm.reason,'')) like ?) order by sm.stock_id desc",
-			supplierID, search, like, like, like, like, like,
+			supplierID, search, stockID, productName, quantity, movementType, reason, username,
 		)
 	default:
 		c.JSON(http.StatusForbidden, gin.H{"error": "access denied"})

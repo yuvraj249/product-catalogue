@@ -154,7 +154,12 @@ func CreateProduct(c *gin.Context) {
 func GetProduct(c *gin.Context) {
 	role := c.GetString("role")
 	search := strings.ToLower(strings.TrimSpace(c.Query("q")))
-	like := "%" + search + "%"
+	productID := "%" + search + "%"
+	productName := "%" + search + "%"
+	categoryName := "%" + search + "%"
+	productCost := "%" + search + "%"
+	discountType := "%" + search + "%"
+	discountValue := "%" + search + "%"
 
 	ctx, cancel := CtxTimeout(c)
 	defer cancel()
@@ -164,11 +169,11 @@ func GetProduct(c *gin.Context) {
 
 	switch role {
 	case "system_admin":
-		rows, err = config.DB.QueryContext(ctx, "select p.product_id,p.product_name,p.product_description,p.product_cost,p.product_category_id,c.category_name,p.product_supplier_id,p.discount_type,p.discount_value from products p left join categories c on p.product_category_id=c.category_id where ?='' or cast(p.product_id as char) like ? or lower(p.product_name) like ? or lower(trim(c.category_name)) like ? or cast(p.product_cost as char) like ? or lower(p.discount_type) like ? or format(p.discount_value,2) like ? order by p.product_id asc", search, like, like, like, like, like, like)
+		rows, err = config.DB.QueryContext(ctx, "select p.product_id,p.product_name,p.product_description,p.product_cost,p.product_category_id,c.category_name,p.product_supplier_id,p.discount_type,p.discount_value from products p left join categories c on p.product_category_id=c.category_id where ?='' or cast(p.product_id as char) like ? or lower(p.product_name) like ? or lower(trim(c.category_name)) like ? or cast(p.product_cost as char) like ? or lower(p.discount_type) like ? or format(p.discount_value,2) like ? order by p.product_id asc", search, productID, productName, categoryName, productCost, discountType, discountValue)
 
 	case "supplier_admin":
 		supplierID := c.GetInt("supplier_id")
-		rows, err = config.DB.QueryContext(ctx, "select p.product_id,p.product_name,p.product_description,p.product_cost,p.product_category_id,c.category_name,p.product_supplier_id,p.discount_type,p.discount_value from products p left join categories c on p.product_category_id=c.category_id where p.product_supplier_id=? and (?='' or cast(p.product_id as char) like ? or lower(p.product_name) like ? or lower(trim(c.category_name)) like ? or cast(p.product_cost as char) like ? or lower(p.discount_type) like ? or format(p.discount_value,2) like ?) order by p.product_id asc", supplierID, search, like, like, like, like, like, like)
+		rows, err = config.DB.QueryContext(ctx, "select p.product_id,p.product_name,p.product_description,p.product_cost,p.product_category_id,c.category_name,p.product_supplier_id,p.discount_type,p.discount_value from products p left join categories c on p.product_category_id=c.category_id where p.product_supplier_id=? and (?='' or cast(p.product_id as char) like ? or lower(p.product_name) like ? or lower(trim(c.category_name)) like ? or cast(p.product_cost as char) like ? or lower(p.discount_type) like ? or format(p.discount_value,2) like ?) order by p.product_id asc", supplierID, search, productID, productName, categoryName, productCost, discountType, discountValue)
 	}
 
 	if err != nil {

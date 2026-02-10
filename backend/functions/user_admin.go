@@ -123,12 +123,16 @@ func GetsuppAdmin(c *gin.Context) {
 	if v, err := strconv.Atoi(search); err == nil {
 		searchInt = v
 	}
-	like := "%" + searchLower + "%"
+	name := "%" + searchLower + "%"
+	email := "%" + searchLower + "%"
+	roleL := "%" + searchLower + "%"
+	supplierName := "%" + searchLower + "%"
+	supplierCompany := "%" + searchLower + "%"
 
 	ctx, cancel := CtxTimeout(c)
 	defer cancel()
 
-	rows, err := config.DB.QueryContext(ctx, "select u.user_id,u.name,u.email,u.role,u.supplier_id from users u left join suppliers s on u.supplier_id=s.supplier_id where (?='' or (? regexp '^[0-9]+$' and u.user_id=?) or (? not regexp '^[0-9]+$' and (lower(u.name) like ? or lower(u.email) like ? or lower(u.role) like ? or lower(s.name) like ? or lower(s.company) like ?))) order by u.user_id asc", search, search, searchInt, search, like, like, like, like, like)
+	rows, err := config.DB.QueryContext(ctx, "select u.user_id,u.name,u.email,u.role,u.supplier_id from users u left join suppliers s on u.supplier_id=s.supplier_id where (?='' or (? regexp '^[0-9]+$' and u.user_id=?) or (? not regexp '^[0-9]+$' and (lower(u.name) like ? or lower(u.email) like ? or lower(u.role) like ? or lower(s.name) like ? or lower(s.company) like ?))) order by u.user_id asc", search, search, searchInt, search, name, email, roleL, supplierName, supplierCompany)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "db error while fetching users"})
 		c.Abort()

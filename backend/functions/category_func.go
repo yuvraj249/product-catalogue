@@ -253,12 +253,14 @@ func GetCategory(c *gin.Context) {
 	}
 
 	search := strings.ToLower(strings.TrimSpace(c.Query("q")))
-	like := "%" + search + "%"
+	categoryID := "%" + search + "%"
+	categoryName := "%" + search + "%"
+	categoryDescription := "%" + search + "%"
 
 	ctx, cancel := CtxTimeout(c)
 	defer cancel()
 
-	rows, err := config.DB.QueryContext(ctx, "select category_id,category_name,category_description from categories where ?='' or cast(category_id as char) like ? or lower(category_name) like ? or lower(category_description) like ? order by category_id asc", search, like, like, like)
+	rows, err := config.DB.QueryContext(ctx, "select category_id,category_name,category_description from categories where ?='' or cast(category_id as char) like ? or lower(category_name) like ? or lower(category_description) like ? order by category_id asc", search, categoryID, categoryName, categoryDescription)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "db error while fetching categories"})
 		return
