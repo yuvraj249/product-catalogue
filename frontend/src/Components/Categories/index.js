@@ -33,24 +33,19 @@ const Categories = () => {
   });
   
 
-const fetchCategories = useCallback(async () => {
-    try{
-       setLoading(true)
-        const res = await api.get("/categories")
-        setState((prev) => ({...prev, data: res.data.categories || []}))     
-    }catch(err){
-        console.log('failed to fetch categories: ', err)
-        toast.error("Failed to load categories")
-    } finally{
-        setLoading(false)
+const fetchCategories = useCallback(async (q = "") => {
+    try {
+      setLoading(true)
+      const res = await api.get("/categories", {
+        params: { q }
+      })
+      setState(p => ({ ...p, data: res.data.categories || [] }))
+    } catch {
+      toast.error("Failed to load categories")
+    } finally {
+      setLoading(false)
     }
-   }, [])
-
-   useEffect(() => {
-    fetchCategories()
-   }, [fetchCategories])
-
-
+  }, [])
 
 const location = useLocation()
 useEffect(() => {
@@ -62,47 +57,14 @@ useEffect(() => {
 }, [location.search])
 
 useEffect(() => {
-  const handler = setTimeout(async () => {
-    const search = globalFilter.trim()
+    const handler = setTimeout(() => {
+      const value = globalFilter.trim()
 
-    switch (true) {
-        case search === "":
-            fetchCategories()
-            return
+      fetchCategories(value)
+    }, 350)
 
-        case /^\d+$/.test(search):
-
-            try {
-                const res = await api.get(`/categories/${search}`)
-                setState(prev => ({
-                ...prev,
-                data: [res.data.category]
-            }))
-          } catch {
-                setState(prev => ({ ...prev, data: [] }))
-        }
-        return
-
-        default:
-            try {
-                const res = await api.get("/categories", {
-                params: { name: search, description: search }
-            })
-
-                setState(prev => ({
-                    ...prev,
-                    data: res.data.categories || []
-               }))
-              } catch (err) {
-                    console.log(err.response?.data || err.message)
-                    toast.error("Failed to search categories")
-        }
-    }
-  }, 350)
-
-  return () => clearTimeout(handler)
-}, [globalFilter, fetchCategories])
-
+    return () => clearTimeout(handler)
+  }, [globalFilter, fetchCategories])
 
 
 const deleteCategory = useCallback(async (id) => {
@@ -164,8 +126,8 @@ const deleteCategory = useCallback(async (id) => {
            cell: ({row} ) => 
             (
                 <ActionButtons>
-                <IconButton onClick={() => onClickEdit(row) }><Icon src={editIcon} alt="edit" /></IconButton>
-                <IconButton onClick={() => deleteCategory(row.original.category_id)}>
+                <IconButton data-cy="edit-category-btn" onClick={() => onClickEdit(row) }><Icon src={editIcon} alt="edit" /></IconButton>
+                <IconButton data-cy="delete-category-btn" onClick={() => deleteCategory(row.original.category_id)}>
                     <Icon src={trashIcon} alt="delete" />
                 </IconButton>
                 </ActionButtons>
@@ -178,7 +140,7 @@ const deleteCategory = useCallback(async (id) => {
    return (
             <>
                 <PageHeader>
-                    <Title>Categories</Title>
+                    <Title data-cy="categories-title">Categories</Title>
                         <SearchWrap>
                             <Icon src={searchIcon} alt='search'/>
                             <SearchIpt 
@@ -189,7 +151,8 @@ const deleteCategory = useCallback(async (id) => {
                         </SearchWrap>
                         {
                             user.role === 'system_admin' && (
-                                <AddButton 
+                                <AddButton
+                                data-cy="add-category-btn" 
                                 onClick={onClickAddCatg}>
                                     <Icon src={plusIcon} alt="add" /> 
                                     Add Category 
@@ -212,6 +175,7 @@ const deleteCategory = useCallback(async (id) => {
             onClose={onModalClose}
             updatingId={state.updatingId}
             refetch={fetchCategories}
+            setLoading={setLoading}
         />                    
         <ToastContainer position="top-right" autoClose={3000}/>        
     </>
