@@ -1,8 +1,10 @@
 package routes
 
 import (
+	"os"
 	"product-catalogue/functions"
 	"product-catalogue/middleware"
+	"product-catalogue/utils"
 
 	"github.com/gin-gonic/gin"
 )
@@ -45,6 +47,18 @@ func SetupRouter() *gin.Engine {
 	authorized.DELETE("/users/supplier-admin/:id", middleware.RoleSystemAdmin(), functions.DeleteSuppAdmin)
 	authorized.PUT("/users/supplier-admin/:id", middleware.RoleSystemAdmin(), functions.UpdateSuppAdmin)
 	authorized.GET("/dashboard", functions.GetDashboard)
+
+	if os.Getenv("APP_ENV") == "test" {
+		test := r.Group("/test/cleanup")
+		test.Use(middleware.AuthMiddleware())
+
+		test.DELETE("/users", utils.CleanupUsers)
+		test.DELETE("/suppliers", utils.CleanupSuppliers)
+		test.DELETE("/categories", utils.CleanupCategories)
+		test.DELETE("/products", utils.CleanupProducts)
+		test.DELETE("/stock_movements", utils.CleanupStock)
+		test.DELETE("/all", utils.CleanupAll)
+	}
 
 	return r
 

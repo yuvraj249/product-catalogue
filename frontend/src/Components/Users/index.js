@@ -162,11 +162,11 @@ const supplierMap = useMemo(() => {
         cell: ({ row }) =>
           user.role === "system_admin" && (
             <ActionButtons>
-              <IconButton onClick={() => onClickEdit(row)}>
+              <IconButton data-cy="edit-user-btn" onClick={() => onClickEdit(row)}>
                 <Icon src={editIcon} alt="edit" />
               </IconButton>
 
-              <IconButton onClick={() => deleteUser(row.original.user_id)}>
+              <IconButton data-cy="delete-user-btn" onClick={() => deleteUser(row.original.user_id)}>
                 <Icon src={trashIcon} alt="delete" />
               </IconButton>
             </ActionButtons>
@@ -185,6 +185,7 @@ console.log({state})
         <SearchWrap>
           <Icon src={searchIcon} alt="search" />
           <SearchIpt
+            data-cy="user-search"
             value={globalFilter}
             onChange={(e) => setGlobalFilter(e.target.value)}
             placeholder="Search Users"
@@ -192,7 +193,7 @@ console.log({state})
         </SearchWrap>
 
         {user.role === "system_admin" && (
-          <AddButton onClick={onClickAdd}>
+          <AddButton data-cy="add-user-btn" onClick={onClickAdd}>
             <Icon src={plusIcon} alt="add" />
             Add User
           </AddButton>

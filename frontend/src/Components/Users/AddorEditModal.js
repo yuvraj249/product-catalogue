@@ -126,10 +126,12 @@ const AddOrEditUserModal = ({ open, onClose, updatingId, form, refetch, supplier
     const payload = {
     name: userObj.name.trim(),
     email: userObj.email.trim(),
-    password: userObj.password,
     supplier_id: Number(userObj.supplier_id),
-   }
-
+  }
+  
+  if (userObj.password && userObj.password.trim() !== "") {
+    payload.password = userObj.password
+  }
    setLoading(true)
     try {
       await api.put(`users/supplier-admin/${updatingId}`, payload)
@@ -153,16 +155,17 @@ const AddOrEditUserModal = ({ open, onClose, updatingId, form, refetch, supplier
   return (
     <ModalBox open={open} onClose={onClose}>
       <ModalHeader>
-        <ModalTitle>{updatingId ? "Edit User" : "Add User"}</ModalTitle>
+        <ModalTitle data-cy="user-modal-title">{updatingId ? "Edit User" : "Add User"}</ModalTitle>
         <CloseButton onClick={() => {onClose(); setUserObj(initialUser)}}>
           <Icon src={xIcon} alt="close" />
         </CloseButton>
       </ModalHeader>
 
-      <Form onSubmit={onSubmitHandler}>
+      <Form onSubmit={onSubmitHandler} data-cy="user-form">
         <FormGroup>
           <Label>Name *</Label>
           <Input
+            data-cy="user-name"
             value={userObj.name}
             onChange={(e) =>
               setUserObj((p) => ({ ...p, name: e.target.value }))
@@ -173,6 +176,7 @@ const AddOrEditUserModal = ({ open, onClose, updatingId, form, refetch, supplier
         <FormGroup>
           <Label>Email *</Label>
           <Input
+            data-cy="user-email"
             value={userObj.email}
             onChange={(e) =>
               setUserObj((p) => ({ ...p, email: e.target.value }))
@@ -184,6 +188,7 @@ const AddOrEditUserModal = ({ open, onClose, updatingId, form, refetch, supplier
         <FormGroup>
             <Label>Supplier *</Label>
             <SupplierSelect
+                data-cy="supplier-select"
                 classNamePrefix="react-select"
                 options={suppliers.map(s => ({
                 value: s.supplier_id,
@@ -214,17 +219,17 @@ const AddOrEditUserModal = ({ open, onClose, updatingId, form, refetch, supplier
             {updatingId ? "Password (leave blank to keep same)" : "Password *"}
           </Label>
           <Input
+            data-cy="user-password"
             type="password"
             value={userObj.password}
             onChange={(e) =>
               setUserObj((p) => ({ ...p, password: e.target.value }))
             }
-            {...(!updatingId && { required: true })}
           />
         </FormGroup>
         <ModalActions>
-          <CancelButton onClick={() => {onClose(); setUserObj(initialUser)}}>Cancel</CancelButton>
-          <SubmitButton>{updatingId ? "Update" : "Create"}</SubmitButton>
+          <CancelButton data-cy="user-cancel-btn" onClick={() => {onClose(); setUserObj(initialUser)}}>Cancel</CancelButton>
+          <SubmitButton type="submit" data-cy="user-submit-btn">{updatingId ? "Update" : "Create"}</SubmitButton>
         </ModalActions>
       </Form>
     </ModalBox>
