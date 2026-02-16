@@ -150,10 +150,10 @@ useEffect(() => {
         cell: ({ row }) =>
           user.role === "supplier_admin" && (
             <ActionButtons>
-              <IconButton onClick={() => onClickEdit(row)}>
+              <IconButton data-cy="edit-product-btn" onClick={() => onClickEdit(row)}>
                 <Icon src={editIcon} />
               </IconButton>
-              <IconButton onClick={() => deleteProduct(row.original.product_id)}>
+              <IconButton data-cy="delete-product-btn" onClick={() => deleteProduct(row.original.product_id)}>
                 <Icon src={trashIcon} />
               </IconButton>
             </ActionButtons>
@@ -166,11 +166,12 @@ useEffect(() => {
 
   return (
     <>
-      <PageHeader>
+      <PageHeader data-cy="products-title">
         <Title>Products</Title>
         <SearchWrap>
           <Icon src={searchIcon} />
           <SearchIpt
+            data-cy="product-search"
             value={globalFilter}
             onChange={(e) => setGlobalFilter(e.target.value)}
             placeholder="Search Products"
@@ -186,9 +187,9 @@ useEffect(() => {
       </PageHeader>
 
       {loading ? (
-        <p>Loading products…</p>
+        <p data-cy="products-loading">Loading products…</p>
       ) : (
-        <Datatable
+        <Datatable 
           data={state.data}
           columns={columns}
         />

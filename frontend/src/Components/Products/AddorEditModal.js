@@ -116,7 +116,7 @@ const updateProduct = async () => {
   return (
     <ModalBox open={open} onClose={onClose}>
       <ModalHeader>
-        <ModalTitle>{updatingId ? "Edit Product" : "Add Product"}</ModalTitle>
+        <ModalTitle data-cy="product-modal-title">{updatingId ? "Edit Product" : "Add Product"}</ModalTitle>
         <CloseButton onClick={() => {onClose(); setProduct(initialProduct)}}>
           <Icon src={xIcon} />
         </CloseButton>
