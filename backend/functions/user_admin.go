@@ -298,23 +298,12 @@ func UpdateSuppAdmin(c *gin.Context) {
 		return
 	}
 
-	// if supp.Valid {
-	// 	tmp := int(supp.Int64)
-	// 	existing.SupplierID = &tmp
-	// } else {
-	// 	existing.SupplierID = nil
-	// }
-
 	newName := existing.Name
 	newEmail := existing.Email
 	newPwdHash := existing.PasswordHash
-	// var newSupplierID *int
 
 	var newSupplierID sql.NullInt64
-
-	if supp.Valid {
-		newSupplierID = supp
-	}
+	newSupplierID = supp
 
 	if strings.TrimSpace(body.Name) != "" {
 		newName = strings.TrimSpace(body.Name)

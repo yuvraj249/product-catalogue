@@ -86,10 +86,12 @@ const AddOrEditUserModal = ({ open, onClose, updatingId, form, refetch, supplier
     const payload = {
     name: userObj.name.trim(),
     email: userObj.email.trim(),
-    password: userObj.password,
     supplier_id: Number(userObj.supplier_id),
-   }
-
+  }
+  
+  if (userObj.password && userObj.password.trim() !== "") {
+    payload.password = userObj.password
+  }
    setLoading(true)
     try {
       await api.put(`users/supplier-admin/${updatingId}`, payload)
@@ -113,7 +115,7 @@ const AddOrEditUserModal = ({ open, onClose, updatingId, form, refetch, supplier
   return (
     <ModalBox open={open} onClose={onClose}>
       <ModalHeader>
-        <ModalTitle>{updatingId ? "Edit User" : "Add User"}</ModalTitle>
+        <ModalTitle data-cy="user-modal-title">{updatingId ? "Edit User" : "Add User"}</ModalTitle>
         <CloseButton onClick={() => {onClose(); setUserObj(initialUser)}}>
           <Icon src={xIcon} alt="close" />
         </CloseButton>
