@@ -142,8 +142,8 @@ const submit = () => {
   return (
     <ModalBox open={open} onClose={() => {onClose(); setForm(initialState)}}>
       <ModalHeader>
-        <ModalTitle>Update Stock</ModalTitle>
-        <CloseButton onClick={onClose}>
+        <ModalTitle data-cy="stock-modal-title">Update Stock</ModalTitle>
+        <CloseButton data-cy="stock-modal-close" onClick={onClose}>
           <Icon src={xIcon} />
         </CloseButton>
       </ModalHeader>

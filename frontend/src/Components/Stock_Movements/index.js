@@ -122,6 +122,7 @@ const StockMovements = () => {
         user.role === "supplier_admin" && (
           <ActionButtons>
             <IconButton
+              data-cy="edit-stock-btn"
               onClick={() => {
                 setEditingItem(row.original)
                 setModalOpen(true)
@@ -130,7 +131,7 @@ const StockMovements = () => {
               <Icon src={editIcon} />
             </IconButton>
 
-            <IconButton onClick={() => deleteMovement(row.original.stock_id)}>
+            <IconButton data-cy="delete-stock-btn" onClick={() => deleteMovement(row.original.stock_id)}>
               <Icon src={trashIcon} />
             </IconButton>
           </ActionButtons>
@@ -147,10 +148,11 @@ const StockMovements = () => {
   return (
     <>
       <PageHeader>
-        <Title>Stock Table</Title>
+        <Title data-cy="stock-title">Stock Table</Title>
         <SearchWrap>
           <Icon src={searchIcon} />
           <SearchIpt
+            data-cy="stock-search"
             value={globalFilter}
             onChange={(e) => setGlobalFilter(e.target.value)}
             placeholder="Search stock movements"
