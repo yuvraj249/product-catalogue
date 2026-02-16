@@ -123,7 +123,7 @@ const onChangeDesc = (e) => {
                 onClose={onClose}
                 >
                 <ModalHeader>
-                        <ModalTitle>
+                        <ModalTitle data-cy="category-modal-title">
                             {updatingId ? "Edit Category" : "Add Category"}
                         </ModalTitle>
                         <CloseButton

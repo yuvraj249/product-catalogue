@@ -76,20 +76,20 @@ export const LoginPage = () => {
         <Form onSubmit={handleSubmit}>
          <FormGroup>
           <label>Email Address</label>
-        <Input placeholder='abc@gmail.com' value={email} onChange={e => setEmail(e.target.value)}/>
+        <Input data-cy="email-input" placeholder='abc@gmail.com' value={email} onChange={e => setEmail(e.target.value)}/>
          </FormGroup>
 
          <FormGroup>
          <label>Password</label>
         <PasswordWrapper>
-          <Input placeholder='password' type={!showPassword ? "text" : "password"} value={password} onChange={e => setPassword(e.target.value)} />
+          <Input data-cy="password-input" placeholder='password' type={!showPassword ? "text" : "password"} value={password} onChange={e => setPassword(e.target.value)} />
           <IconButton type='button' onClick={() => setShowPassword(!showPassword)}>
             <img src={showPassword ? eyeOff : eye} alt='toggle password' width={18} />
           </IconButton>
         </PasswordWrapper>
         </FormGroup> 
        
-       <SubmitButton type="submit" disabled={loading}>
+       <SubmitButton type="submit" disabled={loading} data-cy="login-btn">
             {loading ? "Signing In..." : "Sign In"}
             <img src={arrow} alt="" width={18} style={{ marginLeft: 8 }} />
         </SubmitButton>

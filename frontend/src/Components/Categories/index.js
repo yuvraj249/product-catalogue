@@ -123,8 +123,8 @@ const deleteCategory = useCallback(async (id) => {
            cell: ({row} ) => 
             (
                 <ActionButtons>
-                <IconButton onClick={() => onClickEdit(row) }><Icon src={editIcon} alt="edit" /></IconButton>
-                <IconButton onClick={() => deleteCategory(row.original.category_id)}>
+                <IconButton data-cy="edit-category-btn" onClick={() => onClickEdit(row) }><Icon src={editIcon} alt="edit" /></IconButton>
+                <IconButton data-cy="delete-category-btn" onClick={() => deleteCategory(row.original.category_id)}>
                     <Icon src={trashIcon} alt="delete" />
                 </IconButton>
                 </ActionButtons>
@@ -137,7 +137,7 @@ const deleteCategory = useCallback(async (id) => {
    return (
             <>
                 <PageHeader>
-                    <Title>Categories</Title>
+                    <Title data-cy="categories-title">Categories</Title>
                         <SearchWrap>
                             <Icon src={searchIcon} alt='search'/>
                             <SearchIpt 
