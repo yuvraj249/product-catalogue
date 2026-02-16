@@ -19,7 +19,7 @@ const Datatable = (props = initialProps) => {
 
 
   return (
-    <TableWrapper data-cy="suppliers-table">
+    <TableWrapper data-cy="data-table">
         <Table>
             <thead>
                 {table.getHeaderGroups().map((hg) => (

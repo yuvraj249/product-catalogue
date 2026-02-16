@@ -192,7 +192,6 @@ const onClickEdit = useCallback((row) => {
             <p>Loading suppliers...</p>
           ) : (
             <Datatable
-          data-cy="suppliers-table"
           data={state.data}
           columns={columns}
           />
