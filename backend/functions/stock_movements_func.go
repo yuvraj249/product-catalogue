@@ -189,7 +189,7 @@ func GetStockMovements(c *gin.Context) {
 		rows, err = config.DB.QueryContext(
 			ctx,
 			"select sm.stock_id, sm.product_id, p.product_name, sm.quantity, sm.movement_type, sm.reason, sm.performed_by, '' as username from stock_movements sm join products p on sm.product_id = p.product_id where p.product_supplier_id=? and (?='' or cast(sm.stock_id as char) like ? or lower(p.product_name) like ? or cast(sm.quantity as char) like ? or lower(sm.movement_type) like ? or lower(coalesce(sm.reason,'')) like ?) order by sm.stock_id desc",
-			supplierID, search, stockID, productName, quantity, movementType, reason, username,
+			supplierID, search, stockID, productName, quantity, movementType, reason,
 		)
 	default:
 		c.JSON(http.StatusForbidden, gin.H{"error": "access denied"})
