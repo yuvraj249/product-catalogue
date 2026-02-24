@@ -187,7 +187,7 @@ console.log({state})
         </SearchWrap>
 
         {user.role === "system_admin" && (
-          <HeaderAction><HeaderAddButton onClick={onClickAdd}>
+          <HeaderAction><HeaderAddButton  data-cy="add-user-btn" onClick={onClickAdd}>
             <Icon src={plusIcon} alt="add" />
             Add User
           </HeaderAddButton></HeaderAction>

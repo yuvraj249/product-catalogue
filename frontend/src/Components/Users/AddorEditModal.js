@@ -125,6 +125,7 @@ const AddOrEditUserModal = ({ open, onClose, updatingId, form, refetch, supplier
 
   <FormField label="Name" required>
     <Input
+      data-cy="user-name"
       value={userObj.name}
       onChange={(e) =>
         setUserObj((p) => ({ ...p, name: e.target.value }))
@@ -134,6 +135,7 @@ const AddOrEditUserModal = ({ open, onClose, updatingId, form, refetch, supplier
 
   <FormField label="Email" required>
     <Input
+      data-cy="user-email"
       value={userObj.email}
       onChange={(e) =>
         setUserObj((p) => ({ ...p, email: e.target.value }))
@@ -168,17 +170,18 @@ const AddOrEditUserModal = ({ open, onClose, updatingId, form, refetch, supplier
     required={!updatingId}
   >
     <Input
+      data-cy="user-password"
       type="password"
       value={userObj.password}
       onChange={(e) =>
         setUserObj((p) => ({ ...p, password: e.target.value }))
       }
-      {...(!updatingId && { required: true })}
     />
   </FormField>
 
   <ModalActions>
     <Button
+      data-cy="user-cancel-btn"
       variant="secondary"
       onClick={() => {
         onClose();
@@ -188,7 +191,7 @@ const AddOrEditUserModal = ({ open, onClose, updatingId, form, refetch, supplier
       Cancel
     </Button>
 
-    <Button variant="primary">
+    <Button data-cy="user-submit-btn" variant="primary">
       {updatingId ? "Update" : "Create"}
     </Button>
   </ModalActions>

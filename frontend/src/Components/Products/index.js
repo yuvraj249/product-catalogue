@@ -179,7 +179,7 @@ useEffect(() => {
         </SearchWrap>
 
         {user.role === "supplier_admin" && (
-         <HeaderAction><HeaderAddButton onClick={onClickAdd}>
+         <HeaderAction><HeaderAddButton data-cy="add-product-btn" onClick={onClickAdd}>
             <Icon src={plusIcon} />
             Add Product
           </HeaderAddButton></HeaderAction>

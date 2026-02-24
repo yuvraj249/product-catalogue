@@ -161,7 +161,7 @@ const StockMovements = () => {
 
         {user.role === "supplier_admin" && (
          <HeaderAction>
-          <HeaderAddButton size="sm" variant="primary" onClick={() => {setEditingItem(null); setModalOpen(true)}}>
+          <HeaderAddButton data-cy="add-stock-btn" size="sm" variant="primary" onClick={() => {setEditingItem(null); setModalOpen(true)}}>
             <Icon src={plusIcon} />
             Add Stock
             </HeaderAddButton>

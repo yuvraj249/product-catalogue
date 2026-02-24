@@ -138,6 +138,7 @@ const onChangeDesc = (e) => {
 
                   <FormField label="Name" required>
                     <Input
+                      data-cy="category-name"
                       value={categoryObj.name}
                       onChange={onChangeName}
                    />
@@ -145,6 +146,7 @@ const onChangeDesc = (e) => {
 
                   <FormField label="Description" required>
                     <Textarea
+                    data-cy="category-description"
                     value={categoryObj.description}
                     onChange={onChangeDesc}
                   />
@@ -152,6 +154,7 @@ const onChangeDesc = (e) => {
 
                   <ModalActions>
                     <Button
+                      data-cy="category-cancel"
                       variant="secondary"
                       onClick={() => {
                       onClose();
@@ -160,7 +163,7 @@ const onChangeDesc = (e) => {
                     >Cancel
                     </Button>
 
-                    <Button  variant="primary">
+                    <Button  data-cy="category-submit" variant="primary">
                       {updatingId ? "Update" : "Create"}
                     </Button>
                     </ModalActions>

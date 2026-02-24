@@ -126,6 +126,7 @@ const updateProduct = async () => {
 
   <FormField label="Name" required>
     <Input
+      data-cy="product-name"
       value={product.product_name}
       onChange={(e) =>
         setProduct((p) => ({ ...p, product_name: e.target.value }))
@@ -135,14 +136,22 @@ const updateProduct = async () => {
 
   <FormField label="Category" required>
     <CategorySelect
+      data-cy="product-category"
       classNamePrefix="react-select"
       options={categoryOptions}
       value={selectedCategory}
+      onChange={(option) =>
+      setProduct((p) => ({
+        ...p,
+        product_category_id: option?.value || null
+      }))
+  }
     />
   </FormField>
 
   <FormField label="Cost" required>
     <Input
+      data-cy="product-cost"
       type="number"
       value={product.product_cost}
       onChange={(e) =>
@@ -153,6 +162,7 @@ const updateProduct = async () => {
 
   <FormField label="Discount Type">
     <Input
+      data-cy="product-discount-type"
       value={product.discount_type}
       onChange={(e) =>
         setProduct((p) => ({ ...p, discount_type: e.target.value }))
@@ -162,6 +172,7 @@ const updateProduct = async () => {
 
   <FormField label="Discount Value">
     <Input
+      data-cy="product-discount-value"
       type="number"
       value={product.discount_value}
       onChange={(e) =>
@@ -181,7 +192,7 @@ const updateProduct = async () => {
       Cancel
     </Button>
 
-    <Button varaint="primary" onClick={updatingId ? updateProduct : createProduct}>
+    <Button variant="primary" data-cy="product-submit-btn" onClick={updatingId ? updateProduct : createProduct}>
       {updatingId ? "Update" : "Create"}
     </Button>
   </ModalActions>

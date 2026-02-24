@@ -149,6 +149,7 @@ const deleteCategory = useCallback(async (id) => {
                         {
                             user.role === 'system_admin' && (
                                <HeaderAction><HeaderAddButton 
+                                data-cy="add-category-btn"
                                 onClick={onClickAddCatg}>
                                     <Icon src={plusIcon} alt="add" /> 
                                     Add Category 

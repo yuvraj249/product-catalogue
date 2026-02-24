@@ -152,6 +152,7 @@ const submit = () => {
 
   <FormField label="Product" required>
     <SelectBox
+      data-cy="stock-product"
       classNamePrefix="react-select"
       options={productOptions}
       value={selectedProduct}
@@ -163,6 +164,7 @@ const submit = () => {
 
   <FormField label="Quantity" required>
     <Input
+      data-cy="stock-quantity"
       type="number"
       value={form.quantity}
       onChange={(e) =>
@@ -174,6 +176,7 @@ const submit = () => {
 
   <FormField label="Movement Type" required>
     <SelectBox
+      data-cy="stock-movement-type"
       classNamePrefix="react-select"
       options={movementTypeOptions}
       value={selectedMovementType}
@@ -185,6 +188,7 @@ const submit = () => {
 
   <FormField label="Reason">
     <Input
+      data-cy="stock-reason"
       value={form.reason}
       onChange={(e) =>
         setForm((f) => ({ ...f, reason: e.target.value }))
@@ -204,7 +208,7 @@ const submit = () => {
       Cancel
     </Button>
 
-    <Button variant="primary" onClick={submit}>Save</Button>
+    <Button data-cy="stock-submit-btn" variant="primary" onClick={submit}>Save</Button>
   </ModalActions>
 
 </Form>
