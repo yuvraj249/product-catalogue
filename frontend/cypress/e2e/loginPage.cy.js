@@ -82,7 +82,7 @@ describe('Login Page - Auth and Validation', () => {
       .should('eq', 200)
 
 
-    cy.url().should('include', '/admin/categories')
+    cy.url().should('include', '/admin/dashboard')
 
     cy.window().then(win => {
       expect(win.localStorage.getItem('auth_token')).to.exist
