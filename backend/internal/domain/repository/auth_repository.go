@@ -13,5 +13,6 @@ type AuthRepository interface {
 	GetTenantBySubdomain(ctx context.Context, subdomain string) (*entity.Tenant, error)
 	CreateUser(ctx context.Context, user *entity.User) error
 	GetUserByEmail(ctx context.Context, tenantID uuid.UUID, email string) (*entity.User, error)
+	GetUserByEmailAnyTenant(ctx context.Context, email string) (*entity.User, error)
 	GetUserByID(ctx context.Context, tenantID, userID uuid.UUID) (*entity.User, error)
 }

@@ -80,6 +80,16 @@ func (r *AuthRepository) GetUserByEmail(ctx context.Context, tenantID uuid.UUID,
 	return &u, nil
 }
 
+func (r *AuthRepository) GetUserByEmailAnyTenant(ctx context.Context, email string) (*entity.User, error) {
+	query := `SELECT id, tenant_id, email, password_hash, role, created_at, updated_at FROM users WHERE email = $1 LIMIT 1`
+	var u entity.User
+	err := r.DB.QueryRowContext(ctx, query, email).Scan(&u.ID, &u.TenantID, &u.Email, &u.PasswordHash, &u.Role, &u.CreatedAt, &u.UpdatedAt)
+	if err != nil {
+		return nil, fmt.Errorf("failed to fetch user by email: %w", err)
+	}
+	return &u, nil
+}
+
 func (r *AuthRepository) GetUserByID(ctx context.Context, tenantID, userID uuid.UUID) (*entity.User, error) {
 	query := `SELECT id, tenant_id, email, password_hash, role, created_at, updated_at FROM users WHERE tenant_id = $1 AND id = $2`
 	var u entity.User

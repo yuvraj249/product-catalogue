@@ -75,6 +75,8 @@ func main() {
 	// Public Auth Endpoints
 	mux.HandleFunc("POST /api/v1/auth/register", authHandler.Register)
 	mux.HandleFunc("POST /api/v1/auth/login", authHandler.Login)
+	mux.HandleFunc("POST /auth/register", authHandler.Register)
+	mux.HandleFunc("POST /auth/login", authHandler.Login)
 	mux.HandleFunc("POST /api/v1/webhooks/stripe", webhookHandler.HandleStripeWebhook)
 
 	// Protected ERP Routes
