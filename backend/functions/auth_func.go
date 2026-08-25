@@ -69,7 +69,7 @@ func Login(c *gin.Context) {
 		"user_id": id,
 		"name":    name,
 		"role":    role,
-		"exp":     time.Now().Add(time.Hour * 24).Unix(),
+		"exp":     time.Now().Add(15 * time.Minute).Unix(),
 	}
 	if role == "supplier_admin" && supplierID.Valid {
 		claims["supplier_id"] = supplierID.Int64
@@ -82,6 +82,23 @@ func Login(c *gin.Context) {
 		return
 	}
 
+	// Create refresh token family and issue refresh token
+	familyID, err := generateFamilyID()
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to generate token family"})
+		return
+	}
+
+	ctx, cancel := CtxTimeout(c)
+	defer cancel()
+
+	refreshToken, err := createRefreshToken(ctx, id, familyID)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to create refresh token"})
+		return
+	}
+
+	setRefreshCookie(c, refreshToken)
 	c.JSON(http.StatusOK, gin.H{"message": "login successful", "role": role, "token": signed_token})
 
 }

@@ -157,6 +157,7 @@ func CreateStockMovement(c *gin.Context) {
 
 	id, _ := result.LastInsertId()
 	newStock, _ := CountStock(ctx, reqSt.ProductID)
+	LogAudit(userID, "STOCK_MOVEMENT", "stock_movement", int(id), reqSt.MovementType)
 	c.JSON(http.StatusCreated, gin.H{
 		"message":       "stock movement created",
 		"stock_id":      id,

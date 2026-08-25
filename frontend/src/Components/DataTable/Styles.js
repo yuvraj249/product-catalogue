@@ -1,66 +1,80 @@
 import styled from "styled-components";
 
 export const TableWrapper = styled.div`
-  background: #ffffff;
-  border: 1px solid hsla(197, 57%, 39%, 0.25);
-  border-radius: 12px;
+  background: rgba(15, 23, 42, 0.65);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 16px;
   max-height: calc(100vh - 220px);
   overflow-y: auto;
-  overflow-x: hidden;
+  overflow-x: auto;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.25);
 `;
 
 export const Table = styled.table`
   width: 100%;
   border-collapse: collapse;
-  table-layout: fixed;
 
   tbody tr {
-    transition: background 0.15s ease;
+    transition: all 0.2s ease;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+
+    &:last-child {
+      border-bottom: none;
+    }
 
     &:hover {
-      background: rgba(42,123,155,0.05);
+      background: rgba(56, 189, 248, 0.05);
+      box-shadow: inset 3px 0 0 #38bdf8;
     }
   }
 `;
 
 export const Th = styled.th`
-  padding: 12px 16px;
-  background: #f3f8fb;
-  color: #4f6b72;
-  border-bottom: 2px solid rgba(42,123,155,0.25);
+  padding: 14px 18px;
+  background: rgba(30, 41, 59, 0.85);
+  backdrop-filter: blur(8px);
+  color: #94a3b8;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
   text-align: ${({ align }) => align || 'left'};
-  font-size: 14px;
+  font-family: var(--font-heading, 'Plus Jakarta Sans', sans-serif);
+  font-size: 12.5px;
   font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
   position: sticky;
   top: 0;
-  align-items: center;
-  gap: 6px;
-
+  z-index: 10;
 `;
 
 export const Td = styled.td`
-  padding: 16px;
-  color: #1f2d36;
-  border-bottom: 1px solid rgba(42,123,155,0.18);
+  padding: 15px 18px;
+  color: #f1f5f9;
   text-align: ${({ align }) => align || 'left'};
+  font-family: var(--font-body, 'Inter', sans-serif);
   font-size: 14px;
+  font-weight: 400;
 `;
 
 export const SortWrapper = styled.span`
   display: flex;
   flex-direction: column;
-  margin-left: 4px;
-  font-size: 9px;
-  line-height: 9px;
+  margin-left: 6px;
+  gap: 2px;
 `;
 
 export const Arrow = styled.span`
-  opacity: ${({ $active }) => ($active ? 1 : 0.5)};
-  font-weight: ${({ $active }) => ($active ? 900 : 400)};
-  font-size: 11px;
-  line-height: 12px;
+  color: ${({ $active }) => ($active ? '#38bdf8' : '#64748b')};
+  opacity: ${({ $active }) => ($active ? 1 : 0.4)};
+  font-size: 10px;
   cursor: pointer;
+  transition: all 0.15s ease;
 
+  &:hover {
+    color: #38bdf8;
+    opacity: 1;
+  }
 `;
 
 export const HeaderContent = styled.div`
@@ -68,6 +82,5 @@ export const HeaderContent = styled.div`
   display: flex;
   align-items: center;
   justify-content: ${({ $center }) => $center ? "center" : "flex-start"};
-  gap: 10px;
+  gap: 8px;
 `;
-

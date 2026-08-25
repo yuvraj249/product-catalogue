@@ -147,6 +147,8 @@ func CreateProduct(c *gin.Context) {
 	}
 
 	id, _ := result.LastInsertId()
+	userID := c.GetInt("user_id")
+	LogAudit(userID, "CREATE", "product", int(id), product.ProductName)
 	c.JSON(http.StatusOK, gin.H{"message": "product created ", "product_id": id})
 
 }
@@ -588,6 +590,8 @@ func UpdateProduct(c *gin.Context) {
 		updated.DiscountValue = 0
 	}
 
+	userID := c.GetInt("user_id")
+	LogAudit(userID, "UPDATE", "product", id, updated.ProductName)
 	c.JSON(http.StatusOK, gin.H{"message": "product updated", "product": updated})
 
 }
@@ -644,6 +648,8 @@ func DeleteProduct(c *gin.Context) {
 		return
 	}
 
+	userID := c.GetInt("user_id")
+	LogAudit(userID, "DELETE", "product", id, "deleted product")
 	c.JSON(http.StatusOK, gin.H{"message": "product deleted"})
 
 }

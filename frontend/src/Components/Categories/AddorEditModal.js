@@ -60,8 +60,8 @@ const createCategory = async () => {
         onClose()
         refetch()
     }catch (err){
-        const msg = err.response.data.error || ""
-        toast.error(msg || "Failed to create or edit category")
+        const msg = err.response?.data?.error || ""
+        toast.error(msg || "Failed to create category")
 
     }finally{
       setLoading(false)
@@ -84,7 +84,7 @@ const updateCategory = async () => {
         onClose()
         refetch()
     } catch (err) {
-        const msg = err.response.data.error || "";
+        const msg = err.response?.data?.error || "";
         toast.error(msg || "Failed to update category");
     }finally{
       setLoading(false)

@@ -53,11 +53,13 @@ export const LoginPage = () => {
       navigate("/admin/dashboard");
     } catch (err) {
       console.error("LOGIN ERROR:", err);
-      const msg = err.response.data.error || "";
+      const msg = err.response?.data?.error || "";
       if (msg === "Invalid credentials") {
         toast.error("Incorrect email or password");
+      } else if (!err.response) {
+        toast.error("Network Error: Could not connect to server");
       } else {
-        toast.error("Login failed");
+        toast.error(msg || "Login failed");
       }
     } finally {
       setLoading(false);

@@ -13,7 +13,9 @@ func SetupRouter() *gin.Engine {
 	r := gin.Default()
 	r.Use(middleware.CORSMiddleware())
 
-	r.POST("/auth/login", functions.Login)
+	r.POST("/auth/login", middleware.RateLimiter(), functions.Login)
+	r.POST("/auth/refresh", functions.RefreshToken)
+	r.POST("/auth/logout", functions.Logout)
 
 	authorized := r.Group("/")
 	authorized.Use(middleware.AuthMiddleware())
@@ -47,6 +49,7 @@ func SetupRouter() *gin.Engine {
 	authorized.DELETE("/users/supplier-admin/:id", middleware.RoleSystemAdmin(), functions.DeleteSuppAdmin)
 	authorized.PUT("/users/supplier-admin/:id", middleware.RoleSystemAdmin(), functions.UpdateSuppAdmin)
 	authorized.GET("/dashboard", functions.GetDashboard)
+	authorized.GET("/audit-logs", middleware.RoleSystemAdmin(), functions.GetAuditLogs)
 
 	if os.Getenv("APP_ENV") == "test" {
 		test := r.Group("/test/cleanup")
