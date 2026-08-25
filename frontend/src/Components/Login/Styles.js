@@ -1,8 +1,14 @@
 import styled, { keyframes } from "styled-components";
 
-const floatAnim = keyframes`
-  0%, 100% { transform: translateY(0px) rotate(0deg); }
-  50% { transform: translateY(-8px) rotate(2deg); }
+const fadeInAnim = keyframes`
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 `;
 
 export const Page = styled.div`
@@ -37,7 +43,7 @@ export const Card = styled.div`
   display: flex;
   flex-direction: column;
   gap: 24px;
-  animation: ${floatAnim} 6s ease-in-out infinite;
+  animation: ${fadeInAnim} 0.4s ease-out forwards;
 `;
 
 export const Header = styled.div`
