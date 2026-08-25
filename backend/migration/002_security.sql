@@ -6,9 +6,7 @@ CREATE TABLE IF NOT EXISTS refresh_tokens (
     is_used BOOLEAN DEFAULT FALSE,
     expires_at DATETIME NOT NULL,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE,
-    INDEX idx_token_hash (token_hash),
-    INDEX idx_family_id (family_id)
+    FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE
 );
 
 CREATE TABLE IF NOT EXISTS audit_logs (
@@ -19,7 +17,5 @@ CREATE TABLE IF NOT EXISTS audit_logs (
     entity_id INT DEFAULT NULL,
     details TEXT,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE,
-    INDEX idx_audit_created (created_at),
-    INDEX idx_audit_entity (entity_type, entity_id)
+    FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE
 );

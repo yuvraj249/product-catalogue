@@ -6,7 +6,7 @@ import eye from '../../Images/eye-open.svg'
 import eyeOff from '../../Images/eye-closed.svg'
 import box from '../../Images/logo.svg'
 import arrow from '../../Images/arrow.svg'
-import api from '../../Api/axios'
+import api from '../../api/axios'
 import { setToken } from '../../utils/auth'
 import { toast, ToastContainer } from 'react-toastify';
 

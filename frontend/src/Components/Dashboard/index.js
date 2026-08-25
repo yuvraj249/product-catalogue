@@ -1,5 +1,5 @@
 import React, { useEffect, useState , useMemo} from "react";
-import api from "../../Api/axios";
+import api from "../../api/axios";
 import { useNavigate } from "react-router-dom";
 import Datatable from "../DataTable";
 import { getUserInfo } from "../../utils/auth";

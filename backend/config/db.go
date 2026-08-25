@@ -9,6 +9,7 @@ import (
 
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/joho/godotenv"
+	"golang.org/x/crypto/bcrypt"
 	_ "modernc.org/sqlite"
 )
 
@@ -66,14 +67,27 @@ func JoinDB() {
 }
 
 func ensureDefaultAdminUser(db *sql.DB) {
+	hashedBytes, err := bcrypt.GenerateFromPassword([]byte("Yuvraj@2411"), bcrypt.DefaultCost)
+	if err != nil {
+		log.Printf("Failed to hash default admin password: %v\n", err)
+		return
+	}
+	hashedPwd := string(hashedBytes)
+
 	var count int
-	err := db.QueryRow("SELECT COUNT(*) FROM users WHERE email = 'yuvrajbisht41@gmail.com'").Scan(&count)
+	err = db.QueryRow("SELECT COUNT(*) FROM users WHERE email = 'yuvrajbisht41@gmail.com'").Scan(&count)
 	if err == nil && count == 0 {
-		_, _ = db.Exec(
+		_, err = db.Exec(
 			"INSERT INTO users (name, email, password_hash, role) VALUES (?, ?, ?, ?)",
-			"Owner", "yuvrajbisht41@gmail.com", "$2a$10$CCw/Xx/.lW1BCcc0MYIH5.xh2QJq7pBqMrWeE.WPxgRI4F8Af12s2", "system_admin",
+			"Owner", "yuvrajbisht41@gmail.com", hashedPwd, "system_admin",
 		)
-		log.Println("Seeded default system_admin user: yuvrajbisht41@gmail.com")
+		if err == nil {
+			log.Println("Seeded default system_admin user: yuvrajbisht41@gmail.com")
+		}
+	} else {
+		// Update password hash to Yuvraj@2411
+		_, _ = db.Exec("UPDATE users SET password_hash = ? WHERE email = 'yuvrajbisht41@gmail.com'", hashedPwd)
+		log.Println("Updated system_admin user password hash for: yuvrajbisht41@gmail.com")
 	}
 }
 
@@ -97,6 +111,10 @@ func ExecMigration(db *sql.DB, path string) error {
 	sqlStr = strings.ReplaceAll(sqlStr, "DATETIME DEFAULT CURRENT_TIMESTAMP", "TIMESTAMP DEFAULT CURRENT_TIMESTAMP")
 	sqlStr = strings.ReplaceAll(sqlStr, "on delete set null on update cascade", "")
 	sqlStr = strings.ReplaceAll(sqlStr, "insert ignore into", "INSERT OR IGNORE INTO")
+	sqlStr = strings.ReplaceAll(sqlStr, ", INDEX idx_token_hash (token_hash)", "")
+	sqlStr = strings.ReplaceAll(sqlStr, ", INDEX idx_family_id (family_id)", "")
+	sqlStr = strings.ReplaceAll(sqlStr, ", INDEX idx_audit_created (created_at)", "")
+	sqlStr = strings.ReplaceAll(sqlStr, ", INDEX idx_audit_entity (entity_type, entity_id)", "")
 
 	sqlcommands := strings.Split(sqlStr, ";")
 	for _, s := range sqlcommands {

@@ -1,5 +1,5 @@
 import { toast } from "react-toastify";
-import api from "../Api/axios";
+import API from "../api/axios";
 
 
 export const validateSupplierForm = (supplier) => {
@@ -256,7 +256,7 @@ export const validateCategoryForm = async (categoryObj, updatingId) => {
   }
 
   try {
-    const res = await api.get("/categories", {
+    const res = await API.get("/categories", {
       params: { q: name }
     })
 

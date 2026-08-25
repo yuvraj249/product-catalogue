@@ -69,13 +69,14 @@ func createRefreshToken(ctx context.Context, userID int, familyID string) (strin
 	}
 
 	tokenHash := hashToken(rawToken)
-	expiresAt := time.Now().Add(refreshTokenExpiry)
+	expiresAtStr := time.Now().Add(refreshTokenExpiry).Format("2006-01-02 15:04:05")
 
 	_, err = config.DB.ExecContext(ctx,
 		"INSERT INTO refresh_tokens (token_hash, user_id, family_id, expires_at) VALUES (?, ?, ?, ?)",
-		tokenHash, userID, familyID, expiresAt,
+		tokenHash, userID, familyID, expiresAtStr,
 	)
 	if err != nil {
+		fmt.Printf("[REFRESH TOKEN ERROR] %v\n", err)
 		return "", err
 	}
 

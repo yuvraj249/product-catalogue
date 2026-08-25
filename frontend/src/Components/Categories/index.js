@@ -1,5 +1,5 @@
 import React, {useState, useEffect, useCallback, useMemo} from 'react'
-import api from '../../Api/axios'
+import api from '../../api/axios'
 import { getUserInfo } from '../../utils/auth'
 import {
     PageHeader,

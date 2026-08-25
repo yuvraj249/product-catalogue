@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import api from '../../Api/axios';
+import api from '../../api/axios';
 import { useCallback } from 'react';
 import { getUserInfo } from '../../utils/auth';
 import { useDebounce } from '../../DebounceSearch';

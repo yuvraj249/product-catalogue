@@ -11,7 +11,7 @@ import {
 import { SupplierSelect } from "./Styles";
 import xIcon from "../../Images/cross.svg";
 import ModalBox from "../ModalBox";
-import api from "../../Api/axios";
+import api from "../../api/axios";
 import { toast } from "react-toastify";
 import { useEffect, useState, useMemo } from "react";
 import FormField from "../FormField";

@@ -1,7 +1,7 @@
 import {ModalHeader, ModalTitle, CloseButton, Form, Input, ModalActions, Icon, Button} from "../CommonUIStyles/Styles"
 import xIcon from "../../Images/cross.svg"
 import ModalBox from "../ModalBox"
-import api from "../../Api/axios"
+import api from "../../api/axios"
 import { toast } from "react-toastify"
 import { useEffect, useState } from "react"
 import FormField from "../FormField"
